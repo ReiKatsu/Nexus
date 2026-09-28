@@ -2,17 +2,17 @@ import Link from "next/link";
 
 type NavbarProps = {
   displayName: string;
-  activeItem: "home" | "missions";
+  activeItem: "home" | "missions" | "my-squad";
 };
 
-const futureNavigationItems = ["Leaderboard", "My Squad"];
+const navigationClassName =
+  "whitespace-nowrap rounded-lg px-2 py-2 transition-colors sm:px-2.5 md:px-3";
+const activeClassName = "bg-indigo-50 text-indigo-600";
+const inactiveClassName =
+  "text-slate-600 hover:bg-slate-50 hover:text-slate-900";
 
 export default function Navbar({ displayName, activeItem }: NavbarProps) {
   const initial = displayName.trim().charAt(0).toUpperCase() || "N";
-  const navigationClassName =
-    "whitespace-nowrap rounded-lg px-2 py-2 transition-colors sm:px-2.5 md:px-3";
-  const activeClassName = "bg-indigo-50 text-indigo-600";
-  const inactiveClassName = "text-slate-600 hover:bg-slate-50 hover:text-slate-900";
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-slate-200/80 bg-white/90 backdrop-blur">
@@ -44,15 +44,19 @@ export default function Navbar({ displayName, activeItem }: NavbarProps) {
           >
             Missions
           </Link>
-          {futureNavigationItems.map((item) => (
-            <span
-              key={item}
-              aria-disabled="true"
-              className="cursor-default whitespace-nowrap rounded-lg px-2 py-2 text-slate-400 sm:px-2.5 md:px-3"
-            >
-              {item}
-            </span>
-          ))}
+          <span
+            aria-disabled="true"
+            className="cursor-default whitespace-nowrap rounded-lg px-2 py-2 text-slate-400 sm:px-2.5 md:px-3"
+          >
+            Leaderboard
+          </span>
+          <Link
+            href="/my-squad"
+            aria-current={activeItem === "my-squad" ? "page" : undefined}
+            className={`${navigationClassName} ${activeItem === "my-squad" ? activeClassName : inactiveClassName}`}
+          >
+            My Squad
+          </Link>
         </nav>
 
         <div
