@@ -241,6 +241,8 @@ export default async function MissionDetailPage({
             primaryClasses={primaryClassesResult.data ?? []}
             primaryClassesLoadFailed={Boolean(primaryClassesResult.error)}
             registrationOpen={registrationOpen}
+            hasActiveMembership={hasActiveMembership}
+            membershipLoadFailed={Boolean(activeMembershipResult.error)}
             minimumTeamSize={mission.min_anggota_tim}
             maximumTeamSize={mission.max_anggota_tim}
           />
