@@ -24,6 +24,8 @@ type CreateSquadFormProps = {
   primaryClasses: CreateSquadPrimaryClass[];
   primaryClassesLoadFailed: boolean;
   registrationOpen: boolean;
+  hasActiveMembership: boolean;
+  membershipLoadFailed: boolean;
   minimumTeamSize: number | null;
   maximumTeamSize: number | null;
 };
@@ -33,6 +35,8 @@ export default function CreateSquadForm({
   primaryClasses,
   primaryClassesLoadFailed,
   registrationOpen,
+  hasActiveMembership,
+  membershipLoadFailed,
   minimumTeamSize,
   maximumTeamSize,
 }: CreateSquadFormProps) {
@@ -82,17 +86,21 @@ export default function CreateSquadForm({
   const remainingSlots =
     requiredSlots === null ? null : requiredSlots - allocatedSlots;
 
-  const availabilityMessage = !registrationOpen
-    ? "Pendaftaran Mission telah ditutup. Squad baru tidak dapat dibuat."
-    : minimumTeamSize === null || maximumTeamSize === null
-      ? "Batas anggota Mission belum tersedia. Squad belum dapat dibuat."
-      : maximumTeamSize === 1
-        ? "Mission ini merupakan lomba individu dan tidak menggunakan Squad."
-        : primaryClassesLoadFailed
-          ? "Pilihan Primary Class belum dapat dimuat. Coba muat ulang halaman."
-          : primaryClasses.length === 0
-            ? "Belum ada Primary Class yang tersedia untuk requirements."
-            : null;
+  const availabilityMessage = membershipLoadFailed
+    ? "Status keanggotaan Squad belum dapat diperiksa. Coba muat ulang halaman."
+    : hasActiveMembership
+      ? "Anda sudah menjadi anggota atau Ketua Squad pada Mission ini."
+      : !registrationOpen
+        ? "Pendaftaran Mission telah ditutup. Squad baru tidak dapat dibuat."
+        : minimumTeamSize === null || maximumTeamSize === null
+          ? "Batas anggota Mission belum tersedia. Squad belum dapat dibuat."
+          : maximumTeamSize === 1
+            ? "Mission ini merupakan lomba individu dan tidak menggunakan Squad."
+            : primaryClassesLoadFailed
+              ? "Pilihan Primary Class belum dapat dimuat. Coba muat ulang halaman."
+              : primaryClasses.length === 0
+                ? "Belum ada Primary Class yang tersedia untuk requirements."
+                : null;
 
   function clearMessages() {
     setFormErrors({});
