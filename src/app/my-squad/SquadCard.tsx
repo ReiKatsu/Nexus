@@ -123,10 +123,10 @@ export default function SquadCard({
 
       <div className="mt-auto pt-5">
         <Link
-          href={`/missions/${item.missionId}`}
+          href={isHistory ? `/missions/${item.missionId}` : `/squads/${item.squadId}`}
           className="inline-flex w-full justify-center rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:ring-offset-2"
         >
-          Lihat Mission
+          {isHistory ? "Lihat Mission" : "Buka Squad Room"}
         </Link>
       </div>
     </article>
