@@ -5,6 +5,7 @@ import Navbar from "@/components/layout/Navbar";
 import { createClient } from "@/lib/supabase/server";
 
 import SquadChat from "./SquadChat";
+import MembershipActions from "./MembershipActions";
 import type { RoomMember, RoomMessage } from "./types";
 
 const UUID_PATTERN =
@@ -125,6 +126,13 @@ export default async function SquadRoomPage({ params }: SquadRoomPageProps) {
   const mission = missionResult.data;
   const members = (membersResult.data ?? []) as RoomMember[];
   const messages = ((messagesResult.data ?? []) as RoomMessage[]).reverse();
+  const currentMember = members.find(
+    (member) => member.member_user_id === authData.user.id,
+  );
+  const canChangeMembership = ["OPEN_RECRUITMENT", "FULL"].includes(
+    squad.status_squad,
+  );
+  const isLeader = currentMember?.role_squad === "KETUA";
   const tier = Array.isArray(mission.mission_tiers)
     ? mission.mission_tiers[0]
     : mission.mission_tiers;
@@ -189,9 +197,19 @@ export default async function SquadRoomPage({ params }: SquadRoomPageProps) {
                       {" · "}
                       {member.nama_class ?? "Class belum tersedia"}
                     </p>
+                    {canChangeMembership && isLeader && member.role_squad === "ANGGOTA" && (
+                      <MembershipActions
+                        squadId={squadId}
+                        memberUserId={member.member_user_id}
+                        memberName={member.nama_lengkap}
+                      />
+                    )}
                   </li>
                 ))}
               </ul>
+              {canChangeMembership && currentMember?.role_squad === "ANGGOTA" && (
+                <MembershipActions squadId={squadId} />
+              )}
             </section>
           </aside>
         </div>

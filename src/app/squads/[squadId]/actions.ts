@@ -4,11 +4,107 @@ import { revalidatePath } from "next/cache";
 
 import { createClient } from "@/lib/supabase/server";
 
-import type { SendMessageResult } from "./types";
+import type { MembershipActionResult, SendMessageResult } from "./types";
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const MAX_MESSAGE_LENGTH = 2000;
+
+async function getActiveUser() {
+  const supabase = await createClient();
+  const { data: authData, error: authError } = await supabase.auth.getUser();
+  if (authError || !authData.user) return null;
+
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("status_akun, role_app")
+    .eq("user_id", authData.user.id)
+    .maybeSingle();
+
+  return !profileError && profile?.status_akun === "ACTIVE" && profile.role_app === "STUDENT"
+    ? { supabase, userId: authData.user.id }
+    : null;
+}
+
+export async function leaveSquad(squadId: string): Promise<MembershipActionResult> {
+  if (!UUID_PATTERN.test(squadId)) {
+    return { success: false, message: "Squad tidak valid." };
+  }
+
+  const actor = await getActiveUser();
+  if (!actor) {
+    return { success: false, message: "Akun aktif diperlukan untuk keluar dari Squad." };
+  }
+
+  const { data: membership, error: membershipError } = await actor.supabase
+    .from("squad_members")
+    .select("role_squad, squads!inner(status_squad)")
+    .eq("squad_id", squadId)
+    .eq("user_id", actor.userId)
+    .eq("status_member", "ACTIVE")
+    .maybeSingle();
+
+  const squad = Array.isArray(membership?.squads) ? membership.squads[0] : membership?.squads;
+  if (membershipError || !membership || membership.role_squad !== "ANGGOTA" ||
+      !squad || !["OPEN_RECRUITMENT", "FULL"].includes(squad.status_squad)) {
+    return { success: false, message: "Kamu tidak dapat keluar dari Squad ini." };
+  }
+
+  const { error } = await actor.supabase.rpc("leave_squad", { p_squad_id: squadId });
+  if (error) {
+    return { success: false, message: "Gagal keluar dari Squad. Muat ulang lalu coba lagi." };
+  }
+
+  revalidatePath("/my-squad");
+  revalidatePath(`/squads/${squadId}`);
+  return { success: true };
+}
+
+export async function kickSquadMember(
+  squadId: string,
+  memberUserId: string,
+): Promise<MembershipActionResult> {
+  if (!UUID_PATTERN.test(squadId) || !UUID_PATTERN.test(memberUserId)) {
+    return { success: false, message: "Anggota Squad tidak valid." };
+  }
+
+  const actor = await getActiveUser();
+  if (!actor || actor.userId === memberUserId) {
+    return { success: false, message: "Kamu tidak dapat mengeluarkan anggota ini." };
+  }
+
+  const { data: squad, error: squadError } = await actor.supabase
+    .from("squads")
+    .select("status_squad, ketua_id")
+    .eq("squad_id", squadId)
+    .maybeSingle();
+  const { data: member, error: memberError } = await actor.supabase
+    .from("squad_members")
+    .select("role_squad")
+    .eq("squad_id", squadId)
+    .eq("user_id", memberUserId)
+    .eq("status_member", "ACTIVE")
+    .maybeSingle();
+
+  if (squadError || memberError || !squad || squad.ketua_id !== actor.userId ||
+      !["OPEN_RECRUITMENT", "FULL"].includes(squad.status_squad) ||
+      !member || member.role_squad !== "ANGGOTA") {
+    return { success: false, message: "Anggota ini tidak dapat dikeluarkan dari Squad." };
+  }
+
+  const { error } = await actor.supabase.rpc("kick_squad_member", {
+    p_squad_id: squadId,
+    p_user_id: memberUserId,
+    p_reason: "Dikeluarkan oleh ketua Squad.",
+  });
+  if (error) {
+    return { success: false, message: "Gagal mengeluarkan anggota. Muat ulang lalu coba lagi." };
+  }
+
+  revalidatePath("/my-squad");
+  revalidatePath(`/squads/${squadId}`);
+  return { success: true };
+}
 
 export async function sendSquadMessage(
   squadId: string,
