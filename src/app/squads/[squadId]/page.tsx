@@ -5,6 +5,7 @@ import Navbar from "@/components/layout/Navbar";
 import { createClient } from "@/lib/supabase/server";
 
 import SquadChat from "./SquadChat";
+import FinalizeSquadButton from "./FinalizeSquadButton";
 import MembershipActions from "./MembershipActions";
 import type { RoomMember, RoomMessage } from "./types";
 
@@ -107,7 +108,7 @@ export default async function SquadRoomPage({ params }: SquadRoomPageProps) {
   const [missionResult, membersResult, messagesResult] = await Promise.all([
     supabase
       .from("missions")
-      .select("nama_lomba, penyelenggara, cakupan_peserta, biaya_pendaftaran, mode_lomba, deadline_lomba, mission_tiers(kode_tier)")
+      .select("nama_lomba, penyelenggara, cakupan_peserta, biaya_pendaftaran, mode_lomba, deadline_lomba, min_anggota_tim, mission_tiers(kode_tier)")
       .eq("mission_id", squad.mission_id)
       .maybeSingle(),
     supabase.rpc("get_squad_room_members", { p_squad_id: squadId }),
@@ -168,6 +169,20 @@ export default async function SquadRoomPage({ params }: SquadRoomPageProps) {
             initialMessages={messages}
           />
           <aside className="space-y-6">
+            {canChangeMembership && isLeader && (
+              <section className="rounded-2xl border border-slate-200 bg-white p-5">
+                <h2 className="text-lg font-bold text-slate-950">Finalisasi Squad</h2>
+                <p className="my-3 text-sm text-slate-600">
+                  Setelah finalisasi, perekrutan dan perubahan anggota terkunci.
+                  Lamaran Pending tidak menghalangi finalisasi.
+                </p>
+                <FinalizeSquadButton
+                  squadId={squadId}
+                  activeCount={members.length}
+                  minimumCount={mission.min_anggota_tim}
+                />
+              </section>
+            )}
             <section className="rounded-2xl border border-slate-200 bg-white p-5">
               <h2 className="text-lg font-bold text-slate-950">Mission</h2>
               <p className="mt-3 font-semibold">{mission.nama_lomba}</p>
