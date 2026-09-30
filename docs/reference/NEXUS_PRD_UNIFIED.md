@@ -1198,10 +1198,10 @@ Semua data contoh, nama pengguna, XP, tahun, hitungan, tanggal, dan isi chat C1 
 - Ringkasan Squad/Mission dan keterangan hanya Ketua dapat mengirim setelah FINALIZED.
 - Pilihan pencapaian: Participant, Finalist, Juara 3, Juara 2, Juara 1, dipetakan ke hasil_kompetisi_enum. Tier yang diajukan S/A/B/C mengikuti VAL-01; bukan perubahan Tier resmi Mission.
 - Konfirmasi Tier menampilkan/memilih tier pengajuan sesuai kontrak hasil; admin menetapkan tier/hasil approved. Jangan memberi caller kendali approved_tier/approved_xp.
-- Sertifikat tim wajib; dokumen pendukung opsional. DATA-15 menyediakan satu dokumen_pendukung_path opsional. Tombol tambah dokumen C1 tidak membuktikan dukungan banyak file; jangan mengubahnya menjadi array/unlimited tanpa keputusan UI-G03.
+- Sertifikat tim wajib; maksimal satu dokumen pendukung opsional. Keputusan pengguna 30 September 2026 untuk UI-13: PDF/JPG/PNG, 5 MB desimal (5.000.000 byte) per file. DATA-15 menyediakan satu dokumen_pendukung_path opsional.
 - Preview: jenis Verified Mission XP, Tier, hasil, nilai penuh 100%, XP per anggota eligible, label menunggu verifikasi. Jangan membagi XP dengan jumlah anggota.
 - Aksi kirim hasil dan Kembali; PENDING menampilkan status untuk anggota terkait; REJECTED alasan/perbaikan pada ID sama; APPROVED menunjukkan hasil final dan Mission Completed.
-- C1 menyebut PDF/PNG/JPG maksimal 5MB; target upload ini perlu keputusan ukuran/config UI-G03 sebelum dinyatakan berfungsi.
+- Batas UI-13 ditegakkan di server, client, dan bucket Storage privat. Record hasil baru serta resubmit diverifikasi terhadap bukti yang sudah diunggah oleh pemilik ke folder Squad.
 - **Data/tes:** mission_result_submissions, xp_rules, Storage, ledger; T17, T25, U09.
 
 ### UI-14 Admin Intervention mahasiswa
@@ -1353,7 +1353,7 @@ Status seluruh baris **NEEDS DECISION** atau **NOT VERIFIED** sebagaimana dijela
 |---|---|---|
 | UI-G01 | Isi dropdown Filter C1 tidak terbaca lengkap | Pakai filter MIS-02; tambahan cakupan/sort bukan otomatis requirement |
 | UI-G02 | Skill recruitment pada Create tidak ada dalam kontrak RPC | Jangan membuat field palsu yang tidak tersimpan atau mengubah RPC tanpa keputusan |
-| UI-G03 | C1 PDF/PNG/JPG maks. 5MB; batas di FILE-01 belum final; jumlah dokumen pendukung | C1 menjadi usulan konkret; konfirmasi config/batas ukuran (termasuk definisi MB), jumlah file dan avatar terpisah sebelum kontrak upload ditutup |
+| UI-G03 | RESOLVED untuk Submit Hasil Mission (30 September 2026): satu sertifikat wajib, satu dokumen pendukung opsional; PDF/JPG/PNG, maksimal 5.000.000 byte per file | Berlaku hanya untuk UI-13; batas avatar dan klaim Achievement belum diputuskan. Bucket hasil dibatasi 5 MB dan guard path/owner diberlakukan lewat migration 20260930115447. |
 | UI-G04 | Daftar Jenis Masalah laporan | Jangan mengarang enum/kategori; putuskan opsi atau input bebas sesuai kebutuhan |
 | UI-G05 | Countdown x/y hari, persentase 47%, awal periode belum didefinisikan | Deadline riil dapat tampil; jangan membuat progress pekerjaan atau rumus durasi baru |
 | UI-G06 | Scope Fakultas/Prodi milik sendiri vs dapat memilih unit lain | Gunakan pola existing yang terbukti; putuskan hak/pilihan lintas unit sebelum menambah dropdown |
