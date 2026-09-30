@@ -55,7 +55,7 @@ export async function POST(request: Request, { params }: Context) {
       .eq("squad_id", squadId).eq("user_id", userId)
       .eq("status_member", "ACTIVE").maybeSingle(),
     supabase.from("mission_result_submissions")
-      .select("result_submission_id, submitted_by, status_validation")
+      .select("result_submission_id, submitted_by, status_validation, sertifikat_path, dokumen_pendukung_path")
       .eq("squad_id", squadId).maybeSingle(),
   ]);
 
@@ -169,6 +169,21 @@ export async function POST(request: Request, { params }: Context) {
   if (submitted.error || !submitted.data) {
     await cleanup();
     return fail("Hasil belum tersimpan. Muat ulang lalu coba lagi.", 409);
+  }
+
+  if (existing) {
+    const oldPaths = [existing.sertifikat_path, existing.dokumen_pendukung_path]
+      .filter((path): path is string =>
+        typeof path === "string" && path.startsWith(`${userId}/${squadId}/`));
+    // The new result is already saved, so an old-file cleanup error must not
+    // make this successful submission appear to have failed.
+    if (oldPaths.length) {
+      try {
+        await storage.remove(oldPaths);
+      } catch {
+        // Retain the saved result; a failed deletion can be retried separately.
+      }
+    }
   }
 
   revalidatePath(`/squads/${squadId}`);
