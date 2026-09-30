@@ -106,6 +106,61 @@ export async function kickSquadMember(
   return { success: true };
 }
 
+export async function finalizeSquad(squadId: string): Promise<MembershipActionResult> {
+  if (typeof squadId !== "string" || !UUID_PATTERN.test(squadId)) {
+    return { success: false, message: "Squad tidak valid." };
+  }
+
+  const actor = await getActiveUser();
+  if (!actor) {
+    return { success: false, message: "Akun aktif diperlukan untuk finalisasi Squad." };
+  }
+
+  const { data: squad, error: squadError } = await actor.supabase
+    .from("squads")
+    .select("mission_id, ketua_id, status_squad")
+    .eq("squad_id", squadId)
+    .maybeSingle();
+
+  if (squadError || !squad || squad.ketua_id !== actor.userId ||
+      !["OPEN_RECRUITMENT", "FULL"].includes(squad.status_squad)) {
+    return { success: false, message: "Squad ini tidak dapat difinalisasi." };
+  }
+
+  const [missionResult, membersResult] = await Promise.all([
+    actor.supabase
+      .from("missions")
+      .select("min_anggota_tim")
+      .eq("mission_id", squad.mission_id)
+      .maybeSingle(),
+    actor.supabase.rpc("get_squad_room_members", { p_squad_id: squadId }),
+  ]);
+  if (missionResult.error || membersResult.error || !missionResult.data ||
+      !Array.isArray(membersResult.data)) {
+    return { success: false, message: "Syarat finalisasi belum dapat diperiksa." };
+  }
+  const minimum = missionResult.data.min_anggota_tim;
+  if (minimum === null || membersResult.data.length < minimum) {
+    return { success: false, message: "Jumlah anggota aktif belum memenuhi minimum Mission." };
+  }
+
+  // The RPC locks the Squad and checks the active count again atomically.
+  const { error } = await actor.supabase.rpc("finalize_squad", {
+    p_squad_id: squadId,
+  });
+  if (error) {
+    return {
+      success: false,
+      message: "Finalisasi gagal. Pastikan anggota aktif memenuhi minimum Mission, lalu muat ulang.",
+    };
+  }
+
+  revalidatePath("/my-squad");
+  revalidatePath(`/squads/${squadId}`);
+  revalidatePath(`/missions/${squad.mission_id}`);
+  return { success: true };
+}
+
 export async function sendSquadMessage(
   squadId: string,
   content: string,

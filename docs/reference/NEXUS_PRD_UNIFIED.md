@@ -184,7 +184,7 @@ Cakupan implementasi rentang: schema → data existing/backfill berdasarkan atur
 | FINALIZED | Locked | Tidak | Tidak; melalui Admin Intervention | Hanya Ketua |
 | MISSION_COMPLETED | Tidak tampil; history | Tidak | Tidak melalui flow biasa | Tidak submit baru |
 
-Transisi normal: create → OPEN_RECRUITMENT; penerimaan hingga kapasitas → FULL; slot kosong karena leave/kick sebelum Finalized → OPEN_RECRUITMENT; Ketua finalize dari OPEN_RECRUITMENT/FULL → FINALIZED; APPROVE hasil → MISSION_COMPLETED. Finalize tidak mensyaratkan FULL dalam RPC snapshot. Kebijakan minimum jumlah anggota aktual ketika finalize pada Mission baru belum diputuskan (G03); kapasitas target tidak sama dengan jumlah member saat ini.
+Transisi normal: create → OPEN_RECRUITMENT; penerimaan hingga kapasitas → FULL; slot kosong karena leave/kick sebelum Finalized → OPEN_RECRUITMENT; Ketua finalize dari OPEN_RECRUITMENT/FULL → FINALIZED; APPROVE hasil → MISSION_COMPLETED. Keputusan G03 (30 September 2026): Finalize tidak mensyaratkan FULL, tetapi jumlah anggota ACTIVE harus mencapai `missions.min_anggota_tim`. Jika minimum belum ditetapkan, Finalize ditahan. Lamaran PENDING tidak menghalangi Finalize dan tidak dibatalkan otomatis. Kapasitas target tidak sama dengan jumlah member saat ini.
 
 ### SQ-02 Create Squad
 
@@ -928,13 +928,13 @@ Enam object turunan terinventaris kolomnya: public_profiles, career_xp_totals, c
 | D11 | Rank-Up event kredit XP; badge posisi weekly; bukan semua badge weekly | H0 §§8.5,9.4 |
 | D12 | Guard status, service role administratif dan privileges biasa dibedakan | A1, M1/M2 |
 
-### 13.2 Gap terbuka: hanya pause scope yang bergantung padanya
+### 13.2 Gap terbuka dan keputusan terkait
 
 | ID | Masalah / status | Aksi sebelum implementasi terkait |
 |---|---|---|
 | G01 | Max Mission=1 vs minimum Squad=2; NEEDS DECISION | Tentukan alur individual/UX; jangan auto-create Squad satu orang |
 | G02 | Backfill batas peserta dan perubahan Mission yang punya Squad; NEEDS DECISION | Minta data resmi dan kebijakan legacy; jangan hapus Squad atau tebakan batas |
-| G03 | Kapasitas target vs jumlah ACTIVE ketika Finalize | Konfirmasi syarat jumlah aktual; RPC sekarang mengizinkan OPEN finalize |
+| G03 | RESOLVED 30 September 2026: kapasitas target vs jumlah ACTIVE ketika Finalize | Jumlah ACTIVE minimal `missions.min_anggota_tim`; FULL tidak wajib; PENDING tidak menghalangi; minimum NULL menahan Finalize. Validasi ulang dalam RPC. |
 | G04 | Kebutuhan Class/Skills sebagai quota keras atau preferensi | Konfirmasi sebelum menambah validator acceptance; snapshot tidak memeriksa quota |
 | G05 | Create ketika ada PENDING application lain | Tentukan nasib application; auto-cancel terbukti di acceptance, bukan create |
 | G06 | Ketua self-leave, transfer dan pembatalan recruitment | Jangan invent role/status baru; tentukan flow minimal |
