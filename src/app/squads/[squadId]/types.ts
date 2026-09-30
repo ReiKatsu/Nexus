@@ -16,3 +16,5 @@ export type RoomMessage = {
 export type SendMessageResult =
   | { success: true }
   | { success: false; message: string };
+
+export type MembershipActionResult = SendMessageResult;
