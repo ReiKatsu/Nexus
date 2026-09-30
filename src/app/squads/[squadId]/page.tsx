@@ -169,6 +169,19 @@ export default async function SquadRoomPage({ params }: SquadRoomPageProps) {
             initialMessages={messages}
           />
           <aside className="space-y-6">
+            {squad.status_squad === "FINALIZED" && (
+              <section className="rounded-2xl border border-slate-200 bg-white p-5">
+                <h2 className="text-lg font-bold text-slate-950">Hasil Mission</h2>
+                <p className="my-3 text-sm text-slate-600">
+                  Ketua mengirim hasil dan sertifikat untuk diverifikasi admin.
+                  Anggota dapat melihat status pengajuan.
+                </p>
+                <Link href={`/squads/${squadId}/result`}
+                  className="inline-flex rounded-xl bg-indigo-600 px-4 py-2 text-sm font-bold text-white">
+                  {isLeader ? "Kirim / Lihat Hasil" : "Lihat Status Hasil"}
+                </Link>
+              </section>
+            )}
             {canChangeMembership && isLeader && (
               <section className="rounded-2xl border border-slate-200 bg-white p-5">
                 <h2 className="text-lg font-bold text-slate-950">Finalisasi Squad</h2>

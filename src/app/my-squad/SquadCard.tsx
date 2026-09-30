@@ -122,6 +122,13 @@ export default function SquadCard({
       ) : null}
 
       <div className="mt-auto pt-5">
+        {isHistory && item.membershipStatus === "ACTIVE" &&
+          item.squadStatus === "MISSION_COMPLETED" && (
+            <Link href={`/squads/${item.squadId}/result`}
+              className="mb-3 inline-flex w-full justify-center rounded-xl border border-indigo-200 px-4 py-2.5 text-sm font-bold text-indigo-700">
+              Lihat Hasil Mission
+            </Link>
+          )}
         <Link
           href={isHistory ? `/missions/${item.missionId}` : `/squads/${item.squadId}`}
           className="inline-flex w-full justify-center rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:ring-offset-2"
