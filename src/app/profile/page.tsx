@@ -87,7 +87,7 @@ export default async function ProfilePage() {
           <h1 className="text-2xl font-bold">Profil Saya</h1>
           <Link href="/profile/edit"
             className="rounded-lg border border-indigo-200 px-4 py-2 text-sm font-semibold text-indigo-700 hover:bg-indigo-50">
-            Edit nama dan bio
+            Edit profil
           </Link>
         </div>
         <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-6">
