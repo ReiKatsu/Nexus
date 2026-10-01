@@ -2,7 +2,7 @@ import Link from "next/link";
 
 type NavbarProps = {
   displayName: string;
-  activeItem: "home" | "missions" | "my-squad" | "admin" | "notifications";
+  activeItem: "home" | "missions" | "my-squad" | "admin" | "notifications" | "profile";
   isAdmin?: boolean;
 };
 
@@ -75,13 +75,14 @@ export default function Navbar({ displayName, activeItem, isAdmin = false }: Nav
           >
             Notifikasi
           </Link>
-          <div
-            aria-label="Profile"
-            title={displayName || "Profile"}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-sm font-bold text-indigo-700 ring-1 ring-inset ring-indigo-200"
+          <Link href="/profile"
+            aria-current={activeItem === "profile" ? "page" : undefined}
+            aria-label={`Buka profil ${displayName || "saya"}`}
+            title={displayName || "Profil saya"}
+            className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-sm font-bold text-indigo-700 ring-1 ring-inset ring-indigo-200 ${activeItem === "profile" ? "ring-2 ring-indigo-600" : ""}`}
           >
             {initial}
-          </div>
+          </Link>
         </div>
       </div>
     </header>
