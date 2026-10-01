@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import Navbar from "@/components/layout/Navbar";
@@ -82,7 +83,13 @@ export default async function ProfilePage() {
       <Navbar displayName={profile.nama_lengkap} activeItem="profile"
         isAdmin={profile.role_app === "ADMIN"} />
       <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
-        <h1 className="text-2xl font-bold">Profil Saya</h1>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h1 className="text-2xl font-bold">Profil Saya</h1>
+          <Link href="/profile/edit"
+            className="rounded-lg border border-indigo-200 px-4 py-2 text-sm font-semibold text-indigo-700 hover:bg-indigo-50">
+            Edit nama dan bio
+          </Link>
+        </div>
         <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-6">
           <div className="flex flex-wrap items-center gap-4">
             {avatar ? (
