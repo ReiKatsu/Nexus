@@ -26,7 +26,7 @@ export default function LoginPage() {
             Masuk ke NEXUS
           </h1>
           <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-slate-500 sm:text-base">
-            Gunakan akun mahasiswa UNESA Anda untuk melanjutkan.
+            Gunakan akun NEXUS Anda untuk melanjutkan.
           </p>
         </header>
 

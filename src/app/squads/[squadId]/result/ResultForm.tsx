@@ -108,9 +108,13 @@ export default function ResultForm({
   }
 
   if (initialResult?.status_validation === "APPROVED") {
+    const finalResult = initialResult.approved_hasil_kompetisi ?? initialResult.hasil_kompetisi;
+    const finalTier = tiers.find((tier) => tier.tier_id === initialResult.approved_tier_id);
     return (
       <div className="mt-6 rounded-xl bg-emerald-50 p-4 text-sm text-emerald-900">
         <p className="font-bold">Hasil disetujui · Mission selesai</p>
+        <p className="mt-2">{RESULT_OPTIONS.find((option) => option.value === finalResult)?.label}
+          {" · "}Tier {finalTier?.kode_tier ?? "—"}</p>
         <p className="mt-2">XP disetujui: +{initialResult.approved_xp ?? 0} per anggota yang berhak.</p>
       </div>
     );

@@ -51,7 +51,7 @@ export default async function MissionResultPage({ params }: Props) {
     supabase.from("missions").select("nama_lomba")
       .eq("mission_id", squad.mission_id).maybeSingle(),
     supabase.from("mission_result_submissions")
-      .select("result_submission_id, hasil_kompetisi, submitted_tier_id, approved_tier_id, preview_xp, approved_xp, status_validation, rejection_reason, submitted_at")
+      .select("result_submission_id, hasil_kompetisi, submitted_tier_id, approved_tier_id, approved_hasil_kompetisi, preview_xp, approved_xp, status_validation, rejection_reason, submitted_at")
       .eq("squad_id", squadId).maybeSingle(),
     supabase.from("mission_tiers").select("tier_id, kode_tier").order("tier_id"),
     supabase.from("xp_rules")

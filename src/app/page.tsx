@@ -12,7 +12,7 @@ export default async function HomePage() {
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("nama_lengkap, primary_class_id")
+    .select("nama_lengkap, primary_class_id, role_app, status_akun")
     .eq("user_id", authData.user.id)
     .maybeSingle();
 
@@ -34,6 +34,9 @@ export default async function HomePage() {
     );
   }
 
+  if (profile.role_app === "ADMIN" && profile.status_akun === "ACTIVE") {
+    redirect("/admin/results");
+  }
   if (profile.primary_class_id === null) redirect("/onboarding");
 
   const [primaryClassResult, userSkillsResult] = await Promise.all([
