@@ -11,10 +11,6 @@ type LoginFeedback = {
   message: string;
 };
 
-const STUDENT_EMAIL_ERROR_MESSAGE =
-  "Gunakan email mahasiswa UNESA (@mhs.unesa.ac.id).";
-const STUDENT_EMAIL_PATTERN = /^[^@\s]+@mhs\.unesa\.ac\.id$/;
-
 const inputClassName =
   "h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100";
 
@@ -51,10 +47,7 @@ export default function LoginForm() {
   const loginInProgressRef = useRef(false);
   const router = useRouter();
 
-  const emailIsStudentAddress = STUDENT_EMAIL_PATTERN.test(email);
-  const emailHasDomainError = email.length > 0 && !emailIsStudentAddress;
-  const formIsValid =
-    nativeFormIsValid && emailIsStudentAddress && password.length > 0;
+  const formIsValid = nativeFormIsValid && email.length > 0 && password.length > 0;
   const loginCompleted = loginFeedback?.type === "success";
   const submitButtonDisabled =
     !formIsValid || isSubmitting || loginCompleted;
@@ -103,7 +96,7 @@ export default function LoginForm() {
       if (profileError) {
         setLoginFeedback({
           type: "error",
-          message: "Profil mahasiswa belum dapat dimuat. Silakan coba lagi.",
+          message: "Profil akun belum dapat dimuat. Silakan coba lagi.",
         });
         return;
       }
@@ -112,8 +105,14 @@ export default function LoginForm() {
         setLoginFeedback({
           type: "error",
           message:
-            "Profil mahasiswa tidak ditemukan. Silakan hubungi administrator.",
+            "Profil akun tidak ditemukan. Silakan hubungi administrator.",
         });
+        return;
+      }
+
+      if (profile.status_akun !== "ACTIVE") {
+        await supabase.auth.signOut();
+        setLoginFeedback({ type: "error", message: "Akun tidak aktif. Hubungi administrator." });
         return;
       }
 
@@ -121,9 +120,9 @@ export default function LoginForm() {
         type: "success",
         message: "Login berhasil. Mengarahkan Anda...",
       });
-      router.replace(
-        profile.primary_class_id === null ? "/onboarding" : "/",
-      );
+      router.replace(profile.role_app === "ADMIN"
+        ? "/admin/results"
+        : profile.primary_class_id === null ? "/onboarding" : "/");
     } catch {
       setLoginFeedback({
         type: "error",
@@ -149,31 +148,19 @@ export default function LoginForm() {
           htmlFor="email"
           className="mb-2 block text-sm font-semibold text-slate-700"
         >
-          Email Mahasiswa UNESA
+          Email akun NEXUS
         </label>
         <input
           id="email"
           name="email"
           type="email"
           autoComplete="email"
-          placeholder="nama@mhs.unesa.ac.id"
+          placeholder="Alamat email akun"
           value={email}
           onChange={(event) => setEmail(event.target.value)}
-          pattern={STUDENT_EMAIL_PATTERN.source}
-          aria-invalid={emailHasDomainError}
-          aria-describedby={emailHasDomainError ? "login-email-error" : undefined}
           className={inputClassName}
           required
         />
-        {emailHasDomainError && (
-          <p
-            id="login-email-error"
-            role="alert"
-            className="mt-2 text-xs text-red-600"
-          >
-            {STUDENT_EMAIL_ERROR_MESSAGE}
-          </p>
-        )}
       </div>
 
       <div>

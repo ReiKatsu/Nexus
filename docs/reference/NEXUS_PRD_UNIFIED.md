@@ -220,6 +220,8 @@ Anggota bisa leave sebelum Finalized. Ketua bisa kick anggota sebelum Finalized.
 
 Ketua FINALIZED mengisi hasil, tier yang diajukan, sertifikat tim dan dokumen pendukung opsional. Sistem menghitung preview XP, bukan menerima angka bebas client. PENDING tampil untuk anggota terkait. Admin memeriksa bukti, menetapkan approved tier dan hasil, lalu APPROVE/REJECT. Penolakan memerlukan alasan; resubmit memakai record yang sama, bukan membuat dua hasil per Squad.
 
+Keputusan implementasi review (1 Oktober 2026): hasil pengajuan tetap di `hasil_kompetisi`, sedangkan keputusan admin disimpan terpisah di `approved_hasil_kompetisi`. Record APPROVED sebelum perubahan ini boleh bernilai NULL pada kolom baru; pembacaan data lama menggunakan hasil pengajuan sebagai hasil final. Review hanya dari PENDING pada Squad FINALIZED; alasan penolakan wajib, dan XP final diturunkan dari tier serta hasil yang disetujui oleh database.
+
 APPROVE harus konsisten dalam satu transaksi: credit XP sama untuk seluruh membership ACTIVE → Squad MISSION_COMPLETED → hapus chat → notification. ADMIN_REMOVED tidak ACTIVE, tidak menerima XP. Approval tidak membagi nilai XP dengan jumlah member. Data APPROVED tidak diedit bebas; source guards dan unique ledger mencegah double credit.
 
 ### VAL-02 Achievement Validation

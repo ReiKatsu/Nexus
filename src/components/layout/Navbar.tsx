@@ -2,7 +2,8 @@ import Link from "next/link";
 
 type NavbarProps = {
   displayName: string;
-  activeItem: "home" | "missions" | "my-squad";
+  activeItem: "home" | "missions" | "my-squad" | "admin";
+  isAdmin?: boolean;
 };
 
 const navigationClassName =
@@ -11,7 +12,7 @@ const activeClassName = "bg-indigo-50 text-indigo-600";
 const inactiveClassName =
   "text-slate-600 hover:bg-slate-50 hover:text-slate-900";
 
-export default function Navbar({ displayName, activeItem }: NavbarProps) {
+export default function Navbar({ displayName, activeItem, isAdmin = false }: NavbarProps) {
   const initial = displayName.trim().charAt(0).toUpperCase() || "N";
 
   return (
@@ -57,6 +58,14 @@ export default function Navbar({ displayName, activeItem }: NavbarProps) {
           >
             My Squad
           </Link>
+          {isAdmin && (
+            <Link href="/admin/results"
+              aria-current={activeItem === "admin" ? "page" : undefined}
+              className={`${navigationClassName} ${activeItem === "admin" ? activeClassName : inactiveClassName}`}
+            >
+              Review Hasil
+            </Link>
+          )}
         </nav>
 
         <div

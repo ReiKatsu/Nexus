@@ -24,6 +24,7 @@ export type ResultRecord = {
   hasil_kompetisi: CompetitionResult;
   submitted_tier_id: number;
   approved_tier_id: number | null;
+  approved_hasil_kompetisi: CompetitionResult | null;
   preview_xp: number;
   approved_xp: number | null;
   status_validation: "PENDING" | "REJECTED" | "APPROVED";
