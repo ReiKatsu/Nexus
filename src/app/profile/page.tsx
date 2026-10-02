@@ -33,7 +33,8 @@ export default async function ProfilePage() {
   }
 
   const userId = auth.user.id;
-  const [classResult, programResult, skillsResult, careerResult, seasonResult, rulesResult] =
+  const [classResult, programResult, skillsResult, careerResult, seasonResult, rulesResult,
+    equippedResult] =
     await Promise.all([
       profile.primary_class_id === null
         ? Promise.resolve({ data: null, error: null })
@@ -49,6 +50,9 @@ export default async function ProfilePage() {
         .eq("status_season", "ACTIVE").maybeSingle(),
       supabase.from("rank_rules").select("rank_name, min_xp, max_xp")
         .order("min_xp", { ascending: true }),
+      supabase.from("user_badges")
+        .select("reward_context, badge_definitions(badge_name)")
+        .eq("user_id", userId).eq("is_equipped", true).maybeSingle(),
     ]);
 
   const [facultyResult, seasonalResult] = await Promise.all([
@@ -129,6 +133,26 @@ export default async function ProfilePage() {
             </ul>
           ) : <p className="mt-3 text-sm text-slate-600">Belum ada Skill yang dipilih.</p>}
         </section>
+
+        {profile.role_app === "STUDENT" && (
+          <section className="mt-8 rounded-2xl border border-slate-200 bg-white p-5">
+            <h2 className="text-lg font-bold">Badge</h2>
+            {equippedResult.error ? (
+              <p role="alert" className="mt-2 text-sm text-red-700">
+                Badge terpasang belum dapat dimuat.
+              </p>
+            ) : (
+              <p className="mt-2 text-sm text-slate-700">
+                {equippedResult.data?.badge_definitions?.[0]?.badge_name ??
+                  "Belum ada Badge terpasang."}
+              </p>
+            )}
+            <Link href="/profile/badges"
+              className="mt-3 inline-block text-sm font-semibold text-indigo-700 hover:underline">
+              Buka Badge Chest
+            </Link>
+          </section>
+        )}
 
         {profile.role_app === "STUDENT" && (
           <section className="mt-8">
