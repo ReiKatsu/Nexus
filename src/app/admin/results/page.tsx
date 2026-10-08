@@ -43,6 +43,10 @@ export default async function AdminResultsPage() {
       <Navbar displayName={admin.nama_lengkap} activeItem="admin" isAdmin />
       <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
         <h1 className="text-2xl font-bold">Review Hasil Mission</h1>
+        <Link href="/admin/achievements"
+          className="mt-3 inline-block text-sm font-semibold text-indigo-700 underline">
+          Review klaim prestasi
+        </Link>
         <p className="mt-2 text-sm text-slate-600">
           Pengajuan menunggu verifikasi. Daftar menampilkan maksimal 50 yang paling lama.
         </p>

@@ -133,6 +133,10 @@ export default async function ProfilePage() {
         {profile.role_app === "STUDENT" && (
           <section className="mt-8">
             <h2 className="text-lg font-bold">XP dan Rank</h2>
+            <Link href="/profile/claims"
+              className="mt-2 inline-block text-sm font-semibold text-indigo-700 underline">
+              Klaim prestasi di luar Squad NEXUS
+            </Link>
             <div className="mt-3 grid gap-4 sm:grid-cols-2">
               <RankCard label="Career" xp={careerResult.data.career_xp} rules={rules} />
               {seasonResult.data && seasonalResult.data ? (
