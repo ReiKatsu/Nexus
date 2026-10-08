@@ -3,6 +3,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import Navbar from "@/components/layout/Navbar";
+import EndorsementSummary from "@/components/profile/EndorsementSummary";
+import { loadEndorsementSummary } from "@/lib/endorsements";
 import { createClient } from "@/lib/supabase/server";
 
 import RankCard from "./RankCard";
@@ -33,7 +35,8 @@ export default async function ProfilePage() {
   }
 
   const userId = auth.user.id;
-  const [classResult, programResult, skillsResult, careerResult, seasonResult, rulesResult] =
+  const [classResult, programResult, skillsResult, careerResult, seasonResult, rulesResult,
+    endorsementSummary] =
     await Promise.all([
       profile.primary_class_id === null
         ? Promise.resolve({ data: null, error: null })
@@ -49,6 +52,7 @@ export default async function ProfilePage() {
         .eq("status_season", "ACTIVE").maybeSingle(),
       supabase.from("rank_rules").select("rank_name, min_xp, max_xp")
         .order("min_xp", { ascending: true }),
+      loadEndorsementSummary(supabase, userId),
     ]);
 
   const [facultyResult, seasonalResult] = await Promise.all([
@@ -145,6 +149,9 @@ export default async function ProfilePage() {
               )}
             </div>
           </section>
+        )}
+        {profile.role_app === "STUDENT" && (
+          <EndorsementSummary summary={endorsementSummary} />
         )}
       </main>
     </div>
