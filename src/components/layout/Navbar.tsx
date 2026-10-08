@@ -2,7 +2,7 @@ import Link from "next/link";
 
 type NavbarProps = {
   displayName: string;
-  activeItem: "home" | "missions" | "my-squad" | "admin" | "notifications" | "profile";
+  activeItem: "home" | "missions" | "leaderboard" | "my-squad" | "admin" | "notifications" | "profile";
   isAdmin?: boolean;
 };
 
@@ -45,12 +45,13 @@ export default function Navbar({ displayName, activeItem, isAdmin = false }: Nav
           >
             Missions
           </Link>
-          <span
-            aria-disabled="true"
-            className="cursor-default whitespace-nowrap rounded-lg px-2 py-2 text-slate-400 sm:px-2.5 md:px-3"
+          <Link
+            href="/leaderboard"
+            aria-current={activeItem === "leaderboard" ? "page" : undefined}
+            className={`${navigationClassName} ${activeItem === "leaderboard" ? activeClassName : inactiveClassName}`}
           >
             Leaderboard
-          </span>
+          </Link>
           <Link
             href="/my-squad"
             aria-current={activeItem === "my-squad" ? "page" : undefined}

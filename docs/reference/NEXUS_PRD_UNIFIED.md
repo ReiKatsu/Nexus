@@ -47,7 +47,7 @@ File lama dengan suffix (1)(1)/(2)(1) yang diunggah ulang identik dengan H0/D0. 
 
 **Otoritas target produk:** instruksi eksplisit terbaru pengguna → keputusan konsolidasi yang bersumber H1/D1 di PRD ini → D1/D0 untuk konflik teknis → H1/H0 untuk kebutuhan produk lain. PRD ini menggantikan pembacaan gabungan dokumen lama sebagai pedoman kebutuhan, tetapi tidak mengalahkan bukti aktual mengenai apa yang sudah ada.
 
-Riwayat perubahan lama diperlakukan sebagai sejarah, bukan perintah aktif. Contoh: penghapusan Admin Intervention pada REV5 sudah dibatalkan. Gap tanpa keputusan final dicatat pada bagian 13, bukan diberi dua aturan yang bertentangan.
+Riwayat perubahan lama diperlakukan sebagai sejarah, bukan perintah aktif. Admin Intervention sempat menjadi target MVP kembali, lalu laporan masalah Squad ditunda oleh keputusan ketua tim 8 Oktober 2026. Gap tanpa keputusan final dicatat pada bagian 13, bukan diberi dua aturan yang bertentangan.
 
 **Otoritas isi UI:** instruksi pengguna menetapkan C1 sebagai acuan informasi, kontrol, dan pilihan yang terlihat; warna, layout, font, ikon, dan dekorasi tidak wajib ditiru. Aturan bisnis, keamanan, enum, dan scope tetap mengikuti aturan kanonik PRD. Konflik C1 dituntaskan atau diberi NEEDS DECISION pada bagian 18. Penambahan dokumentasi UI tidak mengubah status deployment bagian 12.
 
@@ -73,7 +73,7 @@ Ketua bukan role_app baru. Seorang mahasiswa dapat menjadi Ketua di satu Squad d
 
 ### 2.2 Scope MVP
 
-Auth, onboarding, Home, Smart Profile/Edit Profil, Mission Discovery/Detail/Add Mission, Create/Apply/Recruitment Squad, My Squad, Squad Room/group chat, Finalize, Submit Mission Result, Achievement Validation, admin review/intervention, XP, Rank, Badge Chest, Seasonal Leaderboard, Endorsement, notification dan Season History.
+Auth, onboarding, Home, Smart Profile/Edit Profil, Mission Discovery/Detail/Add Mission, Create/Apply/Recruitment Squad, My Squad, Squad Room/group chat, Finalize, Submit Mission Result, Achievement Validation, admin review, XP, Rank, Badge Chest, Seasonal Leaderboard, Endorsement, notification dan Season History. Laporan masalah Squad/Admin Intervention ditunda berdasarkan arahan ketua tim 8 Oktober 2026; fungsi tersebut belum dinyatakan selesai atau dihapus dari desain.
 
 Auto-cleanup idle >30 hari adalah target Handbook tetapi desain penghapusan/definisi aktivitas masih NEEDS DECISION, bukan fitur selesai.
 
@@ -169,7 +169,7 @@ Target field pada mission_submissions dan missions: min_anggota_tim, max_anggota
 
 Untuk Squad dengan batas minimum existing dua orang, domain kapasitas yang valid adalah: integer C >= 2, min_anggota_tim <= C <= max_anggota_tim. Contoh range 3–5 mengizinkan kapasitas 3,4,5 dan requirements 2,3,4. Exact-size 4 hanya mengizinkan kapasitas 4 dan requirements 3. Contoh bukan data seed.
 
-Mission max=1 tidak mempunyai kapasitas Squad valid di aturan sekarang. Jangan mengubah minimum Squad ke satu atau membuat requirements kosong diam-diam; penanganan UI/flow kompetisi individual NEEDS DECISION G01.
+Keputusan ketua tim 8 Oktober 2026: Mission yang dimasukkan ke NEXUS khusus lomba tim, sehingga max=1 tidak valid untuk alur Mission/Squad. Lomba individu di luar NEXUS mengikuti Klaim Achievement (VAL-02), tanpa Squad satu orang. Data Mission lama dengan max=1 tetap perlu audit/koreksi tersendiri (G02); jangan mengubahnya diam-diam.
 
 Cakupan implementasi rentang: schema → data existing/backfill berdasarkan aturan lomba → admin approval/copy → create_squad → Server Action → UI → tests. Jangan membuat backfill angka tebakan. Perubahan batas pada Mission dengan Squad existing membutuhkan kebijakan G02.
 
@@ -208,7 +208,7 @@ Satu user: maksimal tiga PENDING applications per Mission, satu PENDING per Squa
 
 Gunakan function existing decide_squad_application/cancel_squad_application dan guard yang tersedia, bukan duplicate write path. Ketika membership ACTIVE berkonflik, transaksi gagal tanpa data parsial. Uji request bersamaan.
 
-Requirements adalah kebutuhan recruitment, tetapi snapshot acceptance hanya memeriksa kapasitas total, belum menyelaraskan quota Class. Apakah Class/Skill filter wajib atau preferensi Ketua harus diputuskan sebelum menerapkan penolakan otomatis baru (G04). Membuat Squad saat user punya PENDING lain juga belum terbukti membatalkannya otomatis; jangan mengklaim auto-cancel berlaku untuk semua jalur (G05).
+Keputusan ketua tim 8 Oktober 2026: kebutuhan Class/Skill Squad wajib diisi sesuai field yang didukung, tetapi kecocokan pelamar menjadi informasi bagi Ketua, bukan syarat otomatis accept/reject. Ketua boleh menerima pelamar yang tidak cocok; jangan menambahkan penolakan otomatis berdasarkan Class/Skill. Pengisian Skill tambahan pada Create tetap mengikuti UI-G02 karena RPC saat ini hanya menyimpan kebutuhan Primary Class dan slot. Membuat Squad saat user punya PENDING lain juga belum terbukti membatalkannya otomatis; jangan mengklaim auto-cancel berlaku untuk semua jalur (G05).
 
 ### SQ-04 Leave, kick, finalize, My Squad
 
@@ -226,7 +226,7 @@ APPROVE harus konsisten dalam satu transaksi: credit XP sama untuk seluruh membe
 
 ### VAL-02 Achievement Validation
 
-Klaim dari Profile untuk sertifikat lama, lomba individual/di luar Squad NEXUS. Input nama, penyelenggara, achievement_date lengkap, tier, hasil, sertifikat. Tahun saja tidak cukup untuk season Juli–Juni. Legacy XP adalah 50% Verified. Admin review visual; reject dengan alasan; resubmit pada claim ID yang sama. Manipulasi bukti dapat berujung suspend melalui keputusan admin.
+Klaim dari Profile untuk sertifikat lama, lomba individu/di luar Squad NEXUS. Input nama, penyelenggara, achievement_date lengkap, tier, hasil, sertifikat. Tahun saja tidak cukup untuk season Juli–Juni. Legacy XP adalah 50% Verified setelah disetujui admin; transaksi yang ditautkan ke season terkait ikut Seasonal XP, selain itu tetap Career XP (XP-01). Bukti klaim PDF/JPG/PNG maksimal 5.000.000 byte per file, disimpan di Storage privat; database menyimpan path, bukan isi file (FILE-01). Admin review visual; reject dengan alasan; resubmit pada claim ID yang sama. Manipulasi bukti dapat berujung suspend melalui keputusan admin.
 
 ### XP-01 Ledger, tanggal, dan season
 
@@ -272,7 +272,7 @@ Silver I=300, II=600, III=999. Rank-Up Reward diterbitkan saat melewati threshol
 
 Scope PROGRAM_STUDI, FAKULTAS, UNIVERSITAS/seluruh UNESA. Basis Seasonal XP. Urutan: seasonal_xp DESC → waktu lebih awal mencapai total akhir ASC → user_id deterministic. Snapshot close_active_season memakai max(created_at) transaksi season untuk reached_at. Definisi view live belum tersedia dalam inventaris, harus diperiksa sebelum menilai kesesuaiannya.
 
-Search nama berjalan dalam scope aktif, menyorot posisi tanpa mengubah ranking populasi. Card membuka profile. Populasi menurut Handbook adalah seluruh mahasiswa terdaftar dalam scope, bukan hanya yang mendapat XP. ADMIN bukan mahasiswa secara otomatis; snapshot close function belum memfilter role dan status, sehingga kelayakan populasi perlu rekonsiliasi (G09).
+Search nama berjalan dalam scope aktif, menyorot posisi tanpa mengubah ranking populasi. Card membuka profile. Keputusan 8 Oktober 2026: populasi live adalah seluruh profil STUDENT berstatus akun ACTIVE dalam scope, termasuk yang memiliki 0 Seasonal XP. ADMIN dan SUSPENDED dikecualikan. ACTIVE adalah status akun NEXUS, bukan verifikasi status akademik kampus. Snapshot close_active_season dan refresh_leaderboard_badges belum diselaraskan; konsistensi histori/badge tetap G09.
 
 Season Juli–Juni. Saat ditutup: simpan Season Rank, Seasonal XP dan posisi/populasi per scope; Career dan badge lama tidak hilang. Function close_active_season tersedia di snapshot, scheduler dan pembukaan season berikutnya belum terbukti.
 
@@ -307,7 +307,7 @@ Realtime adalah transport pembaruan, bukan pengganti RLS. Verifikasi publication
 
 ### ADM-01 Intervention
 
-Tetap TARGET MVP walaupun heading historis H0 membingungkan. Anggota ACTIVE pada Squad FINALIZED dapat melapor: jenis masalah, pihak terlibat opsional, deskripsi. Status RECEIVED → REVIEWING → COMPLETED. Admin mencatat tindakan, handler dan waktu selesai. Data permintaan dan laporan selesai dilindungi dari edit bebas. Target respons 3–5 hari kerja, bukan klaim otomatis.
+DITUNDA berdasarkan arahan ketua tim 8 Oktober 2026; tidak dibangun pada tahap sekarang. Jika dilanjutkan nanti, target awalnya: anggota ACTIVE pada Squad FINALIZED dapat melapor dengan jenis masalah, pihak terlibat opsional, dan deskripsi. Status RECEIVED → REVIEWING → COMPLETED. Admin mencatat tindakan, handler dan waktu selesai. Data permintaan dan laporan selesai dilindungi dari edit bebas. Target respons 3–5 hari kerja, bukan klaim otomatis.
 
 Tindakan target: remove member, membubarkan Squad, atau membuka recruitment lagi. kick_squad_member mendukung ADMIN_REMOVED; workflow pembubaran/reopen harus diperiksa dan didefinisikan agar tidak menghapus hasil/ledger/history secara tidak sengaja (G07). Tidak memberi akses chat. Member yang dikeluarkan sebelum approval tidak menerima XP.
 
@@ -923,7 +923,7 @@ Enam object turunan terinventaris kolomnya: public_profiles, career_xp_totals, c
 | D04 | C termasuk Ketua; recruitment C-1; Class Ketua tidak mengurangi requirement | M2, H1/D1 |
 | D05 | Min/max Mission target baru, bukan deployed | H1/D1 |
 | D06 | Backend lanjutan STRUCTURE PRESENT, aplikasi di luar slice completed bukan OUTSIDE MVP | A1 vs wording H1/D1 |
-| D07 | Admin Intervention masuk MVP; heading penghapusan historis tidak berlaku | Isi H0/H1, D0 |
+| D07 | Admin Intervention semula target MVP, tetapi laporan masalah Squad ditunda oleh ketua tim 8 Oktober 2026; keputusan penundaan tidak berarti menghapus desain/history | Keputusan ketua tim 8 Oktober 2026 |
 | D08 | Achievement Title dan Partner Mission OUTSIDE MVP | D0/D1 |
 | D09 | Resubmit achievement pakai ID sama; achievement_date menggantikan tahun saja | D0/D1 |
 | D10 | Tie-break final XP → reached_at → user_id; snapshot bukan reset fisik XP | D0/D1 |
@@ -934,15 +934,15 @@ Enam object turunan terinventaris kolomnya: public_profiles, career_xp_totals, c
 
 | ID | Masalah / status | Aksi sebelum implementasi terkait |
 |---|---|---|
-| G01 | Max Mission=1 vs minimum Squad=2; NEEDS DECISION | Tentukan alur individual/UX; jangan auto-create Squad satu orang |
+| G01 | RESOLVED 8 Oktober 2026: NEXUS Mission hanya lomba tim | Max=1 tidak valid untuk Mission/Squad baru; lomba individu di luar NEXUS melalui Klaim Achievement; data lama mengikuti audit G02 |
 | G02 | Backfill batas peserta dan perubahan Mission yang punya Squad; NEEDS DECISION | Minta data resmi dan kebijakan legacy; jangan hapus Squad atau tebakan batas |
 | G03 | RESOLVED 30 September 2026: kapasitas target vs jumlah ACTIVE ketika Finalize | Jumlah ACTIVE minimal `missions.min_anggota_tim`; FULL tidak wajib; PENDING tidak menghalangi; minimum NULL menahan Finalize. Validasi ulang dalam RPC. |
-| G04 | Kebutuhan Class/Skills sebagai quota keras atau preferensi | Konfirmasi sebelum menambah validator acceptance; snapshot tidak memeriksa quota |
+| G04 | RESOLVED 8 Oktober 2026: kebutuhan diisi, keputusan accept/reject di tangan Ketua | Tampilkan Class/Skill pelamar; jangan auto-reject mismatch. Skill tambahan pada Create masih UI-G02 |
 | G05 | Create ketika ada PENDING application lain | Tentukan nasib application; auto-cancel terbukti di acceptance, bukan create |
 | G06 | Ketua self-leave, transfer dan pembatalan recruitment | Jangan invent role/status baru; tentukan flow minimal |
 | G07 | Pembubaran/reopen dan cleanup idle | Tentukan batas data deletion, history, pending result, aktivitas dan scheduler; H-3 proposal |
 | G08 | Skills lintas-Class dan perubahan Class setelah join | Pertahankan bebas ubah; jangan menghapus Skills/membership tanpa keputusan |
-| G09 | Populasi mahasiswa vs semua profiles; suspended; badge historical/current; exact 3% | Audit view dan putuskan edge semantics tanpa mengubah snapshot diam-diam |
+| G09 | SEBAGIAN RESOLVED 8 Oktober 2026: live leaderboard hanya STUDENT ACTIVE termasuk 0 XP, ADMIN/SUSPENDED tidak masuk | Selaraskan snapshot season dan badge sebelum digunakan; badge historical/current serta exact 3% tetap butuh keputusan |
 | G10 | Timezone earned_at, approval pada batas season, close concurrent | Tetapkan konsistensi waktu bisnis; uji sebelum mengubah assignment/ledger |
 | G11 | Mission expired RLS berbeda target; NOT VERIFIED | Inspect current policy dan implementasi; fix hanya dalam task berizin |
 | G12 | Maksimum Skill/PENDING race dan update requirements | Uji concurrent dan semua write path; trigger hitungan bukan bukti semua race PASS |
@@ -1140,7 +1140,7 @@ Semua data contoh, nama pengguna, XP, tahun, hitungan, tanggal, dan isi chat C1 
 **Dasar:** C1 Thunder Squad, deskripsi, nama/Class/Skill anggota, “Minta Gabung”, “Tutup”; SQ-03.
 
 - Nama Squad, Mission terkait, status, jumlah ACTIVE/kapasitas, deskripsi penuh, anggota dan peran Ketua/anggota. Tampilkan Primary Class/Skills melalui data yang boleh diakses.
-- Kebutuhan recruitment dari squad_requirements ditampilkan sebagai kebutuhan, bukan jaminan penolakan otomatis berdasarkan Class sebelum G04 diputuskan.
+- Kebutuhan recruitment dari squad_requirements ditampilkan sebagai informasi bagi Ketua; mismatch Class/Skill tidak menyebabkan penolakan otomatis sesuai keputusan G04.
 - Minta Gabung membuat application PENDING; keberhasilan bukan berarti sudah menjadi anggota. Jika PENDING tampilkan status serta pembatalan milik sendiri sesuai SQ-03.
 - Jika sudah anggota Mission sama, kuota PENDING habis, deadline lewat, atau Squad Locked, tampilkan alasan aksi tidak tersedia. Validasi ulang di server untuk perubahan status bersamaan.
 - Tutup kembali ke daftar tanpa mutasi. Detail anggota tidak boleh membuka email/NIM karena kartu Canva memuat identitas publik saja.
@@ -1188,7 +1188,7 @@ Semua data contoh, nama pengguna, XP, tahun, hitungan, tanggal, dan isi chat C1 
 - Panel Mission: nama, penyelenggara, cakupan, biaya, mode, deadline; panel anggota: nama/avatar, Primary Class, peran, penanda diri sendiri.
 - Chat: nama pengirim, isi pesan, waktu, input pesan dan aksi kirim. Tidak menambah DM, panggilan video, attachment chat, atau read receipt dari asumsi gambar.
 - Pesan kosong ditolak; pending/gagal kirim tidak dianggap pesan tersimpan; refresh/reconnect tidak menggandakan pesan yang sudah tersimpan. Transport Realtime mengikuti verifikasi CHAT-01.
-- Ketua FINALIZED mendapat Submit Hasil Mission; anggota ACTIVE FINALIZED mendapat akses Admin Intervention sesuai ADM-01. Aksi anggota/Finalize mengikuti UI-11, bukan label Locked saja.
+- Ketua FINALIZED mendapat Submit Hasil Mission. Laporan Admin Intervention bagi anggota ACTIVE FINALIZED ditunda sesuai keputusan 8 Oktober 2026; jangan tampilkan aksi yang belum diimplementasikan. Aksi anggota/Finalize mengikuti UI-11, bukan label Locked saja.
 - Sebelum FINALIZED chat sudah boleh dipakai. Setelah completed, nonmember, removed, atau admin: akses chat mengikuti CHAT-01; jangan sekadar menyembunyikan input sementara pesan tetap dibaca.
 - Tidak mengartikan “47%” sebagai progress pekerjaan karena tidak ada kontrak progress task; UI-G05.
 - **Data/tes:** squad_messages, membership, missions/squads; T16–T17, T22, U08.
@@ -1206,12 +1206,12 @@ Semua data contoh, nama pengguna, XP, tahun, hitungan, tanggal, dan isi chat C1 
 - Batas UI-13 ditegakkan di server, client, dan bucket Storage privat. Record hasil baru serta resubmit diverifikasi terhadap bukti yang sudah diunggah oleh pemilik ke folder Squad.
 - **Data/tes:** mission_result_submissions, xp_rules, Storage, ledger; T17, T25, U09.
 
-### UI-14 Admin Intervention mahasiswa
+### UI-14 Admin Intervention mahasiswa — DITUNDA
 
-**Dasar:** C1 “Jenis masalah”, “Anggota yang terlibat OPSIONAL”, deskripsi, timeline laporan; ADM-01.
+**Dasar historis:** C1 “Jenis masalah”, “Anggota yang terlibat OPSIONAL”, deskripsi, timeline laporan; ADM-01. Keputusan 8 Oktober 2026 menunda implementasi layar dan alur ini.
 
 - Ringkasan Squad/Mission/status FINALIZED, jenis masalah, anggota terlibat opsional dari Squad terkait, deskripsi masalah.
-- Jenis masalah belum diketahui daftar pilihannya; field issue_type TEXT bukan daftar enum otomatis. UI-G04 harus diputuskan sebelum membangun dropdown tetap.
+- Fitur ditunda (UI-G04); jika dilanjutkan, jenis masalah belum diketahui daftar pilihannya dan field issue_type TEXT bukan daftar enum otomatis.
 - Submit Laporan dan Kembali; setelah sukses tampilkan RECEIVED/Laporan Diterima, REVIEWING/Sedang Ditinjau, COMPLETED/Selesai, waktu dan keputusan/tindakan yang tersedia.
 - Jelaskan admin tidak dapat membaca chat dan anggota yang ADMIN_REMOVED sebelum approval tidak menerima XP.
 - Estimasi 3–5 hari kerja adalah target layanan; tanggal perkiraan individual tidak dihitung dari contoh Canva. Jangan mengklaim SLA telah dijalankan otomatis.
@@ -1222,11 +1222,11 @@ Semua data contoh, nama pengguna, XP, tahun, hitungan, tanggal, dan isi chat C1 
 
 **Dasar:** C1 Universitas/Fakultas/Program Studi, Search, tiga posisi teratas, kolom #/User/XP/Rank, Season aktif/reset.
 
-- Pilihan scope Universitas, Fakultas, Program Studi; basis Seasonal XP dan identitas scope yang jelas.
+- Pilihan scope Universitas (seluruh UNESA), Fakultas sendiri, dan Program Studi sendiri; basis Seasonal XP yang telah dikreditkan dan identitas scope yang jelas. Tidak ada dropdown untuk memilih Fakultas/Prodi lain (UI-G06).
 - Tampilkan nama season, periode/tanggal berakhir yang benar; jangan menyalin “Season 2025 Aktif” atau tanggal contoh.
 - Tiga posisi teratas beserta nama/avatar, Seasonal XP, Fakultas/Program Studi dan Primary Class; daftar selanjutnya memuat posisi, user, XP, Season Rank. Urutan mengikuti LB-01.
 - Search nama mempertahankan posisi asli populasi; membuka profil pengguna yang dipilih. Jumlah pengguna kurang dari tiga tidak diisi dummy.
-- Aturan memilih Fakultas/Prodi di luar milik user belum terlihat sebagai dropdown; UI-G06. Tampilan tanpa season/populasi mengikuti keputusan data dan empty state, bukan error aritmetika.
+- Scope Fakultas/Prodi mengikuti unit pengguna sendiri sesuai keputusan 8 Oktober 2026 (UI-G06). Tampilan tanpa season/populasi mengikuti keputusan data dan empty state, bukan error aritmetika.
 - **Data/tes:** live leaderboard views perlu verifikasi, seasons, public profiles; T20, U11.
 
 ### UI-16 Profil sendiri
@@ -1281,7 +1281,7 @@ Semua data contoh, nama pengguna, XP, tahun, hitungan, tanggal, dan isi chat C1 
 - Nama kompetisi, penyelenggara, tanggal prestasi lengkap menggantikan Tahun saja, tier S/A/B/C, pencapaian Participant/Finalist/Juara 3/2/1, sertifikat.
 - Tampilkan keterangan klaim kompetisi di luar Squad NEXUS dan Legacy XP 50%; jika preview disediakan, hitung dari XP-02 dan beri label belum disetujui.
 - Kirim/Batal; PENDING setelah submit, alasan REJECTED dan resubmit ID sama, APPROVED menampilkan XP final. Jangan mengasumsikan semua achievement lama masuk Seasonal XP aktif.
-- C1 PDF/PNG/JPG maksimal 5MB mengikuti UI-G03; validasi file dan pemilik di server/Storage.
+- Sertifikat PDF/JPG/PNG maksimal 5.000.000 byte per file sesuai keputusan 8 Oktober 2026 (UI-G03); validasi file dan pemilik di server/Storage privat, database hanya menyimpan path.
 - **Data/tes:** achievement_claims, xp_rules, ledger, Storage; T18, T25, U09.
 
 ### UI-21 Bagikan Profil
@@ -1349,23 +1349,23 @@ Semua data contoh, nama pengguna, XP, tahun, hitungan, tanggal, dan isi chat C1 
 
 ### 18.2 Daftar keputusan UI terbuka
 
-Status seluruh baris **NEEDS DECISION** atau **NOT VERIFIED** sebagaimana dijelaskan. Tidak perlu menanyakan semua sekaligus; selesaikan hanya yang diperlukan task berjalan.
+Status baris dapat berupa RESOLVED, DEFERRED, NEEDS DECISION, atau NOT VERIFIED sebagaimana dijelaskan. Tidak perlu menanyakan semua sekaligus; selesaikan hanya yang diperlukan task berjalan.
 
 | ID | Hal yang belum tuntas | Batas agent |
 |---|---|---|
 | UI-G01 | Isi dropdown Filter C1 tidak terbaca lengkap | Pakai filter MIS-02; tambahan cakupan/sort bukan otomatis requirement |
 | UI-G02 | Skill recruitment pada Create tidak ada dalam kontrak RPC | Jangan membuat field palsu yang tidak tersimpan atau mengubah RPC tanpa keputusan |
-| UI-G03 | RESOLVED untuk Submit Hasil Mission (30 September 2026): satu sertifikat wajib, satu dokumen pendukung opsional; PDF/JPG/PNG, maksimal 5.000.000 byte per file | Berlaku hanya untuk UI-13; batas avatar dan klaim Achievement belum diputuskan. Bucket hasil dibatasi 5 MB dan guard path/owner diberlakukan lewat migration 20260930115447. |
-| UI-G04 | Daftar Jenis Masalah laporan | Jangan mengarang enum/kategori; putuskan opsi atau input bebas sesuai kebutuhan |
+| UI-G03 | RESOLVED: Submit Hasil Mission (30 September 2026) satu sertifikat wajib dan satu dokumen pendukung opsional; Klaim Achievement (8 Oktober 2026) sertifikat PDF/JPG/PNG; maksimal 5.000.000 byte per file | Aturan klaim disepakati, tetapi implementasi bucket/policy klaim belum terverifikasi; bucket hasil Mission sudah dibatasi lewat migration 20260930115447. Batas avatar terpisah. |
+| UI-G04 | DEFERRED 8 Oktober 2026: laporan masalah Squad ditunda | Jangan membangun dropdown/enum; jika fitur diaktifkan lagi, tentukan jenis masalah dan alur admin |
 | UI-G05 | Countdown x/y hari, persentase 47%, awal periode belum didefinisikan | Deadline riil dapat tampil; jangan membuat progress pekerjaan atau rumus durasi baru |
-| UI-G06 | Scope Fakultas/Prodi milik sendiri vs dapat memilih unit lain | Gunakan pola existing yang terbukti; putuskan hak/pilihan lintas unit sebelum menambah dropdown |
+| UI-G06 | RESOLVED 8 Oktober 2026: hanya Fakultas/Prodi sendiri, Universitas seluruh UNESA | UI menampilkan tiga scope tersebut; jangan membuka pilihan unit lain |
 | UI-G07 | Endorsement jika memiliki beberapa Squad completed bersama | Tentukan selector konteks; jangan pilih satu Squad diam-diam |
 | UI-G08 | Share profile anon, domain, slug dan route | Verifikasi/putuskan akses publik dan data aman; jangan membuka seluruh profiles atau menjanjikan domain aktif |
 | UI-G09 | Tujuan klik notifikasi dan badge unread | notifications tidak mencantumkan target ID/URL dalam kamus data; jangan parsing teks nama sebagai identitas objek atau mengarang schema |
 | UI-G10 | Jumlah ringkasan, pagination, lokasi detail history/pengajuan | Ikuti komponen/route existing bila ada; angka contoh bukan batas produk |
 | UI-G11 | My Finance, simbol tambah, ikon tanpa label, layar teks berulang | Kandidat template/dekorasi atau fungsi tak terbukti; tidak menjadi fitur baru tanpa konfirmasi |
 
-FILE-01 tetap aturan privasi dan penyimpanan. Penyebutan 5MB di sini bukan klaim perubahan konfigurasi bucket sudah dilakukan. Gap G01–G14 tetap berlaku dan tidak otomatis selesai karena UI didokumentasikan.
+FILE-01 tetap aturan privasi dan penyimpanan. Batas klaim 5 MB adalah keputusan produk, bukan klaim bucket/Storage klaim sudah diterapkan. Gap yang masih terbuka tetap berlaku dan tidak otomatis selesai karena UI didokumentasikan.
 
 ## 19. Acceptance UI seluruh halaman dan handoff
 
