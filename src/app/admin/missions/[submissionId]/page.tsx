@@ -32,6 +32,12 @@ export default async function AdminMissionDetailPage({ params }: {
       .createSignedUrl(submission.dokumen_path, 300),
   ]);
   const failed = student.error || tiers.error;
+  let officialUrl: string | null = null;
+  try {
+    if (["https:", "http:"].includes(new URL(submission.link_resmi).protocol)) {
+      officialUrl = submission.link_resmi;
+    }
+  } catch { /* Admin can still reject an invalid submission. */ }
   const rows = [
     ["Penyelenggara", submission.penyelenggara],
     ["Kategori penyelenggara", submission.kategori_penyelenggara],
@@ -66,10 +72,12 @@ export default async function AdminMissionDetailPage({ params }: {
             </div>)}
           </dl>
           <p className="mt-4 whitespace-pre-line text-sm">{submission.deskripsi_singkat}</p>
-          <a href={submission.link_resmi} target="_blank" rel="noopener noreferrer"
+          {officialUrl ? <a href={officialUrl} target="_blank" rel="noopener noreferrer"
             className="mt-4 inline-block text-sm font-semibold text-indigo-700 underline">
             Buka tautan resmi
-          </a>
+          </a> : <p role="alert" className="mt-4 text-sm text-red-700">
+            Tautan resmi tidak valid.
+          </p>}
           {document.data?.signedUrl && !document.error ? <a
             href={document.data.signedUrl} target="_blank" rel="noopener noreferrer"
             className="ml-4 inline-block text-sm font-semibold text-indigo-700 underline">
@@ -81,7 +89,7 @@ export default async function AdminMissionDetailPage({ params }: {
         {submission.status_review === "PENDING" && tiers.data?.length ?
           <ReviewForm submissionId={submissionId} tiers={tiers.data}
             min={submission.min_anggota_tim} max={submission.max_anggota_tim}
-            canApprove={Boolean(document.data?.signedUrl && !document.error)} />
+            canApprove={Boolean(officialUrl && document.data?.signedUrl && !document.error)} />
           : submission.status_review === "REJECTED" ? <p className="mt-5 text-red-700">
             Ditolak: {submission.alasan_penolakan}
           </p> : submission.status_review === "APPROVED" ? <p className="mt-5 text-emerald-700">
