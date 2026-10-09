@@ -119,9 +119,12 @@ export default function MissionForm({ initial }: { initial: MissionSubmission | 
       <Choice name="biaya_pendaftaran" label="Biaya pendaftaran"
         options={COSTS} initial={initial?.biaya_pendaftaran} />
       <label className="block text-sm font-semibold">Tahun lomba
-        <input name="tahun_lomba" type="number" min={1} max={32767} required
-          defaultValue={initial?.tahun_lomba}
+        <input name="tahun_lomba" type="text" inputMode="numeric" pattern="[0-9]{4}"
+          maxLength={4} required defaultValue={initial?.tahun_lomba ?? new Date().getFullYear()}
           className="mt-1 block w-full rounded-lg border border-slate-300 p-2" />
+        <span className="mt-1 block text-xs font-normal text-slate-600">
+          Tahun kompetisi berlangsung, misalnya 2026.
+        </span>
       </label>
       <label className="block text-sm font-semibold">Deadline pendaftaran (WIB)
         <input name="deadline_pendaftaran" type="datetime-local" required
