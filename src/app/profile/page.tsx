@@ -4,7 +4,9 @@ import { redirect } from "next/navigation";
 
 import Navbar from "@/components/layout/Navbar";
 import EndorsementSummary from "@/components/profile/EndorsementSummary";
+import SeasonHistoryList from "@/components/profile/SeasonHistoryList";
 import { loadEndorsementSummary } from "@/lib/endorsements";
+import { loadSeasonHistory } from "@/lib/season-history";
 import { createClient } from "@/lib/supabase/server";
 
 import RankCard from "./RankCard";
@@ -36,7 +38,7 @@ export default async function ProfilePage() {
 
   const userId = auth.user.id;
   const [classResult, programResult, skillsResult, careerResult, seasonResult, rulesResult,
-    endorsementSummary] =
+    endorsementSummary, seasonHistory] =
     await Promise.all([
       profile.primary_class_id === null
         ? Promise.resolve({ data: null, error: null })
@@ -53,6 +55,8 @@ export default async function ProfilePage() {
       supabase.from("rank_rules").select("rank_name, min_xp, max_xp")
         .order("min_xp", { ascending: true }),
       loadEndorsementSummary(supabase, userId),
+      profile.role_app === "STUDENT" ? loadSeasonHistory(supabase, userId, 1, 2)
+        : Promise.resolve({ items: [], count: 0 }),
     ]);
 
   const [facultyResult, seasonalResult] = await Promise.all([
@@ -156,6 +160,20 @@ export default async function ProfilePage() {
         )}
         {profile.role_app === "STUDENT" && (
           <EndorsementSummary summary={endorsementSummary} />
+        )}
+        {profile.role_app === "STUDENT" && (
+          <section className="mt-8">
+            <h2 className="text-lg font-bold">Season History</h2>
+            {!seasonHistory ? <p role="alert" className="mt-3 text-sm text-red-700">
+              Riwayat Season belum dapat dimuat.
+            </p> : seasonHistory.count === 0 ? <p className="mt-3 text-sm text-slate-600">
+              Belum ada Season yang ditutup dan disimpan sebagai riwayat.
+            </p> : <SeasonHistoryList items={seasonHistory.items} />}
+            <Link href="/profile/seasons"
+              className="mt-4 inline-block text-sm font-semibold text-indigo-700 hover:underline">
+              Lihat semua Season →
+            </Link>
+          </section>
         )}
       </main>
     </div>
