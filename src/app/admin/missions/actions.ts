@@ -38,13 +38,18 @@ export async function reviewMission(
 
   const { data: submission, error: submissionError } = await supabase
     .from("mission_submissions")
-    .select("status_review,dokumen_path,deadline_pendaftaran,nama_lomba,penyelenggara,tahun_lomba")
+    .select("status_review,dokumen_path,deadline_pendaftaran,link_resmi,nama_lomba,penyelenggara,tahun_lomba")
     .eq("mission_submission_id", submissionId).maybeSingle();
   if (submissionError || submission?.status_review !== "PENDING") {
     return { success: false, message: "Pengajuan ini tidak lagi menunggu review." };
   }
 
   if (decision === "APPROVED") {
+    try {
+      if (!["https:", "http:"].includes(new URL(submission.link_resmi).protocol)) {
+        return { success: false, message: "Tautan resmi tidak valid." };
+      }
+    } catch { return { success: false, message: "Tautan resmi tidak valid." }; }
     if (new Date(submission.deadline_pendaftaran).getTime() <= Date.now()) {
       return { success: false, message: "Pendaftaran lomba sudah berakhir. Pengajuan tidak dapat disetujui." };
     }
