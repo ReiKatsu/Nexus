@@ -6,7 +6,26 @@ import { useState, type FormEvent } from "react";
 
 import { CATEGORIES, COSTS, MODES, ORGANIZERS, SCOPES,
   type MissionSubmission } from "./options";
-import { MAX_DOCUMENT_BYTES } from "./validation";
+import { MAX_DOCUMENT_BYTES, validateDocument, validateFields,
+  type MissionField, type MissionFieldErrors } from "./validation";
+
+function fieldAttributes(name: MissionField, errors: MissionFieldErrors) {
+  return {
+    "aria-invalid": Boolean(errors[name]) || undefined,
+    "aria-describedby": errors[name] ? `${name}-error` : undefined,
+  };
+}
+
+function FieldError({ name, errors }: { name: MissionField; errors: MissionFieldErrors }) {
+  return errors[name] ? <span id={`${name}-error`}
+    className="mt-1 block text-xs font-normal text-red-700">{errors[name]}</span> : null;
+}
+
+function isoFromWib(value: string) {
+  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(value)) return null;
+  const date = new Date(`${value}:00+07:00`);
+  return Number.isFinite(date.getTime()) ? date.toISOString() : null;
+}
 
 function localDate(iso: string | undefined) {
   if (!iso) return "";
@@ -16,16 +35,18 @@ function localDate(iso: string | undefined) {
   }).format(new Date(iso)).replace(" ", "T");
 }
 
-function Choice({ name, label, options, initial }: {
-  name: string; label: string; options: readonly (readonly [string, string])[];
-  initial?: string;
+function Choice({ name, label, options, initial, errors }: {
+  name: MissionField; label: string; options: readonly (readonly [string, string])[];
+  initial?: string; errors: MissionFieldErrors;
 }) {
   return <label className="block text-sm font-semibold">{label}
     <select name={name} required defaultValue={initial ?? ""}
+      {...fieldAttributes(name, errors)}
       className="mt-1 block w-full rounded-lg border border-slate-300 p-2">
       <option value="" disabled>Pilih {label.toLowerCase()}</option>
       {options.map(([value, display]) => <option key={value} value={value}>{display}</option>)}
     </select>
+    <FieldError name={name} errors={errors} />
   </label>;
 }
 
@@ -33,6 +54,7 @@ export default function MissionForm({ initial }: { initial: MissionSubmission | 
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<MissionFieldErrors>({});
   const [suggestions, setSuggestions] = useState<{
     nama_lomba: string; penyelenggara: string; tahun_lomba: number;
   }[]>([]);
@@ -50,41 +72,37 @@ export default function MissionForm({ initial }: { initial: MissionSubmission | 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (pending) return;
-    const form = new FormData(event.currentTarget);
-    const registration = String(form.get("deadline_pendaftaran") ?? "");
-    const competition = String(form.get("deadline_lomba") ?? "");
+    const element = event.currentTarget;
+    const form = new FormData(element);
+    const registration = isoFromWib(String(form.get("deadline_pendaftaran") ?? ""));
+    const competition = isoFromWib(String(form.get("deadline_lomba") ?? ""));
+    if (registration) form.set("deadline_pendaftaran", registration);
+    if (competition) form.set("deadline_lomba", competition);
     const file = form.get("dokumen");
-    const min = Number(form.get("min_anggota_tim"));
-    const max = Number(form.get("max_anggota_tim"));
-    if (!registration || !competition || !Number.isInteger(min) || min < 2 ||
-        !Number.isInteger(max) || max < min || !(file instanceof File) ||
-        !file.size || file.size > MAX_DOCUMENT_BYTES) {
-      setError("Periksa deadline, peserta tim (minimal 2), dan berkas maksimal 10 MiB.");
-      return;
+    const validation = validateFields(form);
+    const errors = { ...validation.errors };
+    if (!(file instanceof File) || !file.size) {
+      errors.dokumen = "Pilih poster atau dokumen lomba.";
+    } else if (file.size > MAX_DOCUMENT_BYTES || !(await validateDocument(file))) {
+      errors.dokumen = "Berkas harus PDF/JPG/PNG asli, maksimal 10 MiB.";
     }
-    const registrationDate = new Date(`${registration}:00+07:00`);
-    const competitionDate = new Date(`${competition}:00+07:00`);
-    if (!Number.isFinite(registrationDate.getTime()) ||
-        !Number.isFinite(competitionDate.getTime())) {
-      setError("Format deadline tidak valid.");
-      return;
-    }
-    const registrationIso = registrationDate.toISOString();
-    const competitionIso = competitionDate.toISOString();
-    if (registrationIso <= new Date().toISOString() || competitionIso < registrationIso) {
-      setError("Deadline pendaftaran harus mendatang dan deadline lomba tidak boleh lebih awal.");
+    if (Object.keys(errors).length) {
+      showFieldErrors(errors, element);
       return;
     }
     if (!window.confirm("Kirim pengajuan Mission ini untuk diperiksa admin?")) return;
-    form.set("deadline_pendaftaran", registrationIso);
-    form.set("deadline_lomba", competitionIso);
     setPending(true);
     setError("");
     try {
       const response = await fetch("/api/missions/submissions", { method: "POST", body: form });
-      const result: { success?: boolean; message?: string } = await response.json();
+      const result: { success?: boolean; message?: string;
+        fieldErrors?: MissionFieldErrors } = await response.json();
       if (!response.ok || !result.success) {
-        setError(result.message ?? "Pengajuan belum terkirim. Coba lagi.");
+        if (result.fieldErrors && Object.keys(result.fieldErrors).length) {
+          showFieldErrors(result.fieldErrors, element);
+        } else {
+          setError(result.message ?? "Pengajuan belum terkirim. Coba lagi.");
+        }
         return;
       }
       router.replace("/missions/submissions");
@@ -94,7 +112,24 @@ export default function MissionForm({ initial }: { initial: MissionSubmission | 
     } finally { setPending(false); }
   }
 
-  return <form onSubmit={submit} aria-busy={pending}
+  function showFieldErrors(errors: MissionFieldErrors, element: HTMLFormElement) {
+    setFieldErrors(errors);
+    setError("Perbaiki kolom yang ditandai.");
+    const first = Object.keys(errors)[0];
+    const control = element.elements.namedItem(first);
+    if (control instanceof HTMLElement) control.focus();
+  }
+
+  return <form onSubmit={submit} noValidate aria-busy={pending}
+    onChange={(event) => {
+      const target = event.nativeEvent.target;
+      if (!(target instanceof HTMLInputElement ||
+            target instanceof HTMLSelectElement ||
+            target instanceof HTMLTextAreaElement)) return;
+      const name = target.name as MissionField;
+      if (fieldErrors[name]) setFieldErrors((current) => ({ ...current, [name]: undefined }));
+      if (error) setError("");
+    }}
     className="mt-6 space-y-5 rounded-2xl border border-slate-200 bg-white p-5 sm:p-7">
     {initial && <input type="hidden" name="submission_id"
       value={initial.mission_submission_id} />}
@@ -102,49 +137,63 @@ export default function MissionForm({ initial }: { initial: MissionSubmission | 
       <label className="block text-sm font-semibold">Nama lomba
         <input name="nama_lomba" required maxLength={200} defaultValue={initial?.nama_lomba}
           onBlur={(event) => checkSimilar(event.currentTarget.value)}
+          {...fieldAttributes("nama_lomba", fieldErrors)}
           className="mt-1 block w-full rounded-lg border border-slate-300 p-2" />
+        <FieldError name="nama_lomba" errors={fieldErrors} />
       </label>
       <label className="block text-sm font-semibold">Penyelenggara
         <input name="penyelenggara" required maxLength={200} defaultValue={initial?.penyelenggara}
+          {...fieldAttributes("penyelenggara", fieldErrors)}
           className="mt-1 block w-full rounded-lg border border-slate-300 p-2" />
+        <FieldError name="penyelenggara" errors={fieldErrors} />
       </label>
       <Choice name="kategori_penyelenggara" label="Kategori penyelenggara"
-        options={ORGANIZERS} initial={initial?.kategori_penyelenggara} />
+        options={ORGANIZERS} initial={initial?.kategori_penyelenggara} errors={fieldErrors} />
       <Choice name="kategori_lomba" label="Kategori lomba"
-        options={CATEGORIES} initial={initial?.kategori_lomba} />
+        options={CATEGORIES} initial={initial?.kategori_lomba} errors={fieldErrors} />
       <Choice name="cakupan_peserta" label="Cakupan peserta"
-        options={SCOPES} initial={initial?.cakupan_peserta} />
+        options={SCOPES} initial={initial?.cakupan_peserta} errors={fieldErrors} />
       <Choice name="mode_lomba" label="Mode lomba"
-        options={MODES} initial={initial?.mode_lomba} />
+        options={MODES} initial={initial?.mode_lomba} errors={fieldErrors} />
       <Choice name="biaya_pendaftaran" label="Biaya pendaftaran"
-        options={COSTS} initial={initial?.biaya_pendaftaran} />
+        options={COSTS} initial={initial?.biaya_pendaftaran} errors={fieldErrors} />
       <label className="block text-sm font-semibold">Tahun lomba
         <input name="tahun_lomba" type="text" inputMode="numeric" pattern="[0-9]{4}"
           maxLength={4} required defaultValue={initial?.tahun_lomba ?? new Date().getFullYear()}
+          {...fieldAttributes("tahun_lomba", fieldErrors)}
           className="mt-1 block w-full rounded-lg border border-slate-300 p-2" />
         <span className="mt-1 block text-xs font-normal text-slate-600">
           Tahun kompetisi berlangsung, misalnya 2026.
         </span>
+        <FieldError name="tahun_lomba" errors={fieldErrors} />
       </label>
       <label className="block text-sm font-semibold">Deadline pendaftaran (WIB)
         <input name="deadline_pendaftaran" type="datetime-local" required
           defaultValue={localDate(initial?.deadline_pendaftaran)}
+          {...fieldAttributes("deadline_pendaftaran", fieldErrors)}
           className="mt-1 block w-full rounded-lg border border-slate-300 p-2" />
+        <FieldError name="deadline_pendaftaran" errors={fieldErrors} />
       </label>
       <label className="block text-sm font-semibold">Deadline lomba (WIB)
         <input name="deadline_lomba" type="datetime-local" required
           defaultValue={localDate(initial?.deadline_lomba)}
+          {...fieldAttributes("deadline_lomba", fieldErrors)}
           className="mt-1 block w-full rounded-lg border border-slate-300 p-2" />
+        <FieldError name="deadline_lomba" errors={fieldErrors} />
       </label>
       <label className="block text-sm font-semibold">Minimum peserta tim (termasuk Ketua)
         <input name="min_anggota_tim" type="number" min={2} max={32767} required
           defaultValue={initial?.min_anggota_tim}
+          {...fieldAttributes("min_anggota_tim", fieldErrors)}
           className="mt-1 block w-full rounded-lg border border-slate-300 p-2" />
+        <FieldError name="min_anggota_tim" errors={fieldErrors} />
       </label>
       <label className="block text-sm font-semibold">Maksimum peserta tim (termasuk Ketua)
         <input name="max_anggota_tim" type="number" min={2} max={32767} required
           defaultValue={initial?.max_anggota_tim}
+          {...fieldAttributes("max_anggota_tim", fieldErrors)}
           className="mt-1 block w-full rounded-lg border border-slate-300 p-2" />
+        <FieldError name="max_anggota_tim" errors={fieldErrors} />
       </label>
     </div>
     {suggestions.length > 0 && <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm">
@@ -158,17 +207,23 @@ export default function MissionForm({ initial }: { initial: MissionSubmission | 
     <label className="block text-sm font-semibold">Link resmi
       <input name="link_resmi" type="url" required maxLength={2048}
         defaultValue={initial?.link_resmi} placeholder="https://..."
+        {...fieldAttributes("link_resmi", fieldErrors)}
         className="mt-1 block w-full rounded-lg border border-slate-300 p-2" />
+      <FieldError name="link_resmi" errors={fieldErrors} />
     </label>
     <label className="block text-sm font-semibold">Deskripsi singkat
       <textarea name="deskripsi_singkat" required maxLength={3000} rows={4}
         defaultValue={initial?.deskripsi_singkat}
+        {...fieldAttributes("deskripsi_singkat", fieldErrors)}
         className="mt-1 block w-full rounded-lg border border-slate-300 p-2" />
+      <FieldError name="deskripsi_singkat" errors={fieldErrors} />
     </label>
     <label className="block text-sm font-semibold">Poster atau dokumen lomba baru
       <input name="dokumen" type="file" required
         accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
+        {...fieldAttributes("dokumen", fieldErrors)}
         className="mt-1 block w-full text-sm" />
+      <FieldError name="dokumen" errors={fieldErrors} />
     </label>
     <p className="text-sm text-slate-600">PDF, JPG, atau PNG maksimal 10 MiB.
       Pengajuan yang menunggu review belum muncul di Discovery. Tier akhir ditetapkan admin.
