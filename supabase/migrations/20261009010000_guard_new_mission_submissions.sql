@@ -1,7 +1,7 @@
 -- D0: new team competitions need official size limits and live evidence.
 -- Existing Mission rows and their unresolved legacy limits are untouched.
 create or replace function public.guard_new_mission_submission()
-returns trigger language plpgsql security definer
+returns trigger language plpgsql security invoker
 set search_path = '' as $$
 declare
   v_size text;
