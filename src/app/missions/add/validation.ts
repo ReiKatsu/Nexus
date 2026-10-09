@@ -52,7 +52,9 @@ export function validateFields(form: FormData) {
   const description = text(form.get("deskripsi_singkat"), 3000);
   const registration = deadline(form.get("deadline_pendaftaran"));
   const competition = deadline(form.get("deadline_lomba"));
-  const year = Number(form.get("tahun_lomba"));
+  const rawYear = form.get("tahun_lomba");
+  const year = typeof rawYear === "string" && /^[0-9]{4}$/.test(rawYear)
+    ? Number(rawYear) : NaN;
   const min = Number(form.get("min_anggota_tim"));
   const max = Number(form.get("max_anggota_tim"));
   let url: URL;
@@ -61,7 +63,7 @@ export function validateFields(form: FormData) {
       !["https:", "http:"].includes(url.protocol) ||
       !registration || !competition || registration <= new Date().toISOString() ||
       competition < registration || !Number.isSafeInteger(year) ||
-      year < 1 || year > 32767 ||
+      year < 1000 || year > 9999 ||
       !Number.isInteger(min) || !Number.isInteger(max) || min < 2 ||
       max < min || max > 32767) return null;
 
