@@ -43,7 +43,7 @@ export default async function SeasonHistoryPage({ searchParams }: {
         </Link>
         <h1 className="mt-5 text-2xl font-bold">Season History</h1>
         <p className="mt-2 text-sm text-slate-600">
-          Riwayat XP, Rank, dan posisi akhir dari Season yang sudah ditutup.
+          Riwayat XP, Rank, dan posisi akhir yang disimpan saat Season ditutup.
         </p>
         {!allowed ? <p role="alert" className="mt-6 rounded-xl bg-white p-5 text-red-700">
           Riwayat Season tersedia untuk mahasiswa aktif.
