@@ -60,12 +60,16 @@ export default function Navbar({ displayName, activeItem, isAdmin = false }: Nav
             My Squad
           </Link>
           {isAdmin && (
-            <Link href="/admin/results"
-              aria-current={activeItem === "admin" ? "page" : undefined}
-              className={`${navigationClassName} ${activeItem === "admin" ? activeClassName : inactiveClassName}`}
-            >
-              Review Hasil
-            </Link>
+            <>
+              <Link href="/admin/results"
+                className={`${navigationClassName} ${activeItem === "admin" ? activeClassName : inactiveClassName}`}>
+                Review Hasil
+              </Link>
+              <Link href="/admin/missions"
+                className={`${navigationClassName} ${activeItem === "admin" ? activeClassName : inactiveClassName}`}>
+                Review Mission
+              </Link>
+            </>
           )}
         </nav>
 

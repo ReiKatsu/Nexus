@@ -190,6 +190,16 @@ export default async function MissionsPage({ searchParams }: MissionsPageProps) 
             <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-600 sm:text-base">
               Temukan kompetisi yang sesuai dengan skill dan minatmu.
             </p>
+            <div className="mt-5 flex flex-wrap gap-3">
+              <Link href="/missions/add"
+                className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-bold text-white">
+                + Tambah Mission
+              </Link>
+              <Link href="/missions/submissions"
+                className="rounded-lg border border-indigo-200 px-4 py-2 text-sm font-bold text-indigo-700">
+                Pengajuan saya
+              </Link>
+            </div>
           </div>
 
           <div className="mt-7 sm:mt-8">
