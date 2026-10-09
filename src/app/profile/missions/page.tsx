@@ -43,7 +43,7 @@ export default async function MissionHistoryPage({ searchParams }: {
         </Link>
         <h1 className="mt-5 text-2xl font-bold">Mission History</h1>
         <p className="mt-2 text-sm text-slate-600">
-          Hasil Squad dan prestasi luar NEXUS yang sudah diverifikasi, beserta XP yang diterima.
+          Hasil Squad dan prestasi luar NEXUS yang disetujui, beserta XP aktual yang diterima.
           Riwayat keanggotaan lengkap tersedia di <Link href="/my-squad"
             className="font-semibold text-indigo-700 hover:underline">My Squad</Link>.
         </p>
