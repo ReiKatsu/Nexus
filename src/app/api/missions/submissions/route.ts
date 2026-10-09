@@ -2,7 +2,8 @@ import { randomUUID } from "node:crypto";
 
 import { revalidatePath } from "next/cache";
 
-import { validSubmissionId, validateDocument, validateFields } from
+import { validSubmissionId, validateDocument, validateFields,
+  type MissionFieldErrors } from
   "@/app/missions/add/validation";
 import { createClient } from "@/lib/supabase/server";
 
@@ -10,8 +11,8 @@ export const runtime = "nodejs";
 
 const BUCKET = "mission-documents";
 
-function fail(message: string, status = 400) {
-  return Response.json({ success: false, message }, { status });
+function fail(message: string, status = 400, fieldErrors?: MissionFieldErrors) {
+  return Response.json({ success: false, message, fieldErrors }, { status });
 }
 
 export async function POST(request: Request) {
@@ -27,7 +28,9 @@ export async function POST(request: Request) {
   }
   const length = Number(request.headers.get("content-length"));
   if (Number.isFinite(length) && length > 11_500_000) {
-    return fail("Berkas terlalu besar.", 413);
+    return fail("Periksa kolom yang ditandai.", 413, {
+      dokumen: "Berkas terlalu besar. Maksimal 10 MiB.",
+    });
   }
 
   const supabase = await createClient();
@@ -44,15 +47,22 @@ export async function POST(request: Request) {
 
   let form: FormData;
   try { form = await request.formData(); } catch { return fail("Isian tidak dapat dibaca."); }
-  const fields = validateFields(form);
+  const { fields, errors } = validateFields(form);
   const file = form.get("dokumen");
+  const fileIsPresent = file instanceof File;
   const oldId = form.get("submission_id");
-  if (!fields || !(file instanceof File) ||
+  if (form.getAll("submission_id").length > 1 ||
       (oldId !== null && (typeof oldId !== "string" || !validSubmissionId(oldId)))) {
-    return fail("Periksa kembali isian, deadline, jumlah peserta, dan berkas.");
+    return fail("Pengajuan tidak valid. Muat ulang halaman.", 400);
+  }
+  if (!fileIsPresent) errors.dokumen = "Pilih poster atau dokumen lomba.";
+  if (!fields || !fileIsPresent) {
+    return fail("Periksa kolom yang ditandai.", 400, errors);
   }
   const kind = await validateDocument(file);
-  if (!kind) return fail("Berkas harus PDF/JPG/PNG asli, maksimal 10 MiB.");
+  if (!kind) return fail("Periksa kolom yang ditandai.", 400, {
+    dokumen: "Berkas harus PDF/JPG/PNG asli, maksimal 10 MiB.",
+  });
 
   const oldQuery = oldId
     ? await supabase.from("mission_submissions")
@@ -71,7 +81,9 @@ export async function POST(request: Request) {
   const { error: uploadError } = await storage.upload(path, file, {
     contentType: kind.contentType, upsert: false,
   });
-  if (uploadError) return fail("Berkas belum berhasil diunggah. Coba lagi.", 503);
+  if (uploadError) return fail("Berkas belum berhasil diunggah. Coba lagi.", 503, {
+    dokumen: "Berkas belum berhasil diunggah. Coba lagi.",
+  });
 
   const saved = old
     ? await supabase.from("mission_submissions")
@@ -85,9 +97,28 @@ export async function POST(request: Request) {
         .select("mission_submission_id").maybeSingle();
   if (saved.error || !saved.data) {
     await storage.remove([path]);
-    return fail(saved.error?.code === "23505"
-      ? "Pengajuan dengan nama, penyelenggara, dan tahun yang sama sudah ada."
-      : "Pengajuan belum tersimpan. Muat ulang lalu coba lagi.", 409);
+    if (saved.error?.code === "23505") {
+      return fail("Pengajuan serupa sudah ada.", 409, {
+        nama_lomba: "Nama lomba, penyelenggara, dan tahun ini sudah diajukan.",
+      });
+    }
+    if (saved.error?.message?.includes("Registration deadline has passed")) {
+      return fail("Periksa kolom yang ditandai.", 409, {
+        deadline_pendaftaran: "Deadline pendaftaran sudah lewat.",
+      });
+    }
+    if (saved.error?.message?.includes("Team competition requires valid minimum and maximum participants")) {
+      return fail("Periksa kolom yang ditandai.", 409, {
+        min_anggota_tim: "Rentang peserta tim belum valid.",
+        max_anggota_tim: "Periksa rentang peserta resmi lomba.",
+      });
+    }
+    if (saved.error?.message?.includes("Mission document is missing or invalid")) {
+      return fail("Periksa kolom yang ditandai.", 409, {
+        dokumen: "Dokumen belum tersedia atau tidak valid. Unggah ulang.",
+      });
+    }
+    return fail("Pengajuan belum tersimpan. Muat ulang lalu coba lagi.", 409);
   }
 
   if (old?.dokumen_path?.startsWith(`${userId}/${submissionId}/`)) {
