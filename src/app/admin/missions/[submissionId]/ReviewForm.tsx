@@ -5,11 +5,12 @@ import { useState } from "react";
 
 import { reviewMission } from "../actions";
 
-export default function ReviewForm({ submissionId, tiers, min, max }: {
+export default function ReviewForm({ submissionId, tiers, min, max, canApprove }: {
   submissionId: string;
   tiers: { tier_id: number; kode_tier: string }[];
   min: number | null;
   max: number | null;
+  canApprove: boolean;
 }) {
   const router = useRouter();
   const [tierId, setTierId] = useState(String(tiers[0]?.tier_id ?? ""));
@@ -71,7 +72,7 @@ export default function ReviewForm({ submissionId, tiers, min, max }: {
     </div>
     <p className="text-xs text-slate-600">Pastikan rentang sesuai aturan resmi lomba.
       Tier akhir ditentukan admin. Persetujuan membuat Mission dan mengirim notifikasi.</p>
-    <button type="button" disabled={pending || !tierId} onClick={() => submit("APPROVED")}
+    <button type="button" disabled={pending || !tierId || !canApprove} onClick={() => submit("APPROVED")}
       className="rounded-lg bg-emerald-600 px-4 py-2 font-semibold text-white disabled:opacity-50">
       {pending ? "Menyimpan..." : "Setujui"}
     </button>
