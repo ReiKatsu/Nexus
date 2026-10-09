@@ -163,9 +163,9 @@ GAP AKTUAL: A1 missions_read membatasi Mission expired pada admin atau user yang
 
 Tier ditentukan admin berdasarkan kredibilitas penyelenggara dan cakupan: S internasional prestisius; A nasional kredibel; B regional/antaruniversitas; C internal kampus/komunitas. Jangan menciptakan scoring otomatis penentuan tier tanpa instruksi.
 
-### MIS-03 Rentang peserta — PLANNED — NOT YET DEPLOYED
+### MIS-03 Rentang peserta — PHASE 1 DEPLOYED, LEGACY G02 OPEN
 
-Target field pada mission_submissions dan missions: min_anggota_tim, max_anggota_tim, SMALLINT positif, min <= max; keduanya termasuk Ketua. Lomba exact-size menggunakan min = max. Setelah deployed, Mission menjadi otoritas batas kapasitas Squad.
+Field `min_anggota_tim` dan `max_anggota_tim` sudah ada pada kedua tabel, tetapi masih nullable untuk data lama. Trigger aktif mewajibkan pasangan batas pada submission/Mission baru dan pada approval. Keduanya termasuk Ketua; lomba exact-size menggunakan min = max. Penyelesaian backfill legacy tetap menunggu G02, bukan angka tebakan.
 
 Untuk Squad dengan batas minimum existing dua orang, domain kapasitas yang valid adalah: integer C >= 2, min_anggota_tim <= C <= max_anggota_tim. Contoh range 3–5 mengizinkan kapasitas 3,4,5 dan requirements 2,3,4. Exact-size 4 hanya mengizinkan kapasitas 4 dan requirements 3. Contoh bukan data seed.
 
@@ -428,8 +428,8 @@ Stores Add Mission requests before approval.
 | `kategori_lomba` | ENUM |
 | `cakupan_peserta` | ENUM |
 | `mode_lomba` | ENUM |
-| `min_anggota_tim` | SMALLINT — **PLANNED, NOT YET DEPLOYED** |
-| `max_anggota_tim` | SMALLINT — **PLANNED, NOT YET DEPLOYED** |
+| `min_anggota_tim` | SMALLINT — deployed, nullable pada legacy; wajib untuk pengajuan baru |
+| `max_anggota_tim` | SMALLINT — deployed, nullable pada legacy; wajib untuk pengajuan baru |
 | `biaya_pendaftaran` | ENUM |
 | `deskripsi_singkat` | TEXT |
 | `dokumen_path` | TEXT |
@@ -466,8 +466,8 @@ Approved mission data shown in Discovery.
 | `kategori_lomba` | ENUM |
 | `cakupan_peserta` | ENUM |
 | `mode_lomba` | ENUM |
-| `min_anggota_tim` | SMALLINT — **PLANNED, NOT YET DEPLOYED** |
-| `max_anggota_tim` | SMALLINT — **PLANNED, NOT YET DEPLOYED** |
+| `min_anggota_tim` | SMALLINT — deployed, nullable pada legacy; wajib untuk Mission baru |
+| `max_anggota_tim` | SMALLINT — deployed, nullable pada legacy; wajib untuk Mission baru |
 | `biaya_pendaftaran` | ENUM |
 | `deskripsi_singkat` | TEXT |
 | `dokumen_path` | TEXT |
@@ -1116,7 +1116,7 @@ Semua data contoh, nama pengguna, XP, tahun, hitungan, tanggal, dan isi chat C1 
 **Dasar:** PRD MIS-01/DATA-8; layar lengkap tidak terbukti pada C1.
 
 - Field mengikuti MIS-01 dan kamus data mission_submissions: nama, penyelenggara, kategori penyelenggara, link resmi, deadline pendaftaran/lomba, tahun, kategori lomba, cakupan, mode, biaya, deskripsi, poster/dokumen.
-- Batas minimum/maksimum anggota termasuk Ketua ditambahkan setelah kontrak MIS-03 diterapkan; bukan pilihan kapasitas Squad bebas atau field yang diam-diam tidak disimpan.
+- Batas minimum/maksimum anggota termasuk Ketua wajib diisi pada pengajuan baru sesuai schema dan trigger aktif; bukan pilihan kapasitas Squad bebas. Data lama yang nullable tetap mengikuti G02.
 - Aksi ajukan dan batal; saran duplikasi dengan penolakan exact duplicate; tidak ada preview pemberian XP karena Add Mission tidak memberi XP.
 - Setelah kirim tampilkan PENDING; APPROVED terhubung ke Mission resmi; REJECTED menampilkan alasan dan aksi perbaiki/ajukan ulang dengan ID sama. Lokasi daftar pengajuan mengikuti pola repository dan perlu ditetapkan jika belum ada, bukan mengarang route dari Canva.
 - Tier final ditetapkan admin, bukan nilai final pilihan pengaju. Deadline tidak valid/expired, upload gagal, dan duplikat ditangani sebagai error spesifik.
