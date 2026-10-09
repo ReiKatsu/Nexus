@@ -4,8 +4,10 @@ import { redirect } from "next/navigation";
 
 import Navbar from "@/components/layout/Navbar";
 import EndorsementSummary from "@/components/profile/EndorsementSummary";
+import MissionHistoryList from "@/components/profile/MissionHistoryList";
 import SeasonHistoryList from "@/components/profile/SeasonHistoryList";
 import { loadEndorsementSummary } from "@/lib/endorsements";
+import { loadMissionHistory } from "@/lib/mission-history";
 import { loadSeasonHistory } from "@/lib/season-history";
 import { createClient } from "@/lib/supabase/server";
 
@@ -38,7 +40,7 @@ export default async function ProfilePage() {
 
   const userId = auth.user.id;
   const [classResult, programResult, skillsResult, careerResult, seasonResult, rulesResult,
-    endorsementSummary, seasonHistory] =
+    endorsementSummary, seasonHistory, missionHistory] =
     await Promise.all([
       profile.primary_class_id === null
         ? Promise.resolve({ data: null, error: null })
@@ -56,6 +58,8 @@ export default async function ProfilePage() {
         .order("min_xp", { ascending: true }),
       loadEndorsementSummary(supabase, userId),
       profile.role_app === "STUDENT" ? loadSeasonHistory(supabase, userId, 1, 2)
+        : Promise.resolve({ items: [], count: 0 }),
+      profile.role_app === "STUDENT" ? loadMissionHistory(supabase, userId, 1, 2)
         : Promise.resolve({ items: [], count: 0 }),
     ]);
 
@@ -168,6 +172,20 @@ export default async function ProfilePage() {
             <Link href="/profile/seasons"
               className="mt-4 inline-block text-sm font-semibold text-indigo-700 hover:underline">
               Lihat semua Season →
+            </Link>
+          </section>
+        )}
+        {profile.role_app === "STUDENT" && (
+          <section className="mt-8">
+            <h2 className="text-lg font-bold">Mission History</h2>
+            {!missionHistory ? <p role="alert" className="mt-3 text-sm text-red-700">
+              Riwayat Mission belum dapat dimuat.
+            </p> : missionHistory.count === 0 ? <p className="mt-3 text-sm text-slate-600">
+              Belum ada hasil atau prestasi yang diverifikasi dan menghasilkan XP.
+            </p> : <MissionHistoryList items={missionHistory.items} />}
+            <Link href="/profile/missions"
+              className="mt-4 inline-block text-sm font-semibold text-indigo-700 hover:underline">
+              Lihat semua riwayat →
             </Link>
           </section>
         )}
