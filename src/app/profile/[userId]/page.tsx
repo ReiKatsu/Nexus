@@ -3,7 +3,10 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
 import Navbar from "@/components/layout/Navbar";
+import EndorsementSummary from "@/components/profile/EndorsementSummary";
+import { loadEndorsementSummary, loadSharedCompletedSquads } from "@/lib/endorsements";
 import { createClient } from "@/lib/supabase/server";
+import EndorsementForm from "./EndorsementForm";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -29,13 +32,17 @@ export default async function PeerProfilePage({ params }: { params: Promise<{ us
   if (peerResult.error || !peerResult.data) notFound();
 
   const peer = peerResult.data;
-  const [classResult, programResult] = await Promise.all([
+  const [classResult, programResult, summary, sharedSquads] = await Promise.all([
     peer.primary_class_id === null
       ? Promise.resolve({ data: null, error: null })
       : supabase.from("primary_classes").select("nama_class")
           .eq("primary_class_id", peer.primary_class_id).maybeSingle(),
     supabase.from("program_studi").select("nama_program_studi, fakultas_id")
       .eq("program_studi_id", peer.program_studi_id).maybeSingle(),
+    loadEndorsementSummary(supabase, userId),
+    viewerResult.data.role_app === "STUDENT"
+      ? loadSharedCompletedSquads(supabase, auth.user.id, userId)
+      : Promise.resolve([]),
   ]);
   const facultyResult = programResult.data
     ? await supabase.from("fakultas").select("nama_fakultas")
@@ -75,6 +82,14 @@ export default async function PeerProfilePage({ params }: { params: Promise<{ us
               <dd className="mt-1 font-semibold">{peer.tahun_masuk}</dd></div>
           </dl>
         </section>
+        <EndorsementSummary summary={summary} />
+        {sharedSquads === null ? (
+          <p role="alert" className="mt-6 text-sm text-red-700">
+            Ketersediaan penilaian belum dapat diperiksa. Coba muat ulang.
+          </p>
+        ) : sharedSquads.length > 0 ? (
+          <EndorsementForm targetUserId={userId} squads={sharedSquads} />
+        ) : null}
       </main>
     </div>
   );
