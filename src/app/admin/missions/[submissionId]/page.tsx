@@ -78,10 +78,10 @@ export default async function AdminMissionDetailPage({ params }: {
             Dokumen tidak dapat dibuka. Jangan setujui sebelum bukti tersedia.
           </p>}
         </section>
-        {submission.status_review === "PENDING" && document.data?.signedUrl &&
-          !document.error && tiers.data?.length ?
+        {submission.status_review === "PENDING" && tiers.data?.length ?
           <ReviewForm submissionId={submissionId} tiers={tiers.data}
-            min={submission.min_anggota_tim} max={submission.max_anggota_tim} />
+            min={submission.min_anggota_tim} max={submission.max_anggota_tim}
+            canApprove={Boolean(document.data?.signedUrl && !document.error)} />
           : submission.status_review === "REJECTED" ? <p className="mt-5 text-red-700">
             Ditolak: {submission.alasan_penolakan}
           </p> : submission.status_review === "APPROVED" ? <p className="mt-5 text-emerald-700">
