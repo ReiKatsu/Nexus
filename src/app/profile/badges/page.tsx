@@ -47,7 +47,7 @@ export default async function BadgeChestPage() {
         </Link>
         <h1 className="mt-5 text-2xl font-bold">Badge Chest</h1>
         <p className="mt-2 text-sm text-slate-600">
-          Koleksi Badge yang telah kamu peroleh. Satu Badge dapat dipasang di profil.
+          Koleksi Badge yang telah kamu peroleh, termasuk Season sebelumnya. Satu Badge dapat dipasang di profil.
         </p>
 
         {!canView ? (
