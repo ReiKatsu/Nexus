@@ -6,7 +6,7 @@ Scope: LB-01 and the resolved population part of G09.
 
 The live RPC ranks only STUDENT ACTIVE profiles, including zero XP. The previous three internal leaderboard views and close_active_season included ADMIN/SUSPENDED profiles.
 
-Migration `20261010031039_align_season_leaderboard_population.sql` replaces the three internal view definitions and existing close function in place. Filtering happens before rank/population calculation, and NULL ordering matches the live RPC. Existing grants, admin guards, ledger assignment and historical badge behavior are preserved. The refresh function consumes these views unchanged, including the existing >3% and <=10% contender rule.
+Migration `20261010031408_align_season_leaderboard_population.sql` replaces the three internal view definitions and existing close function in place. Filtering happens before rank/population calculation, and NULL ordering matches the live RPC. Existing grants, admin guards, ledger assignment and historical badge behavior are preserved. The refresh function consumes these views unchanged, including the existing >3% and <=10% contender rule.
 
 Remote migration: applied successfully. Live university population changed from seven profiles (including one admin) to six eligible students and zero admins.
 
@@ -34,3 +34,5 @@ No Season is closed by the migration; no XP, history or badge rows are rewritten
 ## Unresolved work
 
 The active Season ends on 30 June 2027. pg_cron/pg_net are not installed, and no scheduling is introduced here. Season cutoff timezone, approval arriving after closure, concurrent approval/close and next-Season activation still need G10 decisions/tests. Exact 3% and current-vs-historical badge presentation remain G09 decisions. Idle cleanup still needs G07 activity/deletion rules.
+
+The migration file was generated with Supabase CLI and its version label synchronized to the actual remote applied version `20261010031408`; SQL contents are unchanged. The existing expired-Mission migration has a separate earlier version-label mismatch (`20261010010000` locally vs `20261010014205` remotely), outside this change. Check migration history alignment before a future CLI db push.
