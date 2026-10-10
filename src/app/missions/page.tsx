@@ -16,6 +16,7 @@ type MissionTier = {
 
 type MissionsPageProps = {
   searchParams: Promise<{
+    q?: string | string[];
     category?: string | string[];
     tier?: string | string[];
     mode?: string | string[];
@@ -117,6 +118,7 @@ export default async function MissionsPage({ searchParams }: MissionsPageProps) 
     .sort((firstTier, secondTier) => firstTier.code.localeCompare(secondTier.code));
 
   const requestedCategory = getSearchParam(requestedFilters.category);
+  const searchQuery = getSearchParam(requestedFilters.q).trim().slice(0, 100);
   const requestedTier = getSearchParam(requestedFilters.tier);
   const requestedMode = getSearchParam(requestedFilters.mode);
   const requestedCost = getSearchParam(requestedFilters.cost);
@@ -127,7 +129,7 @@ export default async function MissionsPage({ searchParams }: MissionsPageProps) 
   const selectedMode = modeOptions.includes(requestedMode) ? requestedMode : "";
   const selectedCost = costOptions.includes(requestedCost) ? requestedCost : "";
   const hasActiveFilters = Boolean(
-    selectedCategory || selectedTier || selectedMode || selectedCost,
+    searchQuery || selectedCategory || selectedTier || selectedMode || selectedCost,
   );
 
   let missionsQuery = supabase
@@ -141,13 +143,16 @@ export default async function MissionsPage({ searchParams }: MissionsPageProps) 
         kategori_lomba,
         mode_lomba,
         biaya_pendaftaran,
+        cakupan_peserta,
+        open_squads:squads(count),
         tier_id,
         mission_tiers (
           kode_tier
         )
       `,
     )
-    .gt("deadline_pendaftaran", now);
+    .gt("deadline_pendaftaran", now)
+    .eq("open_squads.status_squad", "OPEN_RECRUITMENT");
 
   if (selectedCategory) {
     missionsQuery = missionsQuery.eq("kategori_lomba", selectedCategory);
@@ -162,10 +167,20 @@ export default async function MissionsPage({ searchParams }: MissionsPageProps) 
     missionsQuery = missionsQuery.eq("biaya_pendaftaran", selectedCost);
   }
 
-  const { data: missions, error: missionsError } = await missionsQuery.order(
-    "deadline_pendaftaran",
-    { ascending: true },
-  );
+  const [missionsResult, xpRulesResult] = await Promise.all([
+    missionsQuery.order("deadline_pendaftaran", { ascending: true }),
+    supabase.from("xp_rules").select("tier_id, verified_xp")
+      .eq("hasil_kompetisi", "PARTICIPANT"),
+  ]);
+  const { data: availableMissions, error: missionsError } = missionsResult;
+
+  // Discovery already loads the filtered list; use literal text matching so
+  // PostgREST wildcard aliases cannot turn a typed name into a pattern.
+  const missions = (availableMissions ?? []).filter((mission) =>
+    !searchQuery || mission.nama_lomba.toLocaleLowerCase("id-ID")
+      .includes(searchQuery.toLocaleLowerCase("id-ID")));
+  const participantXp = new Map((xpRulesResult.data ?? [])
+    .map((rule) => [rule.tier_id, rule.verified_xp]));
 
   return (
     <div className="flex min-h-screen w-full min-w-0 flex-col overflow-x-clip bg-slate-50">
@@ -208,11 +223,17 @@ export default async function MissionsPage({ searchParams }: MissionsPageProps) 
             </h2>
 
             <form
-              key={`${selectedCategory}:${selectedTier?.code ?? ""}:${selectedMode}:${selectedCost}`}
+              key={JSON.stringify([searchQuery, selectedCategory, selectedTier?.code, selectedMode, selectedCost])}
               method="GET"
               className="mt-3 min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:mt-4 sm:p-5"
             >
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <label className="block text-xs font-bold text-slate-600">
+                Cari nama kompetisi
+                <input type="search" name="q" defaultValue={searchQuery} maxLength={100}
+                  placeholder="Masukkan nama Mission"
+                  className="mt-1.5 block h-10 w-full rounded-xl border border-slate-200 px-3 text-sm font-normal text-slate-700 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100" />
+              </label>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 <label className="min-w-0 text-xs font-bold text-slate-600">
                   Kategori
                   <select
@@ -311,7 +332,7 @@ export default async function MissionsPage({ searchParams }: MissionsPageProps) 
                       Tidak ada Mission yang cocok
                     </p>
                     <p className="mt-2 text-sm leading-6 text-slate-500">
-                      Coba ubah filter yang digunakan.
+                      Coba ubah kata pencarian atau filter yang digunakan.
                     </p>
                   </>
                 ) : (
@@ -361,10 +382,21 @@ export default async function MissionsPage({ searchParams }: MissionsPageProps) 
                           {mission.mode_lomba}
                         </span>
                         <span className="max-w-full break-words rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-600 [overflow-wrap:anywhere]">
+                          {formatEnumLabel(mission.cakupan_peserta)}
+                        </span>
+                        <span className="max-w-full break-words rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-600 [overflow-wrap:anywhere]">
                           {formatEnumLabel(mission.biaya_pendaftaran)}
                         </span>
                       </div>
 
+                      <div className="mt-4 grid gap-2 text-sm text-slate-600 sm:grid-cols-2">
+                        <p>{xpRulesResult.error || !participantXp.has(mission.tier_id)
+                          ? "XP Participant belum tersedia"
+                          : `${participantXp.get(mission.tier_id)} XP dasar Participant`}</p>
+                        <p>{mission.open_squads?.[0]?.count === undefined
+                          ? "Jumlah Squad belum dapat dimuat"
+                          : `${mission.open_squads[0].count} Squad Open Recruitment`}</p>
+                      </div>
                       <div className="mt-5 border-t border-slate-100 pt-4">
                         <p className="text-xs font-bold uppercase tracking-[0.14em] text-slate-400">
                           Deadline pendaftaran
@@ -378,6 +410,10 @@ export default async function MissionsPage({ searchParams }: MissionsPageProps) 
                           )}
                         </time>
                       </div>
+                      <Link href={`/missions/${mission.mission_id}`}
+                        className="mt-4 inline-block rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">
+                        Lihat detail
+                      </Link>
                     </article>
                   );
                 })}
@@ -389,3 +425,4 @@ export default async function MissionsPage({ searchParams }: MissionsPageProps) 
     </div>
   );
 }
+

@@ -6,6 +6,7 @@ import Navbar from "@/components/layout/Navbar";
 import EndorsementSummary from "@/components/profile/EndorsementSummary";
 import MissionHistoryList from "@/components/profile/MissionHistoryList";
 import SeasonHistoryList from "@/components/profile/SeasonHistoryList";
+import ShareProfile from "@/components/profile/ShareProfile";
 import { loadEndorsementSummary } from "@/lib/endorsements";
 import { loadMissionHistory } from "@/lib/mission-history";
 import { loadSeasonHistory } from "@/lib/season-history";
@@ -135,6 +136,8 @@ export default async function ProfilePage() {
           </dl>
         </section>
 
+        {profile.role_app === "STUDENT" && <ShareProfile userId={userId} />}
+
         <section className="mt-8">
           <h2 className="text-lg font-bold">Skills</h2>
           {skills.length ? (
@@ -220,3 +223,4 @@ export default async function ProfilePage() {
     </div>
   );
 }
+
