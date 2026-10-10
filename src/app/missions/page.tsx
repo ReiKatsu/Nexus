@@ -94,7 +94,7 @@ export default async function MissionsPage({ searchParams }: MissionsPageProps) 
         )
       `,
     )
-    .gte("deadline_pendaftaran", now);
+    .gt("deadline_pendaftaran", now);
 
   const categoryOptions = uniqueStrings(
     (filterRows ?? []).map((row) => row.kategori_lomba),
@@ -147,7 +147,7 @@ export default async function MissionsPage({ searchParams }: MissionsPageProps) 
         )
       `,
     )
-    .gte("deadline_pendaftaran", now);
+    .gt("deadline_pendaftaran", now);
 
   if (selectedCategory) {
     missionsQuery = missionsQuery.eq("kategori_lomba", selectedCategory);
