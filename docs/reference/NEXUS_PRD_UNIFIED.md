@@ -75,7 +75,7 @@ Ketua bukan role_app baru. Seorang mahasiswa dapat menjadi Ketua di satu Squad d
 
 Auth, onboarding, Home, Smart Profile/Edit Profil, Mission Discovery/Detail/Add Mission, Create/Apply/Recruitment Squad, My Squad, Squad Room/group chat, Finalize, Submit Mission Result, Achievement Validation, admin review, XP, Rank, Badge Chest, Seasonal Leaderboard, Endorsement, notification dan Season History. Laporan masalah Squad/Admin Intervention ditunda berdasarkan arahan ketua tim 8 Oktober 2026; fungsi tersebut belum dinyatakan selesai atau dihapus dari desain.
 
-Auto-cleanup idle >30 hari adalah target Handbook tetapi desain penghapusan/definisi aktivitas masih NEEDS DECISION, bukan fitur selesai.
+Keputusan 10 Oktober 2026: cleanup idle >30 hari menghapus pesan chat saja; Squad/Room tetap tersedia, hasil PENDING dikecualikan. Migration `20261010122145_cleanup_idle_squad_chat.sql` diterapkan; tes terisolasi dan runtime rollback PASS.
 
 ### 2.3 OUTSIDE MVP
 
@@ -313,7 +313,7 @@ Tindakan target: remove member, membubarkan Squad, atau membuka recruitment lagi
 
 ### OPS-01 Cleanup dan notification
 
-Idle >30 hari: target cleanup terpisah dari intervention, independen dari status Finalized menurut Handbook. last_activity_at tersedia, tetapi event yang memperbaruinya, scheduler dan cakupan data yang dihapus belum ditentukan. Jangan menjalankan recursive/cascade delete Squad sebagai interpretasi “hapus Squad Room”. Perlindungan history/XP/hasil harus disepakati (G07).
+Keputusan pengguna 10 Oktober 2026 (G07): idle lebih dari 30 x 24 jam dihitung dari chat baru, perubahan Squad/recruitment/requirements/anggota, finalize, serta submit/resubmit/review hasil. Cleanup hanya menghapus pesan; Squad Room tetap dapat dipakai dan Squad, membership, hasil, XP, badge, Endorsement serta history tetap. Hasil PENDING melindungi Squad dari cleanup. Job berjalan setiap hari 02.00 WIB, memakai row lock/recheck serta SKIP LOCKED. Timestamp-only/no-op dan penghapusan chat tidak dihitung aktivitas. Backfill memperhitungkan timestamp aktivitas lama yang tersedia. H-3 tetap proposal.
 
 Notification untuk hasil validasi, Rank-Up, hasil recruitment dan update laporan. User hanya mengubah is_read, bukan isi/penerima. Penyampaian notification setiap event harus diuji; keberadaan tabel tidak cukup.
 
@@ -940,7 +940,7 @@ Enam object turunan terinventaris kolomnya: public_profiles, career_xp_totals, c
 | G04 | RESOLVED 8 Oktober 2026: kebutuhan diisi, keputusan accept/reject di tangan Ketua | Tampilkan Class/Skill pelamar; jangan auto-reject mismatch. Skill tambahan pada Create masih UI-G02 |
 | G05 | Create ketika ada PENDING application lain | Tentukan nasib application; auto-cancel terbukti di acceptance, bukan create |
 | G06 | Ketua self-leave, transfer dan pembatalan recruitment | Jangan invent role/status baru; tentukan flow minimal |
-| G07 | Pembubaran/reopen dan cleanup idle | Tentukan batas data deletion, history, pending result, aktivitas dan scheduler; H-3 proposal |
+| G07 | Cleanup RESOLVED 10 Oktober 2026: chat-only idle >30 hari, skip PENDING, job 02.00 WIB; migration diterapkan dan runtime rollback PASS | Uji concurrency dua sesi/job harian nyata belum dijalankan. Pembubaran/reopen tetap belum diputuskan; H-3 proposal |
 | G08 | Skills lintas-Class dan perubahan Class setelah join | Pertahankan bebas ubah; jangan menghapus Skills/membership tanpa keputusan |
 | G09 | SEBAGIAN RESOLVED 10 Oktober 2026: live, snapshot penutupan dan sumber award badge hanya STUDENT ACTIVE termasuk 0 XP; ADMIN/SUSPENDED tidak masuk. Migration diterapkan; runtime rollback PASS | Scheduler belum tersedia; badge historical/current serta exact 3% tetap butuh keputusan |
 | G10 | RESOLVED keputusan 10 Oktober 2026: WIB, tanpa masa tenggang; late approval Career-only dan snapshot CLOSED tetap | Migration diterapkan; cutoff, rollover, review late Legacy/Verified, snapshot dan idempotence runtime rollback PASS. Dua sesi concurrent dan scheduled run nyata belum teruji |
