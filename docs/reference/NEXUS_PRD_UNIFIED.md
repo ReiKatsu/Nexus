@@ -272,7 +272,7 @@ Silver I=300, II=600, III=999. Rank-Up Reward diterbitkan saat melewati threshol
 
 Scope PROGRAM_STUDI, FAKULTAS, UNIVERSITAS/seluruh UNESA. Basis Seasonal XP. Urutan: seasonal_xp DESC → waktu lebih awal mencapai total akhir ASC → user_id deterministic. Snapshot close_active_season memakai max(created_at) transaksi season untuk reached_at. Definisi view live belum tersedia dalam inventaris, harus diperiksa sebelum menilai kesesuaiannya.
 
-Search nama berjalan dalam scope aktif, menyorot posisi tanpa mengubah ranking populasi. Card membuka profile. Keputusan 8 Oktober 2026: populasi live adalah seluruh profil STUDENT berstatus akun ACTIVE dalam scope, termasuk yang memiliki 0 Seasonal XP. ADMIN dan SUSPENDED dikecualikan. ACTIVE adalah status akun NEXUS, bukan verifikasi status akademik kampus. Snapshot close_active_season dan refresh_leaderboard_badges belum diselaraskan; konsistensi histori/badge tetap G09.
+Search nama berjalan dalam scope aktif, menyorot posisi tanpa mengubah ranking populasi. Card membuka profile. Keputusan 8 Oktober 2026: populasi live adalah seluruh profil STUDENT berstatus akun ACTIVE dalam scope, termasuk yang memiliki 0 Seasonal XP. ADMIN dan SUSPENDED dikecualikan. ACTIVE adalah status akun NEXUS, bukan verifikasi status akademik kampus. Pembaruan 10 Oktober 2026: migration `20261010031039_align_season_leaderboard_population.sql` menyelaraskan snapshot `close_active_season` dan view internal sumber `refresh_leaderboard_badges` dengan populasi STUDENT ACTIVE (termasuk 0 XP). Runtime rollback memverifikasi kesamaan ranking tiga scope, exclusion admin/suspended, award idempotent, snapshot dan ledger tetap utuh. Scheduler dan kasus approval bersamaan/terlambat masih belum selesai (G09/G10).
 
 Season Juli–Juni. Saat ditutup: simpan Season Rank, Seasonal XP dan posisi/populasi per scope; Career dan badge lama tidak hilang. Function close_active_season tersedia di snapshot, scheduler dan pembukaan season berikutnya belum terbukti.
 
@@ -942,7 +942,7 @@ Enam object turunan terinventaris kolomnya: public_profiles, career_xp_totals, c
 | G06 | Ketua self-leave, transfer dan pembatalan recruitment | Jangan invent role/status baru; tentukan flow minimal |
 | G07 | Pembubaran/reopen dan cleanup idle | Tentukan batas data deletion, history, pending result, aktivitas dan scheduler; H-3 proposal |
 | G08 | Skills lintas-Class dan perubahan Class setelah join | Pertahankan bebas ubah; jangan menghapus Skills/membership tanpa keputusan |
-| G09 | SEBAGIAN RESOLVED 8 Oktober 2026: live leaderboard hanya STUDENT ACTIVE termasuk 0 XP, ADMIN/SUSPENDED tidak masuk | Selaraskan snapshot season dan badge sebelum digunakan; badge historical/current serta exact 3% tetap butuh keputusan |
+| G09 | SEBAGIAN RESOLVED 10 Oktober 2026: live, snapshot penutupan dan sumber award badge hanya STUDENT ACTIVE termasuk 0 XP; ADMIN/SUSPENDED tidak masuk. Migration diterapkan; runtime rollback PASS | Scheduler belum tersedia; badge historical/current serta exact 3% tetap butuh keputusan |
 | G10 | Timezone earned_at, approval pada batas season, close concurrent | Tetapkan konsistensi waktu bisnis; uji sebelum mengubah assignment/ledger |
 | G11 | Mission expired RLS berbeda target; NOT VERIFIED | Inspect current policy dan implementasi; fix hanya dalam task berizin |
 | G12 | Maksimum Skill/PENDING race dan update requirements | Uji concurrent dan semua write path; trigger hitungan bukan bukti semua race PASS |
