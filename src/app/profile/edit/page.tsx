@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 
 import EditProfileForm from "./EditProfileForm";
 import AvatarUploadForm from "./AvatarUploadForm";
+import AcademicProfileForm from "./AcademicProfileForm";
 
 export default async function EditProfilePage() {
   const supabase = await createClient();
@@ -30,6 +31,14 @@ export default async function EditProfilePage() {
   const avatarUrl = profile.foto_profil_path
     ? supabase.storage.from("avatars").getPublicUrl(profile.foto_profil_path).data.publicUrl
     : null;
+  const [classes, skills, selectedSkills] = await Promise.all([
+    supabase.from("primary_classes").select("primary_class_id,nama_class")
+      .order("primary_class_id", { ascending: true }),
+    supabase.from("skills").select("skill_id,nama_skill,primary_class_id")
+      .order("nama_skill", { ascending: true }),
+    supabase.from("user_skills").select("skill_id")
+      .eq("user_id", auth.user.id),
+  ]);
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
@@ -42,6 +51,26 @@ export default async function EditProfilePage() {
         </p>
         <AvatarUploadForm name={profile.nama_lengkap} avatarUrl={avatarUrl} />
         <EditProfileForm name={profile.nama_lengkap} bio={profile.bio ?? ""} />
+        {profile.role_app === "STUDENT" && (
+          classes.error || skills.error || selectedSkills.error ||
+          !classes.data || !skills.data || !selectedSkills.data ||
+          profile.primary_class_id === null ? (
+            <p role="alert" className="mt-6 text-sm text-red-700">
+              Data Class dan Skills belum dapat dimuat. Coba muat ulang.
+            </p>
+          ) : (
+            <AcademicProfileForm
+              classes={classes.data.map((item) => ({
+                id: item.primary_class_id, name: item.nama_class,
+              }))}
+              skills={skills.data.map((item) => ({
+                id: item.skill_id, name: item.nama_skill, classId: item.primary_class_id,
+              }))}
+              currentClassId={profile.primary_class_id}
+              currentSkillIds={selectedSkills.data.map((item) => item.skill_id)}
+            />
+          )
+        )}
       </main>
     </div>
   );
