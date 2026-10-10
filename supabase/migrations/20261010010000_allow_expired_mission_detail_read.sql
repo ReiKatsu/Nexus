@@ -1,12 +1,9 @@
 -- Keep Discovery limited to open registration in its query.
 -- Authenticated students with completed onboarding may still open an old Mission URL.
 -- Preserve admin and historical Squad member access from the prior policy.
-drop policy if exists missions_read on public.missions;
-
-create policy missions_read
+-- The existing missions_read policy remains in place; only its SELECT condition changes.
+alter policy missions_read
 on public.missions
-for select
-to authenticated
 using (
   deadline_pendaftaran > now()
   or public.is_admin()
