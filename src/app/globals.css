@@ -1,26 +1,163 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: dark;
+  --background: #080b0e;
+  --foreground: #f8fafc;
+  --glass: linear-gradient(135deg, rgba(116, 119, 117, .46), rgba(36, 48, 55, .72));
+  --glass-border: rgba(215, 222, 226, .42);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-sans: var(--font-poppins);
+  --color-slate-950: #ffffff;
+  --color-slate-900: #f4f7fa;
+  --color-slate-800: #e8edf2;
+  --color-slate-700: #dce3e9;
+  --color-slate-600: #d0d7de;
+  --color-slate-500: #b9c3cc;
+  --color-slate-400: #a7b4bf;
+  --color-slate-300: #727e88;
+  --color-slate-200: #6b747a;
+  --color-slate-100: #3f4b53;
+  --color-slate-50: #24313a;
+  --color-indigo-700: #a9d9fa;
+  --color-indigo-600: #4e9fc4;
+  --color-indigo-500: #69c4ec;
+  --color-indigo-300: #405b6b;
+  --color-indigo-200: #4e7186;
+  --color-indigo-100: #344c5c;
+  --color-indigo-50: #263c4b;
+  --color-red-700: #ffb9bb;
+  --color-red-600: #ffb9bb;
+  --color-red-50: #462e34;
+  --color-emerald-700: #a5f0cf;
+  --color-emerald-600: #a5f0cf;
+  --color-emerald-50: #28473e;
+  --color-amber-800: #ffe1a1;
+  --color-amber-700: #ffe1a1;
+  --color-amber-50: #483d2b;
 }
 
 body {
-  background: var(--background);
+  margin: 0;
+  min-width: 320px;
+  background: #080b0e url('/nexus-background.svg') center/cover fixed no-repeat;
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-poppins), sans-serif;
 }
+
+@layer base {
+  button, input, select, textarea { font: inherit; }
+  button, summary { cursor: pointer; }
+  button:disabled { cursor: not-allowed; }
+  :focus-visible { outline: 2px solid #85d8fc; outline-offset: 4px; }
+  option { background: #23333e; color: white; }
+  ::selection { background: #f6bf52; color: #14232d; }
+}
+
+/* Existing utility surfaces share the same glass tokens, including nested forms. */
+@layer utilities {
+  .bg-white, .bg-white\/90, .bg-white\/70 { background: var(--glass); border-color: var(--glass-border); backdrop-filter: blur(26px) saturate(125%); box-shadow: inset 0 1px 0 #ffffff26, 0 18px 48px #0000002e; }
+  .min-h-screen.bg-slate-50 { background: transparent; }
+  .shadow-slate-200\/60 { --tw-shadow-color: #00000033; }
+  .blur-3xl { display: none; }
+}
+
+.glass-card { background: var(--glass); border: 2px solid var(--glass-border); border-radius: 36px; backdrop-filter: blur(26px) saturate(125%); box-shadow: inset 0 1px 0 #ffffff20, 0 18px 48px #00000026; }
+.nexus-navbar { position: sticky; top: 0; z-index: 50; border: 2px solid #d4dbe34d; border-top: 0; border-radius: 0 0 58px 58px; background: linear-gradient(110deg,#514336b8,#1b303ac9); backdrop-filter: blur(30px); }
+.nexus-nav-inner { max-width: 1300px; margin: auto; display: flex; align-items: center; gap: 36px; padding: 14px 28px; min-height: 76px; }
+.nexus-brand { width: 46px; height: 46px; display: grid; place-items: center; border: 1px solid #ffffff4d; border-radius: 50%; background: #ffffff10; flex-shrink: 0; }
+.nexus-nav-links { display: flex; align-items: center; gap: 34px; flex: 1; }
+.nexus-nav-link { font-size: 14px; font-weight: 600; white-space: nowrap; padding: 9px 4px; border-bottom: 2px solid transparent; transition: color .2s; }
+.nexus-nav-link:hover, .nexus-nav-link[aria-current] { color: #ffe09c; border-color: #f5bf54; }
+.nexus-nav-actions { display: flex; align-items: center; gap: 18px; }
+.nexus-avatar { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%; background: #dcefff; color: #244b82; font-size: 13px; font-weight: 700; flex-shrink: 0; }
+.nexus-dashboard { max-width: 1230px; padding: 42px 24px 60px; margin: auto; width: 100%; }
+.dashboard-greeting { text-align: center; margin-bottom: 30px; }
+.dashboard-greeting h1 { font-size: clamp(30px, 3.4vw, 48px); font-weight: 700; letter-spacing: -.04em; }
+.dashboard-greeting p { font-size: 24px; }
+.dashboard-grid { display: grid; grid-template-columns: 1.25fr 1fr; gap: 24px; align-items: stretch; }
+.dashboard-left { display: grid; gap: 20px; }
+.dashboard-xp { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+.xp-card { padding: 24px 22px; text-align: center; }
+.xp-card h2 { font-size: 24px; font-weight: 600; }
+.xp-ring { position: relative; width: 152px; height: 152px; margin: 14px auto; }
+.xp-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.xp-ring-center { position: absolute; inset: 16px; border-radius: 50%; background: #a6aaac; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; }
+.xp-ring-center small { font-size: 9px; text-transform: uppercase; letter-spacing: .1em; }
+.xp-ring-center strong { font-size: 28px; letter-spacing: -.04em; }
+.xp-track { height: 6px; border-radius: 99px; background: #d4d9d9; overflow: hidden; margin: 8px auto; max-width: 185px; }
+.xp-track span { display: block; height: 100%; border-radius: inherit; }
+.xp-caption { font-size: 11px; color: #e7ecf0; }
+.dashboard-panel { padding: 26px 28px; }
+.dashboard-panel h2 { font-size: 26px; font-weight: 600; letter-spacing: -.02em; }
+.active-mission { background: #cedde526; padding: 17px 20px; border-radius: 18px; margin-top: 13px; }
+.active-mission h3 { font-size: 17px; font-weight: 500; }
+.active-mission p { font-size: 12px; color: #d5dce2; margin-top: 3px; }
+.nexus-pill { display: inline-flex; align-items: center; border-radius: 99px; padding: 4px 10px; font-size: 10px; font-weight: 500; background: #dce7ff; color: #273d6a; }
+.dashboard-more { display: block; text-align: center; margin-top: 20px; text-decoration: underline; text-underline-offset: 4px; font-size: 14px; }
+.dashboard-leaderboard { overflow: hidden; padding: 28px 0 20px; }
+.dashboard-leaderboard > header { padding: 0 30px 24px; }
+.dashboard-leaderboard h2 { font-size: 27px; font-weight: 600; }
+.dashboard-leaderboard ol { list-style: none; }
+.dashboard-leaderboard li a { display: flex; align-items: center; gap: 14px; padding: 16px 25px; border-top: 1px solid #00000025; background: #b6d5e81c; }
+.dashboard-leaderboard li a:hover { background: #b6d5e830; }
+.dashboard-leaderboard .leader-position { font-size: 25px; font-weight: 600; width: 22px; }
+.dashboard-leaderboard .leader-name { flex: 1; min-width: 0; }
+.dashboard-leaderboard .leader-name strong { display: block; font-size: 16px; font-weight: 500; overflow-wrap: anywhere; }
+.dashboard-leaderboard .leader-name small { display: block; font-size: 11px; color: #d9e1e6; }
+.dashboard-leaderboard .leader-xp { border-radius: 20px; background: #ebedef; color: #20313c; min-width: 76px; text-align: center; padding: 2px 6px; font-size: 10px; font-weight: 600; }
+.nexus-message { padding: 26px; font-size: 14px; line-height: 1.8; color: #d8e1e7; }
+.nexus-auth { min-height: 100vh; display: grid; place-items: center; padding: 38px 20px; }
+.nexus-auth-card { width: 100%; max-width: 470px; padding: 36px; }
+.nexus-auth-header { text-align: center; margin-bottom: 28px; }
+.nexus-auth-header h1 { font-size: 30px; font-weight: 700; margin: 18px 0 8px; }
+.nexus-auth-header p { color: #d0dbe1; font-size: 13px; line-height: 1.7; }
+.mission-discovery { max-width: 1280px; }
+.mission-page-header { position: relative; }
+.mission-page-header > div { position: absolute; top: 0; right: 0; margin-top: 0; }
+.mission-search { padding: 18px; border-radius: 28px; display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 16px; margin-top: 20px; }
+.mission-search:has(details[open]) { grid-template-columns: 1fr auto; }
+.mission-search:has(details[open]) details { grid-column: 1 / -1; grid-row: 2; }
+.mission-search-actions { align-self: end; }
+.mission-grid { grid-template-columns: repeat(3,minmax(0,1fr)); }
+.mission-tile { border-radius: 36px; padding: 25px; display: flex; flex-direction: column; }
+.mission-tile h3 { font-size: 20px; }
+.mission-tile > a:last-child { margin-top: auto; align-self: flex-start; }
+.mission-hero { padding: 38px; border-radius: 40px; margin-top: 22px; background: linear-gradient(105deg,#6b5137a6,#2c4c5abb), var(--glass); }
+.mission-hero h1 { max-width: 900px; font-size: clamp(28px,3vw,42px); font-weight: 600; letter-spacing: -.035em; line-height: 1.2; }
+.mission-facts { display: flex; gap: 32px; flex-wrap: wrap; margin-top: 25px; }
+.mission-facts dt { font-size: 11px; color: #d0d9e1; }
+.mission-facts dd { font-size: 14px; font-weight: 600; margin-top: 4px; }
+.mission-facts .mission-deadline { color: #ffd588; }
+.squad-filter { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; margin-top: 30px; }
+.squad-filter nav { display: flex; gap: 4px; flex-wrap: wrap; padding: 4px; border-radius: 28px; background: #a9c0d52b; }
+.squad-filter nav a { border-radius: 24px; padding: 8px 17px; font-size: 13px; }
+.squad-filter nav a[aria-current] { background: linear-gradient(110deg,#356b8b,#7cd3f2); color: white; }
+@media (max-width: 1024px) { .nexus-nav-inner { gap: 22px; } .nexus-nav-links { gap: 22px; } .mission-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+@media (max-width: 760px) {
+  body { background-attachment: scroll; }
+  .nexus-nav-inner { flex-wrap: wrap; gap: 10px; padding: 12px 20px; }
+  .nexus-nav-links { order: 3; flex-basis: 100%; justify-content: space-between; gap: 6px; }
+  .nexus-nav-link { font-size: 12px; }
+  .nexus-nav-actions { margin-left: auto; }
+  .dashboard-grid { grid-template-columns: 1fr; }
+  .nexus-dashboard { padding: 30px 18px 45px; }
+  .dashboard-greeting p { font-size: 19px; }
+  .dashboard-xp { gap: 12px; }
+  .xp-card { padding: 20px 10px; }
+  .xp-card h2 { font-size: 18px; }
+  .xp-ring { width: 125px; height: 125px; }
+  .xp-ring-center strong { font-size: 24px; }
+  .glass-card { border-radius: 28px; }
+  .mission-grid { grid-template-columns: 1fr; }
+  .mission-page-header > div { position: static; margin-top: 18px; }
+  .mission-search, .mission-search:has(details[open]) { grid-template-columns: 1fr; }
+  .mission-search:has(details[open]) details { grid-row: auto; }
+  .mission-hero { padding: 28px 22px; }
+  .nexus-auth-card { padding: 28px 24px; }
+}
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; } }

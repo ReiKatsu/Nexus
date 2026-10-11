@@ -42,6 +42,7 @@ export type MissionSquad = {
   kapasitas_anggota: number;
   status_squad: string | null;
   ketua_id: string;
+  active_members?: Array<{ count: number }>;
 };
 
 export type LeaderApplicationsBySquad = Map<
