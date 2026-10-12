@@ -208,11 +208,11 @@ Satu user: maksimal tiga PENDING applications per Mission, satu PENDING per Squa
 
 Gunakan function existing decide_squad_application/cancel_squad_application dan guard yang tersedia, bukan duplicate write path. Ketika membership ACTIVE berkonflik, transaksi gagal tanpa data parsial. Uji request bersamaan.
 
-Keputusan ketua tim 8 Oktober 2026: kebutuhan Class/Skill Squad wajib diisi sesuai field yang didukung, tetapi kecocokan pelamar menjadi informasi bagi Ketua, bukan syarat otomatis accept/reject. Ketua boleh menerima pelamar yang tidak cocok; jangan menambahkan penolakan otomatis berdasarkan Class/Skill. Pengisian Skill tambahan pada Create tetap mengikuti UI-G02 karena RPC saat ini hanya menyimpan kebutuhan Primary Class dan slot. Membuat Squad saat user punya PENDING lain juga belum terbukti membatalkannya otomatis; jangan mengklaim auto-cancel berlaku untuk semua jalur (G05).
+Keputusan ketua tim 8 Oktober 2026: kebutuhan Class/Skill Squad wajib diisi sesuai field yang didukung, tetapi kecocokan pelamar menjadi informasi bagi Ketua, bukan syarat otomatis accept/reject. Ketua boleh menerima pelamar yang tidak cocok; jangan menambahkan penolakan otomatis berdasarkan Class/Skill. Pengisian Skill tambahan pada Create tetap mengikuti UI-G02 karena RPC saat ini hanya menyimpan kebutuhan Primary Class dan slot. Keputusan pemilik 12 Oktober 2026 (G05): Create Squad membatalkan semua application PENDING milik pembuat pada Mission yang sama, secara atomic bersama pembuatan Squad, membership Ketua dan requirements. Application pada Mission lain dan milik user lain tetap utuh. Jika Create gagal, seluruh perubahan rollback. Jalur Create/submit/decide/cancel memakai advisory lock per applicant yang sama.
 
 ### SQ-04 Leave, kick, finalize, My Squad
 
-Anggota bisa leave sebelum Finalized. Ketua bisa kick anggota sebelum Finalized. Gunakan ended_at, removed_by/reason sesuai state; jangan hapus riwayat membership untuk berpindah tim. RPC leave_squad menolak Ketua keluar sendiri; alur transfer Ketua/batal recruitment belum lengkap (G06). Setelah Finalized perlu admin intervention. My Squad menampilkan aktif dan history lintas-Mission; detail memuat anggota, chat, dan aksi yang diizinkan.
+Anggota bisa leave sebelum Finalized. Ketua bisa kick anggota sebelum Finalized. Gunakan ended_at, removed_by/reason sesuai state; jangan hapus riwayat membership untuk berpindah tim. Keputusan pemilik 12 Oktober 2026 (G06): sebelum Finalized, Ketua mentransfer kepemimpinan kepada ANGGOTA ACTIVE dengan akun STUDENT ACTIVE melalui transfer_squad_leadership. Ketua lama tetap menjadi ANGGOTA ACTIVE dan boleh menggunakan leave_squad setelah transfer berhasil. Pergantian ketua_id dan kedua role atomic; riwayat membership tetap dipertahankan. Ketua tidak dapat leave langsung. Ketua sendirian/pembatalan recruitment belum diputuskan; tidak ada auto-disband. Setelah Finalized perlu admin intervention. My Squad menampilkan aktif dan history lintas-Mission; detail memuat anggota, chat, dan aksi yang diizinkan.
 
 ## 8. Validasi prestasi dan XP
 
@@ -938,8 +938,8 @@ Enam object turunan terinventaris kolomnya: public_profiles, career_xp_totals, c
 | G02 | Backfill batas peserta dan perubahan Mission yang punya Squad; NEEDS DECISION | Minta data resmi dan kebijakan legacy; jangan hapus Squad atau tebakan batas |
 | G03 | RESOLVED 30 September 2026: kapasitas target vs jumlah ACTIVE ketika Finalize | Jumlah ACTIVE minimal `missions.min_anggota_tim`; FULL tidak wajib; PENDING tidak menghalangi; minimum NULL menahan Finalize. Validasi ulang dalam RPC. |
 | G04 | RESOLVED 8 Oktober 2026: kebutuhan diisi, keputusan accept/reject di tangan Ketua | Tampilkan Class/Skill pelamar; jangan auto-reject mismatch. Skill tambahan pada Create masih UI-G02 |
-| G05 | Create ketika ada PENDING application lain | Tentukan nasib application; auto-cancel terbukti di acceptance, bukan create |
-| G06 | Ketua self-leave, transfer dan pembatalan recruitment | Jangan invent role/status baru; tentukan flow minimal |
+| G05 | Create ketika ada PENDING application lain | RESOLVED 12 Oktober: auto-cancel hanya PENDING pembuat pada Mission sama dalam transaksi Create. Migration dan RPC runtime Supabase PASS; browser QA belum |
+| G06 | Ketua self-leave, transfer dan pembatalan recruitment | PARTIAL 12 Oktober: transfer ke anggota aktif sebelum Finalized lalu Ketua lama boleh leave; migration/RPC runtime PASS. Ketua sendirian/pembatalan recruitment tetap NEEDS DECISION; browser QA belum |
 | G07 | Cleanup RESOLVED 10 Oktober 2026: chat-only idle >30 hari, skip PENDING, job 02.00 WIB; migration diterapkan dan runtime rollback PASS | Uji concurrency dua sesi/job harian nyata belum dijalankan. Pembubaran/reopen tetap belum diputuskan; H-3 proposal |
 | G08 | Skills lintas-Class dan perubahan Class setelah join | Pertahankan bebas ubah; jangan menghapus Skills/membership tanpa keputusan |
 | G09 | SEBAGIAN RESOLVED 10 Oktober 2026: live, snapshot penutupan dan sumber award badge hanya STUDENT ACTIVE termasuk 0 XP; ADMIN/SUSPENDED tidak masuk. Migration diterapkan; runtime rollback PASS | Scheduler belum tersedia; badge historical/current serta exact 3% tetap butuh keputusan |
@@ -1407,3 +1407,4 @@ Jika UI existing kurang sesuai, identifikasi perbedaan lalu perbaiki dalam scope
 - Menambahkan rekonsiliasi konflik dan UI-G01–UI-G11 agar pilihan yang belum terbukti tidak ditebak.
 - Menambahkan U01–U20 untuk penerimaan UI; semuanya belum dijalankan dalam pembaruan dokumen ini.
 - Mempertahankan nama file agar referensi docs/reference pada AGENTS.md tetap cocok. Pembaruan hanya dokumen; tidak ada code, schema, RLS, atau desain Canva yang diubah.
+

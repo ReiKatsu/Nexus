@@ -161,6 +161,51 @@ export async function finalizeSquad(squadId: string): Promise<MembershipActionRe
   return { success: true };
 }
 
+export async function transferSquadLeadership(
+  squadId: string,
+  newLeaderId: string,
+): Promise<MembershipActionResult> {
+  if (typeof squadId !== "string" || !UUID_PATTERN.test(squadId) ||
+      typeof newLeaderId !== "string" || !UUID_PATTERN.test(newLeaderId)) {
+    return { success: false, message: "Squad atau calon ketua tidak valid." };
+  }
+
+  const actor = await getActiveUser();
+  if (!actor || actor.userId === newLeaderId) {
+    return { success: false, message: "Pilih anggota aktif lain sebagai ketua baru." };
+  }
+
+  const { data: squad, error: squadError } = await actor.supabase
+    .from("squads")
+    .select("mission_id, ketua_id, status_squad")
+    .eq("squad_id", squadId)
+    .maybeSingle();
+  if (squadError || !squad || squad.ketua_id !== actor.userId ||
+      !["OPEN_RECRUITMENT", "FULL"].includes(squad.status_squad)) {
+    return { success: false, message: "Hanya ketua yang dapat mentransfer kepemimpinan sebelum finalisasi." };
+  }
+
+  // The RPC locks the Squad and rechecks both accounts and memberships.
+  const { error } = await actor.supabase.rpc("transfer_squad_leadership", {
+    p_squad_id: squadId,
+    p_new_leader_id: newLeaderId,
+  });
+  if (error) {
+    return {
+      success: false,
+      message: error.message === "The successor must be an active Student member"
+        ? "Calon ketua harus mahasiswa aktif yang masih menjadi anggota Squad."
+        : "Transfer belum berhasil. Muat ulang untuk memeriksa ketua, anggota, dan status Squad.",
+    };
+  }
+
+  revalidatePath(`/squads/${squadId}`);
+  revalidatePath("/my-squad");
+  revalidatePath(`/missions/${squad.mission_id}`);
+  revalidatePath("/");
+  return { success: true };
+}
+
 export async function sendSquadMessage(
   squadId: string,
   content: string,
@@ -220,3 +265,4 @@ export async function sendSquadMessage(
   revalidatePath(`/squads/${squadId}`);
   return { success: true };
 }
+
