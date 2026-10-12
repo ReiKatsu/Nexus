@@ -14,6 +14,10 @@ import { createClient } from "@/lib/supabase/server";
 
 import RankCard from "./RankCard";
 
+function one<T>(value: T | T[] | null | undefined): T | null {
+  return Array.isArray(value) ? value[0] ?? null : value ?? null;
+}
+
 function PageError({ message }: { message: string }) {
   return (
     <main className="mx-auto max-w-3xl px-4 py-12">
@@ -93,6 +97,7 @@ export default async function ProfilePage() {
     ? supabase.storage.from("avatars").getPublicUrl(profile.foto_profil_path).data.publicUrl
     : null;
   const rules = rulesResult.data;
+  const equippedBadge = one(equippedResult.data?.badge_definitions);
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
@@ -157,7 +162,7 @@ export default async function ProfilePage() {
               </p>
             ) : (
               <p className="mt-2 text-sm text-slate-700">
-                {equippedResult.data?.badge_definitions?.[0]?.badge_name ??
+                {equippedBadge?.badge_name ??
                   "Belum ada Badge terpasang."}
               </p>
             )}

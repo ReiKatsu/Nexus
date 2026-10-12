@@ -879,6 +879,8 @@ Jangan menambahkan cascade delete berdasarkan tabel relasi ini. Periksa FK aktua
 
 ## 12. Snapshot progres dan bukti
 
+**Pembaruan 12 Oktober 2026:** tabel September di bawah adalah sejarah, bukan status terkini. Lihat [rencana rilis dan hasil audit 12 Oktober](../RELEASE_PLAN_2026-10-18.md) untuk baseline commit/PR, scheduler nyata, regresi badge, query SQL/RLS dashboard, temuan keamanan, dan batas pengujian. Target terbaru 18 Oktober adalah backend siap integrasi; tanggal rilis lengkap masih bersyarat pada kesiapan frontend dan gate rilis.
+
 Tanggal bukti 6–7 September 2026; bukan audit live saat PRD disusun. A1: 28 tabel dengan RLS enabled, 20 enum, 39 function, 23 trigger, 156 constraint, 98 index, 99 policy. Jumlah constraint/index bisa mencakup pasangan unique constraint dan backing index, bukan 254 business rule berbeda. ZIP hanya M1/M2, bukan migration foundation lengkap.
 
 | Area | Bukti struktural / laporan | Status runtime |
@@ -935,19 +937,19 @@ Enam object turunan terinventaris kolomnya: public_profiles, career_xp_totals, c
 | ID | Masalah / status | Aksi sebelum implementasi terkait |
 |---|---|---|
 | G01 | RESOLVED 8 Oktober 2026: NEXUS Mission hanya lomba tim | Max=1 tidak valid untuk Mission/Squad baru; lomba individu di luar NEXUS melalui Klaim Achievement; data lama mengikuti audit G02 |
-| G02 | Backfill batas peserta dan perubahan Mission yang punya Squad; NEEDS DECISION | Minta data resmi dan kebijakan legacy; jangan hapus Squad atau tebakan batas |
+| G02 | Audit 12 Oktober: 2 Mission, tidak ada batas NULL atau max<2. Kebijakan perubahan batas Mission dengan Squad masih NEEDS DECISION | Tidak perlu backfill saat ini; tetap jangan hapus Squad atau menebak batas ketika ada data baru |
 | G03 | RESOLVED 30 September 2026: kapasitas target vs jumlah ACTIVE ketika Finalize | Jumlah ACTIVE minimal `missions.min_anggota_tim`; FULL tidak wajib; PENDING tidak menghalangi; minimum NULL menahan Finalize. Validasi ulang dalam RPC. |
 | G04 | RESOLVED 8 Oktober 2026: kebutuhan diisi, keputusan accept/reject di tangan Ketua | Tampilkan Class/Skill pelamar; jangan auto-reject mismatch. Skill tambahan pada Create masih UI-G02 |
 | G05 | Create ketika ada PENDING application lain | Tentukan nasib application; auto-cancel terbukti di acceptance, bukan create |
 | G06 | Ketua self-leave, transfer dan pembatalan recruitment | Jangan invent role/status baru; tentukan flow minimal |
-| G07 | Cleanup RESOLVED 10 Oktober 2026: chat-only idle >30 hari, skip PENDING, job 02.00 WIB; migration diterapkan dan runtime rollback PASS | Uji concurrency dua sesi/job harian nyata belum dijalankan. Pembubaran/reopen tetap belum diputuskan; H-3 proposal |
+| G07 | Cleanup chat-only idle >30 hari, skip PENDING. Dua urutan concurrency chat/cleanup COMMIT PASS 11 Oktober; job harian 12 Oktober 02.00 WIB succeeded | Cleanup vs submit hasil dan refresh browser belum diuji. Pembubaran/reopen tetap belum diputuskan; H-3 proposal |
 | G08 | Skills lintas-Class dan perubahan Class setelah join | Pertahankan bebas ubah; jangan menghapus Skills/membership tanpa keputusan |
-| G09 | SEBAGIAN RESOLVED 10 Oktober 2026: live, snapshot penutupan dan sumber award badge hanya STUDENT ACTIVE termasuk 0 XP; ADMIN/SUSPENDED tidak masuk. Migration diterapkan; runtime rollback PASS | Scheduler belum tersedia; badge historical/current serta exact 3% tetap butuh keputusan |
-| G10 | RESOLVED keputusan 10 Oktober 2026: WIB, tanpa masa tenggang; late approval Career-only dan snapshot CLOSED tetap | Migration diterapkan; cutoff, rollover, review late Legacy/Verified, snapshot dan idempotence runtime rollback PASS. Dua sesi concurrent dan scheduled run nyata belum teruji |
+| G09 | Populasi STUDENT ACTIVE termasuk 0 XP, tanpa ADMIN/SUSPENDED. Job mingguan Senin 12 Oktober 00.00 WIB succeeded dan mencatat 9 badge baru; coverage saat audit lengkap | Kebijakan historical/current serta exact 3% belum berubah. Browser badge masih perlu diuji setelah perbaikan pembacaan relasi profil |
+| G10 | WIB tanpa masa tenggang; late approval Career-only, snapshot CLOSED tetap. Cutoff/rollover sequential rollback PASS; closure vs Legacy approval benar-benar menunggu lock pada 11 Oktober, keduanya rollback | Season worker terjadwal nyata succeeded 12 Oktober; bukan rollover Juli nyata. Reverse order dan rollover/Verified concurrency COMMIT masih belum diuji |
 | G11 | Mission expired RLS berbeda target; NOT VERIFIED | Inspect current policy dan implementasi; fix hanya dalam task berizin |
-| G12 | Maksimum Skill/PENDING race dan update requirements | Uji concurrent dan semua write path; trigger hitungan bukan bukti semua race PASS |
+| G12 | Skill ke-5/ke-6 concurrency dua sesi PASS 11 Oktober, termasuk observer lock; bukti di PR #30 | Bukti itu tidak menutup seluruh write path PENDING/requirements atau acceptance lain |
 | G13 | View definitions, function owner/ACL, Storage, Realtime, scheduler, seeds tidak lengkap di A1 | Minta metadata minimum saat scope membutuhkan; jangan menyatakan absent global |
-| G14 | Keamanan di luar Create RPC belum diaudit lengkap | Review grants termasuk TRUNCATE, helper SECURITY DEFINER/EXECUTE, search_path, internal-mode, suspended read dan membership privacy |
+| G14 | Hak maintenance user_skills/endorsements dicabut 11 Oktober; assertion ulang ACL/RLS PASS 12 Oktober. Audit keamanan global tetap belum selesai | Sisa view/function/Storage/Auth dan dependency tercatat di rencana rilis; jangan menganggap semua definer adalah celah atau mencabut grant massal |
 
 G14 penting: A1 memuat grants luas selain INSERT; RLS tidak boleh dipakai sebagai bukti bahwa setiap jenis privilege aman. Tidak ada exploit runtime yang dijalankan. Jangan menghapus grants secara massal tanpa mapping dampak dan task eksplisit.
 
