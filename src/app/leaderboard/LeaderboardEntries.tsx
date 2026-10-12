@@ -24,7 +24,7 @@ function Entry({ row, currentUserId, imageUrl, highlightedName = "", featured = 
   const link = row.user_id === currentUserId ? "/profile" : `/profile/${row.user_id}`;
 
   return (
-    <li className={`rounded-2xl border bg-white p-5 ${match ? "border-indigo-500 ring-2 ring-indigo-100" : "border-slate-200"}`}>
+    <li className={`leaderboard-entry rounded-2xl border bg-white p-5 ${featured ? "leaderboard-featured" : ""} ${match ? "border-indigo-500 ring-2 ring-indigo-100" : "border-slate-200"}`}>
       <Link href={link} className="block rounded-lg focus-visible:outline-2 focus-visible:outline-indigo-600">
         <div className="flex items-center gap-3">
           <span className="w-9 shrink-0 text-xl font-bold text-indigo-700">#{row.rank_position}</span>
@@ -53,7 +53,7 @@ function Entry({ row, currentUserId, imageUrl, highlightedName = "", featured = 
 
 export default function LeaderboardEntries({ entries, currentUserId, imageUrl, highlightedName }: Props) {
   return (
-    <ul className="mt-4 grid gap-3">
+    <ul className="leaderboard-table mt-4 grid gap-3">
       {entries.map((row) => <Entry key={row.user_id} row={row} currentUserId={currentUserId}
         imageUrl={imageUrl} highlightedName={highlightedName} />)}
     </ul>
@@ -62,7 +62,7 @@ export default function LeaderboardEntries({ entries, currentUserId, imageUrl, h
 
 export function TopThree({ entries, currentUserId, imageUrl, highlightedName }: Props) {
   return (
-    <ul className="mt-4 grid gap-4 md:grid-cols-3">
+    <ul className="leaderboard-podium mt-4 grid gap-4 md:grid-cols-3">
       {entries.map((row) => <Entry key={row.user_id} row={row} currentUserId={currentUserId}
         imageUrl={imageUrl} highlightedName={highlightedName} featured />)}
     </ul>

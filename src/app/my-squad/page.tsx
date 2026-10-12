@@ -264,9 +264,9 @@ export default async function MySquadPage() {
   );
 
   return (
-    <div className="flex min-h-screen w-full min-w-0 flex-col overflow-x-clip bg-slate-50">
+    <div className="nexus-app-page flex min-h-screen w-full min-w-0 flex-col overflow-x-clip bg-slate-50">
       <Navbar displayName={profile.nama_lengkap} activeItem="my-squad" />
-      <main className="relative flex w-full min-w-0 flex-1 justify-center overflow-x-clip px-4 py-7 text-slate-900 sm:px-6 sm:py-10 lg:py-14">
+      <main className="nexus-page-shell my-squad-page relative flex w-full min-w-0 flex-1 justify-center overflow-x-clip px-4 py-7 text-slate-900 sm:px-6 sm:py-10 lg:py-14">
         <div
           aria-hidden="true"
           className="absolute -left-32 -top-32 h-80 w-80 rounded-full bg-indigo-200/50 blur-3xl"
@@ -276,7 +276,7 @@ export default async function MySquadPage() {
           className="absolute -bottom-40 -right-32 h-96 w-96 rounded-full bg-violet-200/50 blur-3xl"
         />
 
-        <section className="relative w-full min-w-0 max-w-5xl">
+        <section className="relative w-full min-w-0 max-w-6xl">
           <p className="text-sm font-bold tracking-[0.2em] text-indigo-600">
             KOLABORASI
           </p>

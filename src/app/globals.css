@@ -137,6 +137,83 @@ body {
 .squad-filter nav { display: flex; gap: 4px; flex-wrap: wrap; padding: 4px; border-radius: 28px; background: #a9c0d52b; }
 .squad-filter nav a { border-radius: 24px; padding: 8px 17px; font-size: 13px; }
 .squad-filter nav a[aria-current] { background: linear-gradient(110deg,#356b8b,#7cd3f2); color: white; }
+
+/* Unified application shell: keeps every existing backend flow inside the NEXUS visual language. */
+.nexus-app-page { background: transparent !important; }
+.nexus-page-shell { width: 100%; padding-top: 42px; padding-bottom: 64px; }
+.nexus-page-heading { margin-bottom: 24px; }
+.nexus-page-heading h1,
+.nexus-page-shell > h1 { font-size: clamp(30px, 4vw, 46px); line-height: 1.05; letter-spacing: -.045em; }
+.nexus-page-lead { color: #dbe4ea; line-height: 1.7; }
+.nexus-eyebrow { color: #ffd37c; font-size: 11px; font-weight: 700; letter-spacing: .2em; margin-bottom: 10px; }
+.nexus-page-shell input,
+.nexus-page-shell select,
+.nexus-page-shell textarea { background: rgba(229,239,245,.12); border-color: rgba(220,229,235,.42); color: white; backdrop-filter: blur(16px); }
+.nexus-page-shell input::placeholder,
+.nexus-page-shell textarea::placeholder { color: #b6c3cc; }
+.nexus-page-shell button.bg-indigo-600,
+.nexus-page-shell a.bg-indigo-600 { background: linear-gradient(110deg,#265a78,#56b8df); box-shadow: inset 0 1px 0 #ffffff38,0 9px 24px #00192342; }
+.nexus-page-shell button.bg-indigo-600:hover,
+.nexus-page-shell a.bg-indigo-600:hover { background: linear-gradient(110deg,#2e698a,#68c9ec); }
+.nexus-page-shell section.bg-white,
+.nexus-page-shell article.bg-white,
+.nexus-page-shell form.bg-white { border-radius: 28px; }
+.nexus-page-shell section,
+.nexus-page-shell article { scroll-margin-top: 110px; }
+
+/* Segmented controls and leaderboard, adapted from the approved prototype. */
+.nexus-segmented { display: inline-flex !important; padding: 5px; border: 1px solid #dbe5eb42; border-radius: 999px; background: #a9c0d523; backdrop-filter: blur(20px); }
+.nexus-segmented a { border: 0 !important; border-radius: 999px !important; background: transparent !important; color: #e6edf2 !important; }
+.nexus-segmented a[aria-current="page"] { background: linear-gradient(110deg,#346b8a,#73ccef) !important; color: white !important; box-shadow: inset 0 1px 0 #ffffff4d; }
+.leaderboard-page { max-width: 1180px; }
+.leaderboard-podium { align-items: end; margin-top: 22px; }
+.leaderboard-podium .leaderboard-entry { min-height: 228px; display: grid; align-content: center; text-align: center; border-radius: 32px; position: relative; overflow: hidden; }
+.leaderboard-podium .leaderboard-entry::before { content: ""; position: absolute; inset: 0; background: radial-gradient(circle at 50% 0,#f7c76626,transparent 55%); pointer-events: none; }
+.leaderboard-podium .leaderboard-entry:first-child { min-height: 270px; border-color: #f6ce7c8f; order: 2; }
+.leaderboard-podium .leaderboard-entry:nth-child(2) { order: 1; }
+.leaderboard-podium .leaderboard-entry:nth-child(3) { order: 3; }
+.leaderboard-podium .leaderboard-entry > a > div:first-child { flex-direction: column; }
+.leaderboard-podium .leaderboard-entry > a > div:first-child > span:first-child { width: auto; color: #ffd47d; }
+.leaderboard-podium .leaderboard-entry img,
+.leaderboard-podium .leaderboard-entry [aria-hidden="true"] { width: 64px; height: 64px; }
+.leaderboard-podium .leaderboard-entry p { white-space: normal; }
+.leaderboard-list { padding: 26px; }
+.leaderboard-list > h3 { font-size: 22px; }
+.leaderboard-table .leaderboard-entry { padding: 16px 20px; border-radius: 20px; box-shadow: none; }
+.leaderboard-table .leaderboard-entry:hover { transform: translateY(-2px); background: linear-gradient(120deg,rgba(112,153,175,.48),rgba(37,54,65,.76)); }
+
+/* Squad workspace and room. */
+.my-squad-page > section > p:first-child { color: #ffd37c; }
+.squad-workspace-card { border-radius: 32px !important; position: relative; overflow: hidden; transition: transform .22s ease,border-color .22s ease; }
+.squad-workspace-card::before { content: ""; position: absolute; inset: 0; background: radial-gradient(circle at 100% 0,#58c5ed1c,transparent 44%); pointer-events: none; }
+.squad-workspace-card:hover { transform: translateY(-3px); border-color: #dfe9ef99; }
+.squad-workspace-card > * { position: relative; }
+.squad-room-hero { background: linear-gradient(110deg,rgba(112,73,36,.64),rgba(31,70,88,.72)); }
+.squad-room-hero h1 { font-size: clamp(30px,4vw,48px); letter-spacing: -.045em; }
+.squad-room-grid > section,
+.squad-room-grid > aside > section { border-radius: 28px; }
+.squad-room-grid aside { align-self: start; position: sticky; top: 112px; }
+
+/* Profile is a reputation dashboard rather than a stack of backend forms. */
+.profile-page { display: grid; grid-template-columns: minmax(0,1.25fr) minmax(280px,.75fr); gap: 0 24px; align-items: start; }
+.profile-page > .nexus-page-heading,
+.profile-page > .profile-hero,
+.profile-page > section:nth-last-child(-n+2) { grid-column: 1 / -1; }
+.profile-hero { background: linear-gradient(115deg,rgba(116,76,38,.62),rgba(31,70,88,.70)); padding: 30px !important; }
+.profile-hero img,
+.profile-hero [aria-label="Foto profil belum tersedia"] { width: 90px; height: 90px; border: 2px solid #ffffff80; box-shadow: 0 14px 34px #0000004a; }
+.profile-hero h2 { font-size: 28px; letter-spacing: -.035em; }
+.profile-section { min-width: 0; padding: 24px; border: 1px solid var(--glass-border); border-radius: 28px; background: var(--glass); backdrop-filter: blur(26px) saturate(125%); box-shadow: inset 0 1px 0 #ffffff20,0 18px 48px #00000026; }
+.profile-section > h2 { font-size: 20px; margin-bottom: 10px; }
+.profile-page > section:last-child { margin-bottom: 0; }
+
+/* Remaining forms, history, notification, and admin routes receive the same shell automatically. */
+.min-h-screen.bg-slate-50 > main:not(.nexus-dashboard):not(.mission-discovery) { width: min(100% - 32px, 1180px); }
+.min-h-screen.bg-slate-50 > main > h1:first-child { letter-spacing: -.04em; }
+.min-h-screen.bg-slate-50 > main > h1:first-child::before { content: "NEXUS"; display: block; margin-bottom: 10px; color: #ffd37c; font-size: 11px; font-weight: 700; letter-spacing: .2em; }
+.min-h-screen.bg-slate-50 main ul > li.bg-white,
+.min-h-screen.bg-slate-50 main ol > li.bg-white { border-radius: 22px; }
+
 @media (max-width: 1024px) { .nexus-nav-inner { gap: 22px; } .nexus-nav-links { gap: 22px; } .mission-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } }
 @media (max-width: 760px) {
   body { background-attachment: scroll; }
@@ -159,5 +236,16 @@ body {
   .mission-search:has(details[open]) details { grid-row: auto; }
   .mission-hero { padding: 28px 22px; }
   .nexus-auth-card { padding: 28px 24px; }
+  .nexus-page-shell { padding-top: 30px; padding-bottom: 42px; }
+  .nexus-segmented { display: flex !important; width: 100%; overflow-x: auto; }
+  .nexus-segmented a { flex: 1 0 auto; text-align: center; }
+  .leaderboard-podium { grid-template-columns: 1fr; }
+  .leaderboard-podium .leaderboard-entry,
+  .leaderboard-podium .leaderboard-entry:first-child { min-height: 0; order: initial; text-align: left; }
+  .leaderboard-podium .leaderboard-entry > a > div:first-child { flex-direction: row; }
+  .leaderboard-list { padding: 20px 16px; }
+  .squad-room-grid aside { position: static; }
+  .profile-page { display: block; }
+  .profile-section { padding: 20px; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; } }

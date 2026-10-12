@@ -40,7 +40,7 @@ function PageMessage({
   description: string;
 }) {
   return (
-    <div className="flex min-h-screen flex-col bg-slate-50">
+    <div className="nexus-app-page flex min-h-screen flex-col bg-slate-50">
       <Navbar displayName={displayName} activeItem="my-squad" />
       <main className="flex flex-1 items-center justify-center px-4 py-8">
         <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-8 text-center">
@@ -141,11 +141,11 @@ export default async function SquadRoomPage({ params }: SquadRoomPageProps) {
   return (
     <div className="flex min-h-screen flex-col bg-slate-50">
       <Navbar displayName={profile.nama_lengkap} activeItem="my-squad" />
-      <main className="mx-auto w-full max-w-6xl px-4 py-8 text-slate-900 sm:px-6">
+      <main className="nexus-page-shell squad-room-page mx-auto w-full max-w-6xl px-4 py-8 text-slate-900 sm:px-6">
         <Link href="/my-squad" className="text-sm font-bold text-indigo-600 hover:text-indigo-700">
           ← Kembali ke My Squad
         </Link>
-        <header className="mt-6 rounded-2xl border border-indigo-100 bg-white p-6 shadow-sm sm:p-8">
+        <header className="glass-card squad-room-hero mt-6 rounded-2xl border border-indigo-100 bg-white p-6 shadow-sm sm:p-8">
           <p className="text-xs font-bold uppercase tracking-[0.18em] text-indigo-600">Squad Room</p>
           <div className="mt-2 flex flex-wrap items-start justify-between gap-3">
             <div>
@@ -161,7 +161,7 @@ export default async function SquadRoomPage({ params }: SquadRoomPageProps) {
           </p>
         </header>
 
-        <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_19rem]">
+        <div className="squad-room-grid mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_19rem]">
           <SquadChat
             squadId={squadId}
             currentUserId={authData.user.id}

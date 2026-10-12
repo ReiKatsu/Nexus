@@ -1,7 +1,18 @@
-# Frontend NEXUS — handoff 11 Oktober 2026
+# Frontend NEXUS — handoff 12 Oktober 2026
 
 Branch: `feat/nexus-glass-frontend`. Baseline backend: `2245ac5` (main).
 Folder kerja: `C:\Users\Asus\OneDrive\Documents\Kuliah\LPPM\Nexus\website`.
+
+## Penyelarasan visual 12 Oktober 2026
+
+- Seluruh route existing menerima shell visual NEXUS yang sama: Poppins, background aset, input transparan, tombol gradient, glass surface, bezel, blur, heading, dan spacing responsive. Query, API, Server Action, schema, RLS, dan aturan bisnis tidak diubah.
+- Leaderboard memakai segmented scope, podium tiga besar, dan daftar peringkat glass seperti prototype; urutan data serta RPC backend tetap kanonik.
+- My Squad memakai kartu workspace yang lebih terang dan berlapis; Squad Room memakai hero glass serta sidebar Mission/anggota yang tetap mengikuti status dan role aktual.
+- Profile disusun sebagai dashboard reputasi: hero identitas dan layout section dua kolom di desktop, satu kolom di mobile. XP, badge, skills, Endorsement, dan history tetap memakai komponen/data existing.
+- Form, history, Notifications, serta halaman admin yang belum memiliki layout khusus tetap menerima tema bersama tanpa mengganti kontrol atau kontrak data.
+- Poster contoh tidak ditempelkan ke Mission aktual karena `mission-documents` bersifat privat dan belum ada kontrak poster public.
+
+Verifikasi wave ini: lint PASS, production build/TypeScript PASS, `git diff --check` PASS. Browser data live memeriksa Leaderboard, My Squad, Squad Room, Profile, dan Notifications tanpa overflow horizontal atau console error. Akses `/admin/results` dari akun STUDENT menghasilkan 404 sesuai authorization. Mutasi data tidak dijalankan.
 
 ## Perubahan
 
