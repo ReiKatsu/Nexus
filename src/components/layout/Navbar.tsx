@@ -14,6 +14,7 @@ export default function Navbar({ displayName, activeItem, isAdmin = false }: Nav
     { href: "/missions", key: "missions", label: "Missions" },
     { href: "/leaderboard", key: "leaderboard", label: "Leaderboard" },
     { href: "/my-squad", key: "my-squad", label: "My Squad" },
+    ...(isAdmin ? [{ href: "/admin/results", key: "admin", label: "Review" }] : []),
   ];
   return (
     <header className="nexus-navbar">
@@ -24,8 +25,6 @@ export default function Navbar({ displayName, activeItem, isAdmin = false }: Nav
         <nav className="nexus-nav-links" aria-label="Navigasi utama">
           {items.map((item) => <Link key={item.key} href={item.href} className="nexus-nav-link"
             aria-current={activeItem === item.key ? "page" : undefined}>{item.label}</Link>)}
-          {isAdmin && <Link href="/admin/results" className="nexus-nav-link"
-            aria-current={activeItem === "admin" ? "page" : undefined}>Review</Link>}
         </nav>
         <div className="nexus-nav-actions">
           <Link href="/notifications" aria-label="Notifikasi" title="Notifikasi"
@@ -37,7 +36,8 @@ export default function Navbar({ displayName, activeItem, isAdmin = false }: Nav
           <Link href="/profile" className="nexus-avatar" title={displayName}
             aria-label={`Buka profil ${displayName || "saya"}`}
             aria-current={activeItem === "profile" ? "page" : undefined}>{initials}</Link>
-          {isAdmin && <Link href="/admin/missions" className="text-xs underline">Mission</Link>}
+          {isAdmin && <Link href="/admin/missions" className="nexus-admin-shortcut"
+            title="Review pengajuan Mission">Mission Review</Link>}
         </div>
       </div>
     </header>

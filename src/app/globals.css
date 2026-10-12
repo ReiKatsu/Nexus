@@ -74,6 +74,8 @@ body {
 .nexus-nav-link { font-size: 14px; font-weight: 600; white-space: nowrap; padding: 9px 4px; border-bottom: 2px solid transparent; transition: color .2s; }
 .nexus-nav-link:hover, .nexus-nav-link[aria-current] { color: #ffe09c; border-color: #f5bf54; }
 .nexus-nav-actions { display: flex; align-items: center; gap: 18px; }
+.nexus-admin-shortcut { border: 1px solid #dbe5eb4d; border-radius: 999px; padding: 7px 12px; color: #eaf2f6; font-size: 11px; font-weight: 700; white-space: nowrap; transition: background .2s,border-color .2s; }
+.nexus-admin-shortcut:hover { border-color: #ffd37c99; background: #ffd37c18; color: #ffe1a1; }
 .nexus-avatar { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%; background: #dcefff; color: #244b82; font-size: 13px; font-weight: 700; flex-shrink: 0; }
 .nexus-dashboard { max-width: 1230px; padding: 42px 24px 60px; margin: auto; width: 100%; }
 .dashboard-greeting { text-align: center; margin-bottom: 30px; }
@@ -214,6 +216,51 @@ body {
 .min-h-screen.bg-slate-50 main ul > li.bg-white,
 .min-h-screen.bg-slate-50 main ol > li.bg-white { border-radius: 22px; }
 
+/* Complete route polish: forms, activity histories, notifications, and review queues. */
+.min-h-screen.bg-slate-50 > main:not(.nexus-dashboard):not(.mission-discovery) { padding-top: 42px; padding-bottom: 64px; }
+.min-h-screen.bg-slate-50 > main:not(.nexus-dashboard):not(.mission-discovery) > h1,
+.min-h-screen.bg-slate-50 > main:not(.nexus-dashboard):not(.mission-discovery) > a + h1 { font-size: clamp(30px,4vw,44px); line-height: 1.08; }
+.min-h-screen.bg-slate-50 > main:not(.nexus-dashboard):not(.mission-discovery) > p.text-sm { max-width: 760px; color: #d3dee5; line-height: 1.7; }
+.min-h-screen.bg-slate-50 main > ul { display: grid; gap: 14px; }
+.min-h-screen.bg-slate-50 main > ul > li { position: relative; overflow: hidden; transition: transform .2s,border-color .2s; }
+.min-h-screen.bg-slate-50 main > ul > li::after { content: ""; position: absolute; inset: 0; background: radial-gradient(circle at 100% 0,#69c4ec18,transparent 45%); pointer-events: none; }
+.min-h-screen.bg-slate-50 main > ul > li:hover { transform: translateY(-2px); border-color: #dce7ed80; }
+.min-h-screen.bg-slate-50 main > ul > li > * { position: relative; z-index: 1; }
+.min-h-screen.bg-slate-50 main > ul > li a.bg-indigo-600 { border-radius: 999px; }
+.min-h-screen.bg-slate-50 main > nav[aria-label] { width: fit-content; padding: 7px 14px; border: 1px solid var(--glass-border); border-radius: 999px; background: #1f343f9c; backdrop-filter: blur(18px); }
+.min-h-screen.bg-slate-50 main > a:first-child { display: inline-flex; align-items: center; min-height: 38px; padding: 0 15px; border: 1px solid #dbe5eb3d; border-radius: 999px; background: #dce7ef12; text-decoration: none; }
+.min-h-screen.bg-slate-50 main > form,
+.min-h-screen.bg-slate-50 main > section,
+.min-h-screen.bg-slate-50 main > div.bg-white { overflow: hidden; }
+.min-h-screen.bg-slate-50 main label { color: #edf4f7; }
+.min-h-screen.bg-slate-50 main input,
+.min-h-screen.bg-slate-50 main select,
+.min-h-screen.bg-slate-50 main textarea { background: rgba(229,239,245,.12); border-color: rgba(220,229,235,.42); color: white; backdrop-filter: blur(16px); }
+.min-h-screen.bg-slate-50 main input::placeholder,
+.min-h-screen.bg-slate-50 main textarea::placeholder { color: #aebcc5; }
+.min-h-screen.bg-slate-50 main button.bg-indigo-600,
+.min-h-screen.bg-slate-50 main a.bg-indigo-600 { background: linear-gradient(110deg,#265a78,#56b8df); box-shadow: inset 0 1px 0 #ffffff38,0 9px 24px #00192342; }
+.nexus-auth-flow { background: transparent !important; }
+.nexus-auth-flow > div.relative { max-width: 920px; }
+.nexus-auth-flow > div.relative > header,
+.nexus-auth-flow > section > div:first-child { margin-bottom: 34px; }
+.nexus-auth-flow > section,
+.nexus-auth-flow > div.relative > section { border: 2px solid var(--glass-border) !important; background: linear-gradient(135deg,rgba(103,105,103,.54),rgba(31,47,56,.82)) !important; border-radius: 36px !important; box-shadow: inset 0 1px 0 #ffffff24,0 28px 70px #00000042 !important; backdrop-filter: blur(30px) saturate(130%) !important; }
+.nexus-auth-flow h1 { letter-spacing: -.045em; }
+.nexus-auth-flow .nexus-brand { display: inline-grid; }
+.nexus-auth-flow input,
+.nexus-auth-flow select,
+.nexus-auth-flow textarea { background: rgba(229,239,245,.12); border-color: rgba(220,229,235,.42); color: white; }
+.nexus-auth-flow input::placeholder,
+.nexus-auth-flow textarea::placeholder { color: #aebcc5; }
+
+/* Notifications keep unread items visibly actionable without breaking the glass language. */
+main > ul > li.border-indigo-200 { border-color: #7dd6f099 !important; box-shadow: inset 4px 0 0 #69c4ec,0 18px 48px #00000026; }
+main > ul > li.border-indigo-200 h2::before { content: ""; display: inline-block; width: 8px; height: 8px; margin-right: 10px; border-radius: 50%; background: #78d9f7; box-shadow: 0 0 16px #78d9f7; }
+
+/* Admin pages expose all three existing review queues as one coherent workspace. */
+body:has(.nexus-nav-link[href="/admin/results"][aria-current="page"]) main::before { content: "RESULTS  ·  ACHIEVEMENTS  ·  MISSIONS"; display: block; margin-bottom: 22px; color: #a9d9fa; font-size: 11px; font-weight: 700; letter-spacing: .14em; }
+
 @media (max-width: 1024px) { .nexus-nav-inner { gap: 22px; } .nexus-nav-links { gap: 22px; } .mission-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } }
 @media (max-width: 760px) {
   body { background-attachment: scroll; }
@@ -221,6 +268,7 @@ body {
   .nexus-nav-links { order: 3; flex-basis: 100%; justify-content: space-between; gap: 6px; }
   .nexus-nav-link { font-size: 12px; }
   .nexus-nav-actions { margin-left: auto; }
+  .nexus-admin-shortcut { display: none; }
   .dashboard-grid { grid-template-columns: 1fr; }
   .nexus-dashboard { padding: 30px 18px 45px; }
   .dashboard-greeting p { font-size: 19px; }
@@ -247,5 +295,9 @@ body {
   .squad-room-grid aside { position: static; }
   .profile-page { display: block; }
   .profile-section { padding: 20px; }
+  .min-h-screen.bg-slate-50 > main:not(.nexus-dashboard):not(.mission-discovery) { width: min(100% - 28px,1180px); padding-top: 30px; padding-bottom: 44px; }
+  .nexus-auth-flow { padding-top: 28px; padding-bottom: 28px; }
+  .nexus-auth-flow > section,
+  .nexus-auth-flow > div.relative > section { border-radius: 28px !important; padding: 24px !important; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; } }
