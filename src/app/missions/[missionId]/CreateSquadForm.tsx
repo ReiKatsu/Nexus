@@ -195,7 +195,7 @@ export default function CreateSquadForm({
       setIsOpen(false);
       setSubmitFeedback({
         type: "success",
-        message: "Squad berhasil dibuat dan sudah tampil pada Mission ini.",
+        message: "Squad berhasil dibuat. Lamaran Pending kamu pada Mission ini otomatis dibatalkan.",
       });
       router.refresh();
     } catch {
@@ -227,7 +227,8 @@ export default function CreateSquadForm({
           </h2>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
             Susun kebutuhan anggota berdasarkan Primary Class untuk mengikuti
-            Mission ini.
+            Mission ini. Jika berhasil, semua lamaran Pending kamu pada Mission ini
+            otomatis dibatalkan. Lamaran di Mission lain tetap tersimpan.
           </p>
         </div>
 
@@ -347,3 +348,4 @@ export default function CreateSquadForm({
     </section>
   );
 }
+

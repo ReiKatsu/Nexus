@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import SquadChat from "./SquadChat";
 import FinalizeSquadButton from "./FinalizeSquadButton";
 import MembershipActions from "./MembershipActions";
+import TransferLeadershipButton from "./TransferLeadershipButton";
 import type { RoomMember, RoomMessage } from "./types";
 
 const UUID_PATTERN =
@@ -213,6 +214,13 @@ export default async function SquadRoomPage({ params }: SquadRoomPageProps) {
             </section>
             <section className="rounded-2xl border border-slate-200 bg-white p-5">
               <h2 className="text-lg font-bold text-slate-950">Anggota Squad</h2>
+              {canChangeMembership && isLeader && (
+                <p className="mt-3 text-sm text-slate-600">
+                  Untuk keluar, transfer kepemimpinan ke anggota aktif terlebih dahulu.
+                  Setelah transfer, kamu tetap menjadi anggota dan dapat memilih Keluar Squad.
+                  {members.length === 1 ? " Belum ada anggota lain yang dapat menjadi ketua." : ""}
+                </p>
+              )}
               <ul className="mt-4 space-y-3">
                 {members.map((member) => (
                   <li key={member.member_user_id} className="rounded-xl bg-slate-50 p-3 text-sm">
@@ -225,6 +233,13 @@ export default async function SquadRoomPage({ params }: SquadRoomPageProps) {
                       {" · "}
                       {member.nama_class ?? "Class belum tersedia"}
                     </p>
+                    {canChangeMembership && isLeader && member.role_squad === "ANGGOTA" && (
+                      <TransferLeadershipButton
+                        squadId={squadId}
+                        memberUserId={member.member_user_id}
+                        memberName={member.nama_lengkap}
+                      />
+                    )}
                     {canChangeMembership && isLeader && member.role_squad === "ANGGOTA" && (
                       <MembershipActions
                         squadId={squadId}
@@ -245,3 +260,4 @@ export default async function SquadRoomPage({ params }: SquadRoomPageProps) {
     </div>
   );
 }
+

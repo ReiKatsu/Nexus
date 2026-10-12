@@ -304,5 +304,8 @@ export async function createSquad(
   }
 
   revalidatePath(`/missions/${normalizedInput.missionId}`);
+  revalidatePath("/my-squad");
+  revalidatePath("/");
   return { success: true, squadId };
 }
+
