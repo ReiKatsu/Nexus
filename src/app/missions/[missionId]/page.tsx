@@ -20,6 +20,7 @@ type MissionDetailPageProps = {
   params: Promise<{
     missionId: string;
   }>;
+  searchParams: Promise<{ status?: string | string[] }>;
 };
 
 function ProfileLoadError() {
@@ -63,6 +64,7 @@ function MissionLoadError({ displayName }: { displayName: string }) {
 
 export default async function MissionDetailPage({
   params,
+  searchParams,
 }: MissionDetailPageProps) {
   const supabase = await createClient();
   const { data: authData, error: authError } = await supabase.auth.getUser();
@@ -79,6 +81,8 @@ export default async function MissionDetailPage({
   if (profile.primary_class_id === null) redirect("/onboarding");
 
   const { missionId } = await params;
+  const requestedStatus = (await searchParams).status;
+  const squadFilter = requestedStatus === "open" || requestedStatus === "locked" ? requestedStatus : "all";
   const { data: mission, error: missionError } = await supabase
     .from("missions")
     .select(
@@ -143,10 +147,12 @@ export default async function MissionDetailPage({
           deskripsi_squad,
           kapasitas_anggota,
           status_squad,
-          ketua_id
+          ketua_id,
+          active_members:squad_members(count)
         `,
       )
       .eq("mission_id", missionId)
+      .eq("active_members.status_member", "ACTIVE")
       .neq("status_squad", "MISSION_COMPLETED"),
     supabase.rpc("get_mission_squad_leaders", {
       p_mission_id: missionId,
@@ -222,7 +228,7 @@ export default async function MissionDetailPage({
           className="absolute -bottom-40 -right-32 h-96 w-96 rounded-full bg-violet-200/50 blur-3xl"
         />
 
-        <article className="relative w-full min-w-0 max-w-4xl">
+        <article className="relative w-full min-w-0 max-w-7xl">
           <Link
             href="/missions"
             className="inline-flex rounded-lg text-sm font-bold text-indigo-600 transition hover:text-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-200"
@@ -236,6 +242,15 @@ export default async function MissionDetailPage({
             tierLabel={tierLabel}
           />
 
+          <div className="squad-filter">
+            <h2 className="text-xl font-semibold">Squad Tersedia <span className="ml-2 rounded-full bg-white/20 px-3 py-1 text-sm">{squadsResult.error ? "—" : squadsResult.data?.length ?? 0}</span></h2>
+            <nav aria-label="Filter status squad">
+              {[["all", "Semua"], ["open", "Open Recruitment"], ["locked", "Locked"]].map(([key, label]) => (
+                <Link key={key} href={key === "all" ? `/missions/${missionId}` : `/missions/${missionId}?status=${key}`}
+                  aria-current={squadFilter === key ? "page" : undefined}>{label}</Link>
+              ))}
+            </nav>
+          </div>
           <CreateSquadForm
             missionId={missionId}
             primaryClasses={primaryClassesResult.data ?? []}
@@ -248,7 +263,9 @@ export default async function MissionDetailPage({
           />
 
           <SquadList
-            squads={(squadsResult.data as MissionSquad[] | null) ?? null}
+            squads={((squadsResult.data as MissionSquad[] | null) ?? []).filter((squad) =>
+              squadFilter === "all" || (squadFilter === "open" ? squad.status_squad === "OPEN_RECRUITMENT"
+                : squad.status_squad === "FULL" || squad.status_squad === "FINALIZED"))}
             squadsLoadFailed={Boolean(squadsResult.error)}
             squadLeadersLoadFailed={Boolean(squadLeadersResult.error)}
             leaderApplicationsLoadFailed={Boolean(

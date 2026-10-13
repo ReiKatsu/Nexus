@@ -212,10 +212,10 @@ export default function CreateSquadForm({
   return (
     <section
       aria-labelledby="create-squad-title"
-      className="mt-7 rounded-2xl border border-indigo-100 bg-white p-5 shadow-sm shadow-slate-200/60 sm:mt-8 sm:rounded-3xl sm:p-7"
+      className={isOpen ? "glass-card mt-5 p-6 sm:p-8" : "mt-4"}
     >
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0">
+        <div className={isOpen ? "min-w-0" : "sr-only"}>
           <p className="text-xs font-bold uppercase tracking-[0.16em] text-indigo-600">
             Kolaborasi
           </p>
@@ -243,7 +243,7 @@ export default function CreateSquadForm({
             aria-describedby={
               availabilityMessage ? "create-squad-availability" : undefined
             }
-            className="inline-flex h-11 w-full shrink-0 items-center justify-center rounded-xl bg-indigo-600 px-5 text-sm font-bold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-200 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-600 disabled:opacity-80 sm:w-auto"
+            className="ml-auto inline-flex h-10 w-full shrink-0 items-center justify-center rounded-full border border-white/30 bg-indigo-600 px-6 text-sm font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-200 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-600 disabled:opacity-80 sm:w-auto"
           >
             Buat Squad
           </button>
@@ -259,7 +259,7 @@ export default function CreateSquadForm({
         </p>
       )}
 
-      <div aria-live="polite" className="mt-4 min-h-6">
+      <div aria-live="polite" className={submitFeedback ? "mt-4" : ""}>
         {submitFeedback && (
           <p
             role={submitFeedback.type === "error" ? "alert" : "status"}

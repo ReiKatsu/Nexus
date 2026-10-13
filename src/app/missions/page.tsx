@@ -194,8 +194,8 @@ export default async function MissionsPage({ searchParams }: MissionsPageProps) 
           aria-hidden="true"
           className="absolute -bottom-40 -right-32 h-96 w-96 rounded-full bg-violet-200/50 blur-3xl"
         />
-        <section className="relative w-full min-w-0 max-w-4xl">
-          <div>
+        <section className="mission-discovery relative w-full min-w-0">
+          <div className="mission-page-header">
             <p className="text-sm font-bold tracking-[0.2em] text-indigo-600">
               NEXUS
             </p>
@@ -218,14 +218,14 @@ export default async function MissionsPage({ searchParams }: MissionsPageProps) 
           </div>
 
           <div className="mt-7 sm:mt-8">
-            <h2 className="text-lg font-bold text-slate-950 sm:text-xl">
+            <h2 className="sr-only">
               Mission Discovery
             </h2>
 
             <form
               key={JSON.stringify([searchQuery, selectedCategory, selectedTier?.code, selectedMode, selectedCost])}
               method="GET"
-              className="mt-3 min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:mt-4 sm:p-5"
+              className="mission-search min-w-0 border bg-white"
             >
               <label className="block text-xs font-bold text-slate-600">
                 Cari nama kompetisi
@@ -233,6 +233,8 @@ export default async function MissionsPage({ searchParams }: MissionsPageProps) 
                   placeholder="Masukkan nama Mission"
                   className="mt-1.5 block h-10 w-full rounded-xl border border-slate-200 px-3 text-sm font-normal text-slate-700 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100" />
               </label>
+              <details open={hasActiveFilters}>
+                <summary className="inline-flex rounded-full bg-white/20 px-5 py-2 text-sm font-semibold">Filter Mission ▾</summary>
               <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 <label className="min-w-0 text-xs font-bold text-slate-600">
                   Kategori
@@ -298,8 +300,9 @@ export default async function MissionsPage({ searchParams }: MissionsPageProps) 
                   </select>
                 </label>
               </div>
+              </details>
 
-              <div className="mt-4 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+              <div className="mission-search-actions grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
                 <button
                   type="submit"
                   className="w-full rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-indigo-700 sm:w-auto"
@@ -347,7 +350,7 @@ export default async function MissionsPage({ searchParams }: MissionsPageProps) 
                 )}
               </div>
             ) : (
-              <div className="mt-4 grid gap-4 sm:gap-5">
+              <div className="mission-grid mt-6 grid gap-5">
                 {(missions ?? []).map((mission) => {
                   const relatedTier = getRelatedTier(mission.mission_tiers);
                   const tierCode = relatedTier?.kode_tier?.trim();
@@ -355,7 +358,7 @@ export default async function MissionsPage({ searchParams }: MissionsPageProps) 
                   return (
                     <article
                       key={mission.mission_id}
-                      className="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-200/60 sm:p-6"
+                      className="glass-card mission-tile min-w-0"
                     >
                       <h3 className="break-words text-lg font-bold text-slate-950 [overflow-wrap:anywhere] sm:text-xl">
                         <Link
@@ -376,9 +379,6 @@ export default async function MissionsPage({ searchParams }: MissionsPageProps) 
                             : "Tier belum tersedia"}
                         </span>
                         <span className="max-w-full break-words rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-600 [overflow-wrap:anywhere]">
-                          {mission.kategori_lomba}
-                        </span>
-                        <span className="max-w-full break-words rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-600 [overflow-wrap:anywhere]">
                           {mission.mode_lomba}
                         </span>
                         <span className="max-w-full break-words rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-600 [overflow-wrap:anywhere]">
@@ -389,7 +389,7 @@ export default async function MissionsPage({ searchParams }: MissionsPageProps) 
                         </span>
                       </div>
 
-                      <div className="mt-4 grid gap-2 text-sm text-slate-600 sm:grid-cols-2">
+                      <div className="mt-4 grid gap-2 text-xs text-slate-600">
                         <p>{xpRulesResult.error || !participantXp.has(mission.tier_id)
                           ? "XP Participant belum tersedia"
                           : `${participantXp.get(mission.tier_id)} XP dasar Participant`}</p>
@@ -410,10 +410,12 @@ export default async function MissionsPage({ searchParams }: MissionsPageProps) 
                           )}
                         </time>
                       </div>
-                      <Link href={`/missions/${mission.mission_id}`}
-                        className="mt-4 inline-block rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">
-                        Lihat detail
-                      </Link>
+                      <div className="pt-5">
+                        <Link href={`/missions/${mission.mission_id}`}
+                          className="inline-block rounded-full border border-white/30 px-4 py-2 text-xs font-semibold hover:bg-white/10">
+                          Lihat detail ↗
+                        </Link>
+                      </div>
                     </article>
                   );
                 })}

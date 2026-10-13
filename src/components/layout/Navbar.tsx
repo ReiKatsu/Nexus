@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 type NavbarProps = {
@@ -6,88 +7,37 @@ type NavbarProps = {
   isAdmin?: boolean;
 };
 
-const navigationClassName =
-  "whitespace-nowrap rounded-lg px-2 py-2 transition-colors sm:px-2.5 md:px-3";
-const activeClassName = "bg-indigo-50 text-indigo-600";
-const inactiveClassName =
-  "text-slate-600 hover:bg-slate-50 hover:text-slate-900";
-
 export default function Navbar({ displayName, activeItem, isAdmin = false }: NavbarProps) {
-  const initial = displayName.trim().charAt(0).toUpperCase() || "N";
-
+  const initials = displayName.trim().split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase() || "N";
+  const items = [
+    { href: "/", key: "home", label: "Home" },
+    { href: "/missions", key: "missions", label: "Missions" },
+    { href: "/leaderboard", key: "leaderboard", label: "Leaderboard" },
+    { href: "/my-squad", key: "my-squad", label: "My Squad" },
+    ...(isAdmin ? [{ href: "/admin/results", key: "admin", label: "Review" }] : []),
+  ];
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-slate-200/80 bg-white/90 backdrop-blur">
-      <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-x-3 gap-y-2.5 px-4 py-3 sm:flex-nowrap sm:gap-6 sm:px-6">
-        <div className="flex shrink-0 items-center gap-2.5">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-sm font-bold text-white shadow-sm shadow-indigo-200">
-            N
-          </span>
-          <span className="text-base font-bold tracking-[0.2em] text-slate-900">
-            NEXUS
-          </span>
-        </div>
-
-        <nav
-          aria-label="Navigasi utama"
-          className="order-3 flex min-w-0 w-full items-center justify-between gap-0 text-[11px] font-semibold min-[400px]:justify-center min-[400px]:gap-1 min-[400px]:text-xs sm:order-none sm:w-auto sm:gap-1 md:gap-2 md:text-sm"
-        >
-          <Link
-            href="/"
-            aria-current={activeItem === "home" ? "page" : undefined}
-            className={`${navigationClassName} ${activeItem === "home" ? activeClassName : inactiveClassName}`}
-          >
-            Home
-          </Link>
-          <Link
-            href="/missions"
-            aria-current={activeItem === "missions" ? "page" : undefined}
-            className={`${navigationClassName} ${activeItem === "missions" ? activeClassName : inactiveClassName}`}
-          >
-            Missions
-          </Link>
-          <Link
-            href="/leaderboard"
-            aria-current={activeItem === "leaderboard" ? "page" : undefined}
-            className={`${navigationClassName} ${activeItem === "leaderboard" ? activeClassName : inactiveClassName}`}
-          >
-            Leaderboard
-          </Link>
-          <Link
-            href="/my-squad"
-            aria-current={activeItem === "my-squad" ? "page" : undefined}
-            className={`${navigationClassName} ${activeItem === "my-squad" ? activeClassName : inactiveClassName}`}
-          >
-            My Squad
-          </Link>
-          {isAdmin && (
-            <>
-              <Link href="/admin/results"
-                className={`${navigationClassName} ${activeItem === "admin" ? activeClassName : inactiveClassName}`}>
-                Review Hasil
-              </Link>
-              <Link href="/admin/missions"
-                className={`${navigationClassName} ${activeItem === "admin" ? activeClassName : inactiveClassName}`}>
-                Review Mission
-              </Link>
-            </>
-          )}
+    <header className="nexus-navbar">
+      <div className="nexus-nav-inner">
+        <Link href="/" className="nexus-brand" aria-label="NEXUS Home">
+          <Image src="/nexus-logo.svg" alt="" width={28} height={28} />
+        </Link>
+        <nav className="nexus-nav-links" aria-label="Navigasi utama">
+          {items.map((item) => <Link key={item.key} href={item.href} className="nexus-nav-link"
+            aria-current={activeItem === item.key ? "page" : undefined}>{item.label}</Link>)}
         </nav>
-
-        <div className="flex shrink-0 items-center gap-3">
-          <Link href="/notifications"
-            aria-current={activeItem === "notifications" ? "page" : undefined}
-            className={`rounded-lg px-2 py-2 text-xs font-semibold sm:text-sm ${activeItem === "notifications" ? activeClassName : inactiveClassName}`}
-          >
-            Notifikasi
+        <div className="nexus-nav-actions">
+          <Link href="/notifications" aria-label="Notifikasi" title="Notifikasi"
+            aria-current={activeItem === "notifications" ? "page" : undefined} className="rounded-full p-2">
+            <svg width="23" height="23" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M12 3a1 1 0 0 1 1 1v.1a6 6 0 0 1 5 5.9v4l2 3H4l2-3v-4a6 6 0 0 1 5-5.9V4a1 1 0 0 1 1-1Zm-2 16h4a2 2 0 0 1-4 0Z" />
+            </svg>
           </Link>
-          <Link href="/profile"
-            aria-current={activeItem === "profile" ? "page" : undefined}
+          <Link href="/profile" className="nexus-avatar" title={displayName}
             aria-label={`Buka profil ${displayName || "saya"}`}
-            title={displayName || "Profil saya"}
-            className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-sm font-bold text-indigo-700 ring-1 ring-inset ring-indigo-200 ${activeItem === "profile" ? "ring-2 ring-indigo-600" : ""}`}
-          >
-            {initial}
-          </Link>
+            aria-current={activeItem === "profile" ? "page" : undefined}>{initials}</Link>
+          {isAdmin && <Link href="/admin/missions" className="nexus-admin-shortcut"
+            title="Review pengajuan Mission">Mission Review</Link>}
         </div>
       </div>
     </header>

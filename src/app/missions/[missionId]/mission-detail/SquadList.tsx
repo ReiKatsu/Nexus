@@ -44,9 +44,7 @@ export default function SquadList({
 }: SquadListProps) {
   return (
     <section className="mt-7 sm:mt-8">
-      <h2 className="text-xl font-bold text-slate-950 sm:text-2xl">
-        Squad Tersedia
-      </h2>
+      <h2 className="sr-only">Daftar squad sesuai filter</h2>
 
       {squadLeadersLoadFailed && !squadsLoadFailed && (squads ?? []).length > 0 && (
         <div
@@ -68,11 +66,11 @@ export default function SquadList({
         <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-5 text-center shadow-sm sm:p-8">
           <p className="font-bold text-slate-950">Belum ada Squad tersedia</p>
           <p className="mt-2 text-sm leading-6 text-slate-500">
-            Squad untuk Mission ini belum tersedia.
+            Belum ada Squad yang sesuai dengan filter ini.
           </p>
         </div>
       ) : (
-        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+        <div className="mission-grid mt-4 grid gap-5">
           {(squads ?? []).map((squad) => {
             const leaderName = squadLeaderNames.get(squad.squad_id);
             const statusLabel = getSquadStatusLabel(squad.status_squad);
@@ -120,7 +118,7 @@ export default function SquadList({
             return (
               <article
                 key={squad.squad_id}
-                className="min-w-0 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm shadow-slate-200/60 sm:p-6"
+                className="glass-card min-w-0 p-6"
               >
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <h3 className="break-words text-lg font-bold text-slate-950 [overflow-wrap:anywhere]">
@@ -144,7 +142,8 @@ export default function SquadList({
                   {squad.deskripsi_squad || "Deskripsi Squad belum tersedia."}
                 </p>
                 <p className="mt-4 border-t border-slate-100 pt-4 text-sm font-bold text-slate-700">
-                  Kapasitas: {squad.kapasitas_anggota} anggota
+                  {squad.active_members?.[0]?.count === undefined ? "Jumlah anggota belum tersedia"
+                    : `${squad.active_members[0].count}/${squad.kapasitas_anggota} anggota`}
                 </p>
                 {squad.status_squad === "OPEN_RECRUITMENT" ||
                 hasPendingApplication ? (

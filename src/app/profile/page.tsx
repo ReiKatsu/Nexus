@@ -14,6 +14,10 @@ import { createClient } from "@/lib/supabase/server";
 
 import RankCard from "./RankCard";
 
+function one<T>(value: T | T[] | null | undefined): T | null {
+  return Array.isArray(value) ? value[0] ?? null : value ?? null;
+}
+
 function PageError({ message }: { message: string }) {
   return (
     <main className="mx-auto max-w-3xl px-4 py-12">
@@ -93,20 +97,21 @@ export default async function ProfilePage() {
     ? supabase.storage.from("avatars").getPublicUrl(profile.foto_profil_path).data.publicUrl
     : null;
   const rules = rulesResult.data;
+  const equippedBadge = one(equippedResult.data?.badge_definitions);
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
+    <div className="nexus-app-page min-h-screen bg-slate-50 text-slate-900">
       <Navbar displayName={profile.nama_lengkap} activeItem="profile"
         isAdmin={profile.role_app === "ADMIN"} />
-      <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
-        <div className="flex flex-wrap items-center justify-between gap-3">
+      <main className="nexus-page-shell profile-page mx-auto max-w-6xl px-4 py-8 sm:px-6">
+        <div className="nexus-page-heading flex flex-wrap items-center justify-between gap-3">
           <h1 className="text-2xl font-bold">Profil Saya</h1>
           <Link href="/profile/edit"
             className="rounded-lg border border-indigo-200 px-4 py-2 text-sm font-semibold text-indigo-700 hover:bg-indigo-50">
             Edit profil
           </Link>
         </div>
-        <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-6">
+        <section className="profile-hero glass-card mt-6 rounded-2xl border border-slate-200 bg-white p-6">
           <div className="flex flex-wrap items-center gap-4">
             {avatar ? (
               <Image src={avatar} alt={`Foto ${profile.nama_lengkap}`}
@@ -138,7 +143,7 @@ export default async function ProfilePage() {
 
         {profile.role_app === "STUDENT" && <ShareProfile userId={userId} />}
 
-        <section className="mt-8">
+        <section className="profile-section mt-8">
           <h2 className="text-lg font-bold">Skills</h2>
           {skills.length ? (
             <ul className="mt-3 flex flex-wrap gap-2">
@@ -149,7 +154,7 @@ export default async function ProfilePage() {
         </section>
 
         {profile.role_app === "STUDENT" && (
-          <section className="mt-8 rounded-2xl border border-slate-200 bg-white p-5">
+          <section className="profile-section mt-8 rounded-2xl border border-slate-200 bg-white p-5">
             <h2 className="text-lg font-bold">Badge</h2>
             {equippedResult.error ? (
               <p role="alert" className="mt-2 text-sm text-red-700">
@@ -157,7 +162,7 @@ export default async function ProfilePage() {
               </p>
             ) : (
               <p className="mt-2 text-sm text-slate-700">
-                {equippedResult.data?.badge_definitions?.[0]?.badge_name ??
+                {equippedBadge?.badge_name ??
                   "Belum ada Badge terpasang."}
               </p>
             )}
@@ -169,7 +174,7 @@ export default async function ProfilePage() {
         )}
 
         {profile.role_app === "STUDENT" && (
-          <section className="mt-8">
+          <section className="profile-section mt-8">
             <h2 className="text-lg font-bold">XP dan Rank</h2>
             <Link href="/profile/claims"
               className="mt-2 inline-block text-sm font-semibold text-indigo-700 underline">
@@ -192,7 +197,7 @@ export default async function ProfilePage() {
           <EndorsementSummary summary={endorsementSummary} />
         )}
         {profile.role_app === "STUDENT" && (
-          <section className="mt-8">
+          <section className="profile-section mt-8">
             <h2 className="text-lg font-bold">Season History</h2>
             {!seasonHistory ? <p role="alert" className="mt-3 text-sm text-red-700">
               Riwayat Season belum dapat dimuat.
@@ -206,7 +211,7 @@ export default async function ProfilePage() {
           </section>
         )}
         {profile.role_app === "STUDENT" && (
-          <section className="mt-8">
+          <section className="profile-section mt-8">
             <h2 className="text-lg font-bold">Mission History</h2>
             {!missionHistory ? <p role="alert" className="mt-3 text-sm text-red-700">
               Riwayat Mission belum dapat dimuat.
