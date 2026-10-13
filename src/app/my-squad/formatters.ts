@@ -43,6 +43,7 @@ export function formatSquadStatus(status: SquadStatus): string {
     FULL: "Locked",
     FINALIZED: "Finalized",
     MISSION_COMPLETED: "Mission Completed",
+    DISBANDED: "Dibubarkan",
   };
 
   return labels[status];

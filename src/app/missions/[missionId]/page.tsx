@@ -153,7 +153,7 @@ export default async function MissionDetailPage({
       )
       .eq("mission_id", missionId)
       .eq("active_members.status_member", "ACTIVE")
-      .neq("status_squad", "MISSION_COMPLETED"),
+      .in("status_squad", ["OPEN_RECRUITMENT", "FULL", "FINALIZED"]),
     supabase.rpc("get_mission_squad_leaders", {
       p_mission_id: missionId,
     }),

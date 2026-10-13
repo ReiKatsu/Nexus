@@ -38,7 +38,7 @@ export default async function HomePage() {
       p_scope: "PROGRAM_STUDI", p_query: "", p_min_rank: 1, p_offset: 0, p_limit: 5,
     }) : Promise.resolve({ data: null, error: null }),
     memberships.data?.length ? supabase.from("squads").select("squad_id, mission_id, nama_squad, status_squad")
-      .in("squad_id", memberships.data.map((row) => row.squad_id)).neq("status_squad", "MISSION_COMPLETED")
+      .in("squad_id", memberships.data.map((row) => row.squad_id)).in("status_squad", ["OPEN_RECRUITMENT", "FULL", "FINALIZED"])
       : Promise.resolve({ data: [], error: null }),
     memberships.data?.length ? supabase.from("missions")
       .select("mission_id, nama_lomba, cakupan_peserta, biaya_pendaftaran, mission_tiers(kode_tier)")

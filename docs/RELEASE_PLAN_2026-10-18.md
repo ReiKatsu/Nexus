@@ -28,9 +28,11 @@ Bukti scheduler 12 Oktober: award mingguan 00.00 WIB succeeded, menambah 9 badge
 
 ## Belum selesai
 
+**G06 diputuskan dan diterapkan 13 Oktober:** Ketua solo boleh membubarkan Squad sebelum FINALIZED. Migration/RPC live, rollback QA serta 33 tes aplikasi PASS; history/cancel/notifikasi ditangani atomic. [Laporan solo disband](SOLO_SQUAD_DISBAND_2026-10-13.md). Browser dan concurrency dua sesi belum dinyatakan PASS.
+
 1. **Browser gabungan:** dua STUDENT dan satu ADMIN pada environment uji yang dinyatakan. Login/cookie/refresh, onboarding, discovery/filter, Create/Join/accept/reject, transfer/leave/finalize, upload form/signed review, approval → XP/badge/history, notifications, chat/reconnect dan mobile. Tes API Storage tidak menutup alur form/approval.
 2. **Operasional deploy:** environment development/staging/production, env hosting, Auth redirect/domain, log, backup dan pemulihan belum tercatat sebagai gate PASS. Produksi belum dideploy dalam sesi ini.
-3. **Keputusan/data legacy:** G02 perubahan batas Mission yang punya Squad; G06 Ketua sendirian/pembatalan recruitment. Empat profil domain lama memerlukan klasifikasi QA/asli sebelum perubahan identitas; tidak mengganti email/password otomatis.
+3. **Keputusan/data legacy:** G02 perubahan batas Mission yang punya Squad. G06 solo disband sudah diterapkan; verifikasi browser/concurrency tetap masuk gate. Empat profil domain lama memerlukan klasifikasi QA/asli sebelum perubahan identitas; tidak mengganti email/password otomatis.
 4. **Sisa review keamanan:** audit terakhir masih memuat 2 security-definer view yang telah diberi guard, 17 definer authenticated yang dipetakan, serta leaked-password protection disabled. Bukan 17 exploit terbukti. Dampak perlu dinilai untuk rilis. Search_path mutable dan anon definer terdahulu sudah ditangani.
 5. **Tes terbatas:** concurrency closure/Verified dua urutan COMMIT, cleanup vs submit hasil dan batas ukuran Storage langsung belum tercakup seluruhnya. Gunakan fixture/environment terisolasi; approval nyata memengaruhi XP/badge.
 

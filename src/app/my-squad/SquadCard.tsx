@@ -22,7 +22,7 @@ export default function SquadCard({
 }: SquadCardProps) {
   const isHistory = variant === "history";
   const statusLabel =
-    isHistory && item.membershipStatus !== "ACTIVE"
+    item.squadStatus === "DISBANDED" ? "Dibubarkan" : isHistory && item.membershipStatus !== "ACTIVE"
       ? formatMembershipStatus(item.membershipStatus)
       : formatSquadStatus(item.squadStatus);
 

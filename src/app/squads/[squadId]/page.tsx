@@ -8,6 +8,7 @@ import SquadChat from "./SquadChat";
 import FinalizeSquadButton from "./FinalizeSquadButton";
 import MembershipActions from "./MembershipActions";
 import TransferLeadershipButton from "./TransferLeadershipButton";
+import DisbandSquadButton from "./DisbandSquadButton";
 import type { RoomMember, RoomMessage } from "./types";
 
 const UUID_PATTERN =
@@ -102,7 +103,7 @@ export default async function SquadRoomPage({ params }: SquadRoomPageProps) {
     return <PageMessage displayName={profile.nama_lengkap} title="Room belum dapat dimuat" description="Data Squad sedang tidak tersedia." />;
   }
 
-  if (squad.status_squad === "MISSION_COMPLETED") {
+  if (["MISSION_COMPLETED", "DISBANDED"].includes(squad.status_squad)) {
     return <PageMessage displayName={profile.nama_lengkap} title="Room Squad telah ditutup" description="Mission ini sudah selesai. Riwayat Squad tetap tersedia di My Squad." />;
   }
 
@@ -170,6 +171,7 @@ export default async function SquadRoomPage({ params }: SquadRoomPageProps) {
             initialMessages={messages}
           />
           <aside className="space-y-6">
+            {canChangeMembership && isLeader && members.length === 1 && <DisbandSquadButton squadId={squadId} />}
             {squad.status_squad === "FINALIZED" && (
               <section className="rounded-2xl border border-slate-200 bg-white p-5">
                 <h2 className="text-lg font-bold text-slate-950">Hasil Mission</h2>
@@ -218,7 +220,7 @@ export default async function SquadRoomPage({ params }: SquadRoomPageProps) {
                 <p className="mt-3 text-sm text-slate-600">
                   Untuk keluar, transfer kepemimpinan ke anggota aktif terlebih dahulu.
                   Setelah transfer, kamu tetap menjadi anggota dan dapat memilih Keluar Squad.
-                  {members.length === 1 ? " Belum ada anggota lain yang dapat menjadi ketua." : ""}
+                  {members.length === 1 ? " Kamu juga dapat membubarkan Squad melalui tombol di atas." : ""}
                 </p>
               )}
               <ul className="mt-4 space-y-3">

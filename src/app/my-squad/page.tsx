@@ -255,12 +255,12 @@ export default async function MySquadPage() {
   const activeItems = items.filter(
     (item) =>
       item.membershipStatus === "ACTIVE" &&
-      item.squadStatus !== "MISSION_COMPLETED",
+      !["MISSION_COMPLETED", "DISBANDED"].includes(item.squadStatus),
   );
   const historyItems = items.filter(
     (item) =>
       item.membershipStatus !== "ACTIVE" ||
-      item.squadStatus === "MISSION_COMPLETED",
+      ["MISSION_COMPLETED", "DISBANDED"].includes(item.squadStatus),
   );
 
   return (

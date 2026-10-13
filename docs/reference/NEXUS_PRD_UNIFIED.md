@@ -183,6 +183,7 @@ Cakupan implementasi rentang: schema → data existing/backfill berdasarkan atur
 | FULL | Locked | Tidak | Masih boleh sebelum Finalized | Tidak |
 | FINALIZED | Locked | Tidak | Tidak; melalui Admin Intervention | Hanya Ketua |
 | MISSION_COMPLETED | Tidak tampil; history | Tidak | Tidak melalui flow biasa | Tidak submit baru |
+| DISBANDED | Tidak tampil; history | Tidak | Keanggotaan sudah berakhir | Tidak |
 
 Transisi normal: create → OPEN_RECRUITMENT; penerimaan hingga kapasitas → FULL; slot kosong karena leave/kick sebelum Finalized → OPEN_RECRUITMENT; Ketua finalize dari OPEN_RECRUITMENT/FULL → FINALIZED; APPROVE hasil → MISSION_COMPLETED. Keputusan G03 (30 September 2026): Finalize tidak mensyaratkan FULL, tetapi jumlah anggota ACTIVE harus mencapai `missions.min_anggota_tim`. Jika minimum belum ditetapkan, Finalize ditahan. Lamaran PENDING tidak menghalangi Finalize dan tidak dibatalkan otomatis. Kapasitas target tidak sama dengan jumlah member saat ini.
 
@@ -212,7 +213,7 @@ Keputusan ketua tim 8 Oktober 2026: kebutuhan Class/Skill Squad wajib diisi sesu
 
 ### SQ-04 Leave, kick, finalize, My Squad
 
-Anggota bisa leave sebelum Finalized. Ketua bisa kick anggota sebelum Finalized. Gunakan ended_at, removed_by/reason sesuai state; jangan hapus riwayat membership untuk berpindah tim. Keputusan pemilik 12 Oktober 2026 (G06): sebelum Finalized, Ketua mentransfer kepemimpinan kepada ANGGOTA ACTIVE dengan akun STUDENT ACTIVE melalui transfer_squad_leadership. Ketua lama tetap menjadi ANGGOTA ACTIVE dan boleh menggunakan leave_squad setelah transfer berhasil. Pergantian ketua_id dan kedua role atomic; riwayat membership tetap dipertahankan. Ketua tidak dapat leave langsung. Ketua sendirian/pembatalan recruitment belum diputuskan; tidak ada auto-disband. Setelah Finalized perlu admin intervention. My Squad menampilkan aktif dan history lintas-Mission; detail memuat anggota, chat, dan aksi yang diizinkan.
+Anggota bisa leave sebelum Finalized. Ketua bisa kick anggota sebelum Finalized. Gunakan ended_at, removed_by/reason sesuai state; jangan hapus riwayat membership untuk berpindah tim. Keputusan pemilik 12 Oktober 2026 (G06): sebelum Finalized, Ketua mentransfer kepemimpinan kepada ANGGOTA ACTIVE dengan akun STUDENT ACTIVE melalui transfer_squad_leadership. Ketua lama tetap menjadi ANGGOTA ACTIVE dan boleh menggunakan leave_squad setelah transfer berhasil. Pergantian ketua_id dan kedua role atomic; riwayat membership tetap dipertahankan. Ketua tidak dapat leave langsung. Keputusan pemilik 13 Oktober 2026 (G06): Ketua yang merupakan satu-satunya anggota ACTIVE boleh membubarkan Squad sebelum FINALIZED melalui disband_solo_squad. Status DISBANDED, disbanded_at/disbanded_by dan membership LEFT/ended_at disimpan atomic; semua PENDING pada Squad itu CANCELLED dan pelamar mendapat notifikasi. Tidak ada auto-disband. Riwayat, requirements dan chat tetap tersimpan, Room/chat/recruitment ditutup; Ketua dapat create/join lagi mengikuti eligibility Mission existing. Anggota lain mewajibkan transfer bila Ketua ingin keluar. Setelah Finalized perlu admin intervention. My Squad menampilkan aktif dan history lintas-Mission; detail memuat anggota, chat, dan aksi yang diizinkan.
 
 ## 8. Validasi prestasi dan XP
 
@@ -492,11 +493,13 @@ Discovery rule: mission is shown only while `deadline_pendaftaran` has not passe
 | `nama_squad` | TEXT |
 | `deskripsi_squad` | TEXT |
 | `kapasitas_anggota` | SMALLINT |
-| `status_squad` | ENUM (`OPEN_RECRUITMENT`, `FULL`, `FINALIZED`, `MISSION_COMPLETED`) |
+| `status_squad` | ENUM (`OPEN_RECRUITMENT`, `FULL`, `FINALIZED`, `MISSION_COMPLETED`, `DISBANDED`) |
 | `last_activity_at` | TIMESTAMPTZ |
 | `created_at` | TIMESTAMPTZ |
 | `finalized_at` | TIMESTAMPTZ optional |
 | `completed_at` | TIMESTAMPTZ optional |
+| `disbanded_at` | TIMESTAMPTZ optional; diwajibkan pada DISBANDED (13 Oktober) |
+| `disbanded_by` | UUID FK → profiles optional; Ketua yang membubarkan (13 Oktober) |
 
 `(squad_id, mission_id)` has a unique constraint so child tables can enforce Mission consistency.
 
@@ -838,7 +841,7 @@ Gunakan literal enum ini, bukan label UI atau ejaan terjemahan sebagai nilai dat
 | role_app_enum | STUDENT, ADMIN |
 | status_akun_enum | ACTIVE, SUSPENDED |
 | squad_role_enum | KETUA, ANGGOTA |
-| squad_status_enum | OPEN_RECRUITMENT, FULL, FINALIZED, MISSION_COMPLETED |
+| squad_status_enum | OPEN_RECRUITMENT, FULL, FINALIZED, MISSION_COMPLETED, DISBANDED |
 | member_status_enum | ACTIVE, LEFT, KICKED, ADMIN_REMOVED |
 | application_status_enum | PENDING, ACCEPTED, REJECTED, CANCELLED |
 | review_status_enum | PENDING, APPROVED, REJECTED |
@@ -941,7 +944,7 @@ Enam object turunan terinventaris kolomnya: public_profiles, career_xp_totals, c
 | G03 | RESOLVED 30 September 2026: kapasitas target vs jumlah ACTIVE ketika Finalize | Jumlah ACTIVE minimal `missions.min_anggota_tim`; FULL tidak wajib; PENDING tidak menghalangi; minimum NULL menahan Finalize. Validasi ulang dalam RPC. |
 | G04 | RESOLVED 8 Oktober 2026: kebutuhan diisi, keputusan accept/reject di tangan Ketua | Tampilkan Class/Skill pelamar; jangan auto-reject mismatch. Skill tambahan pada Create masih UI-G02 |
 | G05 | Create ketika ada PENDING application lain | RESOLVED 12 Oktober: auto-cancel hanya PENDING pembuat pada Mission sama dalam transaksi Create. Migration dan RPC runtime Supabase PASS; browser QA belum |
-| G06 | Ketua self-leave, transfer dan pembatalan recruitment | PARTIAL 12 Oktober: transfer ke anggota aktif sebelum Finalized lalu Ketua lama boleh leave; migration/RPC runtime PASS. Ketua sendirian/pembatalan recruitment tetap NEEDS DECISION; browser QA belum |
+| G06 | RESOLVED 13 Oktober: transfer dan pembubaran solo sebelum Finalized | Transfer ke anggota ACTIVE; solo disband menyimpan DISBANDED/history, mengakhiri membership dan membatalkan PENDING dengan notifikasi secara atomic. Runtime rollback PASS; browser dan concurrency COMMIT belum terverifikasi penuh |
 | G07 | Cleanup chat-only idle >30 hari, skip PENDING. Dua urutan concurrency chat/cleanup COMMIT PASS 11 Oktober; job harian 12 Oktober 02.00 WIB succeeded | Cleanup vs submit hasil dan refresh browser belum diuji. Pembubaran/reopen tetap belum diputuskan; H-3 proposal |
 | G08 | Skills lintas-Class dan perubahan Class setelah join | Pertahankan bebas ubah; jangan menghapus Skills/membership tanpa keputusan |
 | G09 | Populasi STUDENT ACTIVE termasuk 0 XP, tanpa ADMIN/SUSPENDED. Job mingguan Senin 12 Oktober 00.00 WIB succeeded dan mencatat 9 badge baru; coverage saat audit lengkap | Kebijakan historical/current serta exact 3% belum berubah. Browser badge masih perlu diuji setelah perbaikan pembacaan relasi profil |
