@@ -10,7 +10,8 @@ export type SquadStatus =
   | "OPEN_RECRUITMENT"
   | "FULL"
   | "FINALIZED"
-  | "MISSION_COMPLETED";
+  | "MISSION_COMPLETED"
+  | "DISBANDED";
 
 export type SquadMembershipRow = {
   squad_member_id: string;

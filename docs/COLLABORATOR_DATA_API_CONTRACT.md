@@ -4,6 +4,8 @@ Baseline: `main` commit `2245ac5bde38f45921019e369c7fe65df4a946de`, diperiksa 11
 
 ## Addendum 13 Oktober 2026
 
+- Pembubaran solo: impor `disbandSoloSquad` dari `@/app/squads/[squadId]/disband-actions`; input satu UUID squadId, output MembershipActionResult `{success:true}` atau `{success:false,message}`. STUDENT ACTIVE/onboarded, Ketua solo sebelum FINALIZED. PENDING pada Squad CANCELLED dengan notifikasi; DISBANDED/history dan membership LEFT tersimpan atomic. Refresh biasa, tanpa realtime baru. Detail: [solo disband](SOLO_SQUAD_DISBAND_2026-10-13.md).
+
 - Kontrak baseline di bawah tetap referensi historis; status terkini ada di [rencana rilis](RELEASE_PLAN_2026-10-18.md).
 - Server Action baru: impor `transferSquadLeadership` dari `@/app/squads/[squadId]/actions`; panggil `await transferSquadLeadership(squadId, newLeaderId)`. Kedua parameter UUID string dari data sebenarnya. Hasil: `{success:true}` atau `{success:false,message:string}`; gunakan `MembershipActionResult` pada module types Squad. Ini Server Action, bukan endpoint GET/PATCH baru.
 - Akses transfer: STUDENT ACTIVE yang menjadi Ketua pada Squad OPEN_RECRUITMENT/FULL; pengganti ANGGOTA ACTIVE dengan akun STUDENT ACTIVE. Diri sendiri/nonmember/Finalized ditolak. Setelah berhasil Ketua lama menjadi anggota dan boleh leave. Revalidation/refresh biasa pada Room, My Squad, Mission dan Home; tidak memerlukan Realtime baru.

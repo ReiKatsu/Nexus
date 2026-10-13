@@ -71,7 +71,7 @@ export default function SquadChat({
       if (cancelled) return;
       if (membershipError || squadError || profileError || !membership ||
           !profile || profile.status_akun !== "ACTIVE" || profile.role_app !== "STUDENT" ||
-          !squad || squad.status_squad === "MISSION_COMPLETED") {
+          !squad || ["MISSION_COMPLETED", "DISBANDED"].includes(squad.status_squad)) {
         setAccessRevoked(true);
         router.replace("/my-squad");
         router.refresh();
