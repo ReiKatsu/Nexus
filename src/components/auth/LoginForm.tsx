@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { type FormEvent, useRef, useState } from "react";
 
 import { createClient } from "@/lib/supabase/client";
+import { loginWithProfile } from "@/lib/auth/login";
 
 type LoginFeedback = {
   type: "error" | "success";
@@ -74,55 +75,13 @@ export default function LoginForm() {
 
     try {
       const supabase = createClient();
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error || !data.user) {
-        setLoginFeedback({
-          type: "error",
-          message: "Email atau password tidak valid.",
-        });
+      const result = await loginWithProfile(supabase, email, password);
+      if (!result.success) {
+        setLoginFeedback({ type: "error", message: result.message });
         return;
       }
-
-      const { data: profile, error: profileError } = await supabase
-        .from("profiles")
-        .select("user_id, primary_class_id, role_app, status_akun")
-        .eq("user_id", data.user.id)
-        .single();
-
-      if (profileError) {
-        setLoginFeedback({
-          type: "error",
-          message: "Profil akun belum dapat dimuat. Silakan coba lagi.",
-        });
-        return;
-      }
-
-      if (!profile) {
-        setLoginFeedback({
-          type: "error",
-          message:
-            "Profil akun tidak ditemukan. Silakan hubungi administrator.",
-        });
-        return;
-      }
-
-      if (profile.status_akun !== "ACTIVE") {
-        await supabase.auth.signOut();
-        setLoginFeedback({ type: "error", message: "Akun tidak aktif. Hubungi administrator." });
-        return;
-      }
-
-      setLoginFeedback({
-        type: "success",
-        message: "Login berhasil. Mengarahkan Anda...",
-      });
-      router.replace(profile.role_app === "ADMIN"
-        ? "/admin/results"
-        : profile.primary_class_id === null ? "/onboarding" : "/");
+      setLoginFeedback({ type: "success", message: "Login berhasil. Mengarahkan Anda..." });
+      router.replace(result.destination);
     } catch {
       setLoginFeedback({
         type: "error",
@@ -250,3 +209,4 @@ export default function LoginForm() {
     </form>
   );
 }
+
