@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "test": "node --test",
-    "audit:production": "npm audit --omit=dev --audit-level=high"
+    "audit:production": "npm audit --omit=dev --audit-level=high",
+    "qa:environment": "node scripts/qa/environment.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.5",

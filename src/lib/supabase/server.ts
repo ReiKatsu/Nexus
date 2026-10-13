@@ -18,7 +18,8 @@ export async function createClient() {
               cookieStore.set(name, value, options);
             });
           } catch {
-            // Server Components tidak selalu boleh menulis cookie.
+            // src/proxy.ts refreshes request/response cookies before rendering.
+            // Server Components cannot persist cookies themselves.
           }
         },
       },
