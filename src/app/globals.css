@@ -1,26 +1,302 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: dark;
+  --background: #080b0e;
+  --foreground: #f8fafc;
+  --glass: linear-gradient(135deg, rgba(116, 119, 117, .46), rgba(36, 48, 55, .72));
+  --glass-border: rgba(215, 222, 226, .42);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-sans: var(--font-poppins);
+  --color-slate-950: #ffffff;
+  --color-slate-900: #f4f7fa;
+  --color-slate-800: #e8edf2;
+  --color-slate-700: #dce3e9;
+  --color-slate-600: #d0d7de;
+  --color-slate-500: #b9c3cc;
+  --color-slate-400: #a7b4bf;
+  --color-slate-300: #727e88;
+  --color-slate-200: #6b747a;
+  --color-slate-100: #3f4b53;
+  --color-slate-50: #24313a;
+  --color-indigo-700: #a9d9fa;
+  --color-indigo-600: #4e9fc4;
+  --color-indigo-500: #69c4ec;
+  --color-indigo-300: #405b6b;
+  --color-indigo-200: #4e7186;
+  --color-indigo-100: #344c5c;
+  --color-indigo-50: #263c4b;
+  --color-red-700: #ffb9bb;
+  --color-red-600: #ffb9bb;
+  --color-red-50: #462e34;
+  --color-emerald-700: #a5f0cf;
+  --color-emerald-600: #a5f0cf;
+  --color-emerald-50: #28473e;
+  --color-amber-800: #ffe1a1;
+  --color-amber-700: #ffe1a1;
+  --color-amber-50: #483d2b;
 }
 
 body {
-  background: var(--background);
+  margin: 0;
+  min-width: 320px;
+  background: #080b0e url('/nexus-background.svg') center/cover fixed no-repeat;
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-poppins), sans-serif;
 }
+
+@layer base {
+  button, input, select, textarea { font: inherit; }
+  button, summary { cursor: pointer; }
+  button:disabled { cursor: not-allowed; }
+  :focus-visible { outline: 2px solid #85d8fc; outline-offset: 4px; }
+  option { background: #23333e; color: white; }
+  ::selection { background: #f6bf52; color: #14232d; }
+}
+
+/* Existing utility surfaces share the same glass tokens, including nested forms. */
+@layer utilities {
+  .bg-white, .bg-white\/90, .bg-white\/70 { background: var(--glass); border-color: var(--glass-border); backdrop-filter: blur(26px) saturate(125%); box-shadow: inset 0 1px 0 #ffffff26, 0 18px 48px #0000002e; }
+  .min-h-screen.bg-slate-50 { background: transparent; }
+  .shadow-slate-200\/60 { --tw-shadow-color: #00000033; }
+  .blur-3xl { display: none; }
+}
+
+.glass-card { background: var(--glass); border: 2px solid var(--glass-border); border-radius: 36px; backdrop-filter: blur(26px) saturate(125%); box-shadow: inset 0 1px 0 #ffffff20, 0 18px 48px #00000026; }
+.nexus-navbar { position: sticky; top: 0; z-index: 50; border: 2px solid #d4dbe34d; border-top: 0; border-radius: 0 0 58px 58px; background: linear-gradient(110deg,#514336b8,#1b303ac9); backdrop-filter: blur(30px); }
+.nexus-nav-inner { max-width: 1300px; margin: auto; display: flex; align-items: center; gap: 36px; padding: 14px 28px; min-height: 76px; }
+.nexus-brand { width: 46px; height: 46px; display: grid; place-items: center; border: 1px solid #ffffff4d; border-radius: 50%; background: #ffffff10; flex-shrink: 0; }
+.nexus-nav-links { display: flex; align-items: center; gap: 34px; flex: 1; }
+.nexus-nav-link { font-size: 14px; font-weight: 600; white-space: nowrap; padding: 9px 4px; border-bottom: 2px solid transparent; transition: color .2s; }
+.nexus-nav-link:hover, .nexus-nav-link[aria-current] { color: #ffe09c; border-color: #f5bf54; }
+.nexus-nav-actions { display: flex; align-items: center; gap: 18px; }
+.nexus-admin-shortcut { border: 1px solid #dbe5eb4d; border-radius: 999px; padding: 7px 12px; color: #eaf2f6; font-size: 11px; font-weight: 700; white-space: nowrap; transition: background .2s,border-color .2s; }
+.nexus-admin-shortcut:hover { border-color: #ffd37c99; background: #ffd37c18; color: #ffe1a1; }
+.nexus-avatar { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%; background: #dcefff; color: #244b82; font-size: 13px; font-weight: 700; flex-shrink: 0; }
+.nexus-dashboard { max-width: 1230px; padding: 42px 24px 60px; margin: auto; width: 100%; }
+.dashboard-greeting { text-align: center; margin-bottom: 30px; }
+.dashboard-greeting h1 { font-size: clamp(30px, 3.4vw, 48px); font-weight: 700; letter-spacing: -.04em; }
+.dashboard-greeting p { font-size: 24px; }
+.dashboard-grid { display: grid; grid-template-columns: 1.25fr 1fr; gap: 24px; align-items: stretch; }
+.dashboard-left { display: grid; gap: 20px; }
+.dashboard-xp { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+.xp-card { padding: 24px 22px; text-align: center; }
+.xp-card h2 { font-size: 24px; font-weight: 600; }
+.xp-ring { position: relative; width: 152px; height: 152px; margin: 14px auto; }
+.xp-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.xp-ring-center { position: absolute; inset: 16px; border-radius: 50%; background: #a6aaac; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; }
+.xp-ring-center small { font-size: 9px; text-transform: uppercase; letter-spacing: .1em; }
+.xp-ring-center strong { font-size: 28px; letter-spacing: -.04em; }
+.xp-track { height: 6px; border-radius: 99px; background: #d4d9d9; overflow: hidden; margin: 8px auto; max-width: 185px; }
+.xp-track span { display: block; height: 100%; border-radius: inherit; }
+.xp-caption { font-size: 11px; color: #e7ecf0; }
+.dashboard-panel { padding: 26px 28px; }
+.dashboard-panel h2 { font-size: 26px; font-weight: 600; letter-spacing: -.02em; }
+.active-mission { background: #cedde526; padding: 17px 20px; border-radius: 18px; margin-top: 13px; }
+.active-mission h3 { font-size: 17px; font-weight: 500; }
+.active-mission p { font-size: 12px; color: #d5dce2; margin-top: 3px; }
+.nexus-pill { display: inline-flex; align-items: center; border-radius: 99px; padding: 4px 10px; font-size: 10px; font-weight: 500; background: #dce7ff; color: #273d6a; }
+.dashboard-more { display: block; text-align: center; margin-top: 20px; text-decoration: underline; text-underline-offset: 4px; font-size: 14px; }
+.dashboard-leaderboard { overflow: hidden; padding: 28px 0 20px; }
+.dashboard-leaderboard > header { padding: 0 30px 24px; }
+.dashboard-leaderboard h2 { font-size: 27px; font-weight: 600; }
+.dashboard-leaderboard ol { list-style: none; }
+.dashboard-leaderboard li a { display: flex; align-items: center; gap: 14px; padding: 16px 25px; border-top: 1px solid #00000025; background: #b6d5e81c; }
+.dashboard-leaderboard li a:hover { background: #b6d5e830; }
+.dashboard-leaderboard .leader-position { font-size: 25px; font-weight: 600; width: 22px; }
+.dashboard-leaderboard .leader-name { flex: 1; min-width: 0; }
+.dashboard-leaderboard .leader-name strong { display: block; font-size: 16px; font-weight: 500; overflow-wrap: anywhere; }
+.dashboard-leaderboard .leader-name small { display: block; font-size: 11px; color: #d9e1e6; }
+.dashboard-leaderboard .leader-xp { border-radius: 20px; background: #ebedef; color: #20313c; min-width: 76px; text-align: center; padding: 2px 6px; font-size: 10px; font-weight: 600; }
+.nexus-message { padding: 26px; font-size: 14px; line-height: 1.8; color: #d8e1e7; }
+.nexus-auth { min-height: 100vh; display: grid; place-items: center; padding: 38px 20px; }
+.nexus-auth-card { width: 100%; max-width: 470px; padding: 36px; }
+.nexus-auth-header { text-align: center; margin-bottom: 28px; }
+.nexus-auth-header h1 { font-size: 30px; font-weight: 700; margin: 18px 0 8px; }
+.nexus-auth-header p { color: #d0dbe1; font-size: 13px; line-height: 1.7; }
+.mission-discovery { max-width: 1280px; }
+.mission-page-header { position: relative; }
+.mission-page-header > div { position: absolute; top: 0; right: 0; margin-top: 0; }
+.mission-search { padding: 18px; border-radius: 28px; display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 16px; margin-top: 20px; }
+.mission-search:has(details[open]) { grid-template-columns: 1fr auto; }
+.mission-search:has(details[open]) details { grid-column: 1 / -1; grid-row: 2; }
+.mission-search-actions { align-self: end; }
+.mission-grid { grid-template-columns: repeat(3,minmax(0,1fr)); }
+.mission-tile { border-radius: 36px; padding: 25px; display: flex; flex-direction: column; }
+.mission-tile h3 { font-size: 20px; }
+.mission-tile > a:last-child { margin-top: auto; align-self: flex-start; }
+.mission-hero { padding: 38px; border-radius: 40px; margin-top: 22px; background: linear-gradient(105deg,#6b5137a6,#2c4c5abb), var(--glass); }
+.mission-hero h1 { max-width: 900px; font-size: clamp(28px,3vw,42px); font-weight: 600; letter-spacing: -.035em; line-height: 1.2; }
+.mission-facts { display: flex; gap: 32px; flex-wrap: wrap; margin-top: 25px; }
+.mission-facts dt { font-size: 11px; color: #d0d9e1; }
+.mission-facts dd { font-size: 14px; font-weight: 600; margin-top: 4px; }
+.mission-facts .mission-deadline { color: #ffd588; }
+.squad-filter { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; margin-top: 30px; }
+.squad-filter nav { display: flex; gap: 4px; flex-wrap: wrap; padding: 4px; border-radius: 28px; background: #a9c0d52b; }
+.squad-filter nav a { border-radius: 24px; padding: 8px 17px; font-size: 13px; }
+.squad-filter nav a[aria-current] { background: linear-gradient(110deg,#356b8b,#7cd3f2); color: white; }
+
+/* Unified application shell: keeps every existing backend flow inside the NEXUS visual language. */
+.nexus-app-page { background: transparent !important; }
+.nexus-page-shell { width: 100%; padding-top: 42px; padding-bottom: 64px; }
+.nexus-page-heading { margin-bottom: 24px; }
+.nexus-page-heading h1,
+.nexus-page-shell > h1 { font-size: clamp(30px, 4vw, 46px); line-height: 1.05; letter-spacing: -.045em; }
+.nexus-page-lead { color: #dbe4ea; line-height: 1.7; }
+.nexus-eyebrow { color: #ffd37c; font-size: 11px; font-weight: 700; letter-spacing: .2em; margin-bottom: 10px; }
+.nexus-page-shell input,
+.nexus-page-shell select,
+.nexus-page-shell textarea { background: rgba(229,239,245,.12); border-color: rgba(220,229,235,.42); color: white; backdrop-filter: blur(16px); }
+.nexus-page-shell input::placeholder,
+.nexus-page-shell textarea::placeholder { color: #b6c3cc; }
+.nexus-page-shell button.bg-indigo-600,
+.nexus-page-shell a.bg-indigo-600 { background: linear-gradient(110deg,#265a78,#56b8df); box-shadow: inset 0 1px 0 #ffffff38,0 9px 24px #00192342; }
+.nexus-page-shell button.bg-indigo-600:hover,
+.nexus-page-shell a.bg-indigo-600:hover { background: linear-gradient(110deg,#2e698a,#68c9ec); }
+.nexus-page-shell section.bg-white,
+.nexus-page-shell article.bg-white,
+.nexus-page-shell form.bg-white { border-radius: 28px; }
+.nexus-page-shell section,
+.nexus-page-shell article { scroll-margin-top: 110px; }
+
+/* Segmented controls and leaderboard, adapted from the approved prototype. */
+.nexus-segmented { display: inline-flex !important; padding: 5px; border: 1px solid #dbe5eb42; border-radius: 999px; background: #a9c0d523; backdrop-filter: blur(20px); }
+.nexus-segmented a { border: 0 !important; border-radius: 999px !important; background: transparent !important; color: #e6edf2 !important; }
+.nexus-segmented a[aria-current="page"] { background: linear-gradient(110deg,#346b8a,#73ccef) !important; color: white !important; box-shadow: inset 0 1px 0 #ffffff4d; }
+.leaderboard-page { max-width: 1180px; }
+.leaderboard-podium { align-items: end; margin-top: 22px; }
+.leaderboard-podium .leaderboard-entry { min-height: 228px; display: grid; align-content: center; text-align: center; border-radius: 32px; position: relative; overflow: hidden; }
+.leaderboard-podium .leaderboard-entry::before { content: ""; position: absolute; inset: 0; background: radial-gradient(circle at 50% 0,#f7c76626,transparent 55%); pointer-events: none; }
+.leaderboard-podium .leaderboard-entry:first-child { min-height: 270px; border-color: #f6ce7c8f; order: 2; }
+.leaderboard-podium .leaderboard-entry:nth-child(2) { order: 1; }
+.leaderboard-podium .leaderboard-entry:nth-child(3) { order: 3; }
+.leaderboard-podium .leaderboard-entry > a > div:first-child { flex-direction: column; }
+.leaderboard-podium .leaderboard-entry > a > div:first-child > span:first-child { width: auto; color: #ffd47d; }
+.leaderboard-podium .leaderboard-entry img,
+.leaderboard-podium .leaderboard-entry [aria-hidden="true"] { width: 64px; height: 64px; }
+.leaderboard-podium .leaderboard-entry p { white-space: normal; }
+.leaderboard-list { padding: 26px; }
+.leaderboard-list > h3 { font-size: 22px; }
+.leaderboard-table .leaderboard-entry { padding: 16px 20px; border-radius: 20px; box-shadow: none; }
+.leaderboard-table .leaderboard-entry:hover { transform: translateY(-2px); background: linear-gradient(120deg,rgba(112,153,175,.48),rgba(37,54,65,.76)); }
+
+/* Squad workspace and room. */
+.my-squad-page > section > p:first-child { color: #ffd37c; }
+.squad-workspace-card { border-radius: 32px !important; position: relative; overflow: hidden; transition: transform .22s ease,border-color .22s ease; }
+.squad-workspace-card::before { content: ""; position: absolute; inset: 0; background: radial-gradient(circle at 100% 0,#58c5ed1c,transparent 44%); pointer-events: none; }
+.squad-workspace-card:hover { transform: translateY(-3px); border-color: #dfe9ef99; }
+.squad-workspace-card > * { position: relative; }
+.squad-room-hero { background: linear-gradient(110deg,rgba(112,73,36,.64),rgba(31,70,88,.72)); }
+.squad-room-hero h1 { font-size: clamp(30px,4vw,48px); letter-spacing: -.045em; }
+.squad-room-grid > section,
+.squad-room-grid > aside > section { border-radius: 28px; }
+.squad-room-grid aside { align-self: start; position: sticky; top: 112px; }
+
+/* Profile is a reputation dashboard rather than a stack of backend forms. */
+.profile-page { display: grid; grid-template-columns: minmax(0,1.25fr) minmax(280px,.75fr); gap: 0 24px; align-items: start; }
+.profile-page > .nexus-page-heading,
+.profile-page > .profile-hero,
+.profile-page > section:nth-last-child(-n+2) { grid-column: 1 / -1; }
+.profile-hero { background: linear-gradient(115deg,rgba(116,76,38,.62),rgba(31,70,88,.70)); padding: 30px !important; }
+.profile-hero img,
+.profile-hero [aria-label="Foto profil belum tersedia"] { width: 90px; height: 90px; border: 2px solid #ffffff80; box-shadow: 0 14px 34px #0000004a; }
+.profile-hero h2 { font-size: 28px; letter-spacing: -.035em; }
+.profile-section { min-width: 0; padding: 24px; border: 1px solid var(--glass-border); border-radius: 28px; background: var(--glass); backdrop-filter: blur(26px) saturate(125%); box-shadow: inset 0 1px 0 #ffffff20,0 18px 48px #00000026; }
+.profile-section > h2 { font-size: 20px; margin-bottom: 10px; }
+.profile-page > section:last-child { margin-bottom: 0; }
+
+/* Remaining forms, history, notification, and admin routes receive the same shell automatically. */
+.min-h-screen.bg-slate-50 > main:not(.nexus-dashboard):not(.mission-discovery) { width: min(100% - 32px, 1180px); }
+.min-h-screen.bg-slate-50 > main > h1:first-child { letter-spacing: -.04em; }
+.min-h-screen.bg-slate-50 > main > h1:first-child::before { content: "NEXUS"; display: block; margin-bottom: 10px; color: #ffd37c; font-size: 11px; font-weight: 700; letter-spacing: .2em; }
+.min-h-screen.bg-slate-50 main ul > li.bg-white,
+.min-h-screen.bg-slate-50 main ol > li.bg-white { border-radius: 22px; }
+
+/* Complete route polish: forms, activity histories, notifications, and review queues. */
+.min-h-screen.bg-slate-50 > main:not(.nexus-dashboard):not(.mission-discovery) { padding-top: 42px; padding-bottom: 64px; }
+.min-h-screen.bg-slate-50 > main:not(.nexus-dashboard):not(.mission-discovery) > h1,
+.min-h-screen.bg-slate-50 > main:not(.nexus-dashboard):not(.mission-discovery) > a + h1 { font-size: clamp(30px,4vw,44px); line-height: 1.08; }
+.min-h-screen.bg-slate-50 > main:not(.nexus-dashboard):not(.mission-discovery) > p.text-sm { max-width: 760px; color: #d3dee5; line-height: 1.7; }
+.min-h-screen.bg-slate-50 main > ul { display: grid; gap: 14px; }
+.min-h-screen.bg-slate-50 main > ul > li { position: relative; overflow: hidden; transition: transform .2s,border-color .2s; }
+.min-h-screen.bg-slate-50 main > ul > li::after { content: ""; position: absolute; inset: 0; background: radial-gradient(circle at 100% 0,#69c4ec18,transparent 45%); pointer-events: none; }
+.min-h-screen.bg-slate-50 main > ul > li:hover { transform: translateY(-2px); border-color: #dce7ed80; }
+.min-h-screen.bg-slate-50 main > ul > li > * { position: relative; z-index: 1; }
+.min-h-screen.bg-slate-50 main > ul > li a.bg-indigo-600 { border-radius: 999px; }
+.min-h-screen.bg-slate-50 main > nav[aria-label] { width: fit-content; padding: 7px 14px; border: 1px solid var(--glass-border); border-radius: 999px; background: #1f343f9c; backdrop-filter: blur(18px); }
+.min-h-screen.bg-slate-50 main > a:first-child { display: inline-flex; align-items: center; min-height: 38px; padding: 0 15px; border: 1px solid #dbe5eb3d; border-radius: 999px; background: #dce7ef12; text-decoration: none; }
+.min-h-screen.bg-slate-50 main > form,
+.min-h-screen.bg-slate-50 main > section,
+.min-h-screen.bg-slate-50 main > div.bg-white { overflow: hidden; }
+.min-h-screen.bg-slate-50 main label { color: #edf4f7; }
+.min-h-screen.bg-slate-50 main input,
+.min-h-screen.bg-slate-50 main select,
+.min-h-screen.bg-slate-50 main textarea { background: rgba(229,239,245,.12); border-color: rgba(220,229,235,.42); color: white; backdrop-filter: blur(16px); }
+.min-h-screen.bg-slate-50 main input::placeholder,
+.min-h-screen.bg-slate-50 main textarea::placeholder { color: #aebcc5; }
+.min-h-screen.bg-slate-50 main button.bg-indigo-600,
+.min-h-screen.bg-slate-50 main a.bg-indigo-600 { background: linear-gradient(110deg,#265a78,#56b8df); box-shadow: inset 0 1px 0 #ffffff38,0 9px 24px #00192342; }
+.nexus-auth-flow { background: transparent !important; }
+.nexus-auth-flow > div.relative { max-width: 920px; }
+.nexus-auth-flow > div.relative > header,
+.nexus-auth-flow > section > div:first-child { margin-bottom: 34px; }
+.nexus-auth-flow > section,
+.nexus-auth-flow > div.relative > section { border: 2px solid var(--glass-border) !important; background: linear-gradient(135deg,rgba(103,105,103,.54),rgba(31,47,56,.82)) !important; border-radius: 36px !important; box-shadow: inset 0 1px 0 #ffffff24,0 28px 70px #00000042 !important; backdrop-filter: blur(30px) saturate(130%) !important; }
+.nexus-auth-flow h1 { letter-spacing: -.045em; }
+.nexus-auth-flow .nexus-brand { display: inline-grid; }
+.nexus-auth-flow input,
+.nexus-auth-flow select,
+.nexus-auth-flow textarea { background: rgba(229,239,245,.12); border-color: rgba(220,229,235,.42); color: white; }
+.nexus-auth-flow input::placeholder,
+.nexus-auth-flow textarea::placeholder { color: #aebcc5; }
+
+/* Notifications keep unread items visibly actionable without breaking the glass language. */
+main > ul > li.border-indigo-200 { border-color: #7dd6f099 !important; box-shadow: inset 4px 0 0 #69c4ec,0 18px 48px #00000026; }
+main > ul > li.border-indigo-200 h2::before { content: ""; display: inline-block; width: 8px; height: 8px; margin-right: 10px; border-radius: 50%; background: #78d9f7; box-shadow: 0 0 16px #78d9f7; }
+
+/* Admin pages expose all three existing review queues as one coherent workspace. */
+body:has(.nexus-nav-link[href="/admin/results"][aria-current="page"]) main::before { content: "RESULTS  ·  ACHIEVEMENTS  ·  MISSIONS"; display: block; margin-bottom: 22px; color: #a9d9fa; font-size: 11px; font-weight: 700; letter-spacing: .14em; }
+
+@media (max-width: 1024px) { .nexus-nav-inner { gap: 22px; } .nexus-nav-links { gap: 22px; } .mission-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+@media (max-width: 760px) {
+  body { background-attachment: scroll; }
+  .nexus-nav-inner { flex-wrap: wrap; gap: 10px; padding: 12px 20px; }
+  .nexus-nav-links { order: 3; flex-basis: 100%; justify-content: space-between; gap: 6px; }
+  .nexus-nav-link { font-size: 12px; }
+  .nexus-nav-actions { margin-left: auto; }
+  .dashboard-grid { grid-template-columns: 1fr; }
+  .nexus-dashboard { padding: 30px 18px 45px; }
+  .dashboard-greeting p { font-size: 19px; }
+  .dashboard-xp { gap: 12px; }
+  .xp-card { padding: 20px 10px; }
+  .xp-card h2 { font-size: 18px; }
+  .xp-ring { width: 125px; height: 125px; }
+  .xp-ring-center strong { font-size: 24px; }
+  .glass-card { border-radius: 28px; }
+  .mission-grid { grid-template-columns: 1fr; }
+  .mission-page-header > div { position: static; margin-top: 18px; }
+  .mission-search, .mission-search:has(details[open]) { grid-template-columns: 1fr; }
+  .mission-search:has(details[open]) details { grid-row: auto; }
+  .mission-hero { padding: 28px 22px; }
+  .nexus-auth-card { padding: 28px 24px; }
+  .nexus-page-shell { padding-top: 30px; padding-bottom: 42px; }
+  .nexus-segmented { display: flex !important; width: 100%; overflow-x: auto; }
+  .nexus-segmented a { flex: 1 0 auto; text-align: center; }
+  .leaderboard-podium { grid-template-columns: 1fr; }
+  .leaderboard-podium .leaderboard-entry,
+  .leaderboard-podium .leaderboard-entry:first-child { min-height: 0; order: initial; text-align: left; }
+  .leaderboard-podium .leaderboard-entry > a > div:first-child { flex-direction: row; }
+  .leaderboard-list { padding: 20px 16px; }
+  .squad-room-grid aside { position: static; }
+  .profile-page { display: block; }
+  .profile-section { padding: 20px; }
+  .min-h-screen.bg-slate-50 > main:not(.nexus-dashboard):not(.mission-discovery) { width: min(100% - 28px,1180px); padding-top: 30px; padding-bottom: 44px; }
+  .nexus-auth-flow { padding-top: 28px; padding-bottom: 28px; }
+  .nexus-auth-flow > section,
+  .nexus-auth-flow > div.relative > section { border-radius: 28px !important; padding: 24px !important; }
+}
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; } }

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { redirect } from "next/navigation";
 
 import OnboardingForm, {
@@ -49,13 +50,13 @@ export default async function OnboardingPage() {
   if (primaryClassResult.error || skillResult.error) return <OnboardingError />;
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-slate-50 px-4 py-10 text-slate-900 sm:px-6">
+    <main className="nexus-auth-flow relative min-h-screen overflow-hidden bg-slate-50 px-4 py-10 text-slate-900 sm:px-6">
       <div aria-hidden="true" className="absolute -left-32 -top-32 h-80 w-80 rounded-full bg-indigo-200/50 blur-3xl" />
       <div aria-hidden="true" className="absolute -bottom-40 -right-32 h-96 w-96 rounded-full bg-violet-200/50 blur-3xl" />
       <section className="relative mx-auto w-full max-w-4xl rounded-3xl border border-white/80 bg-white/90 p-6 shadow-xl shadow-slate-200/60 backdrop-blur sm:p-10">
         <div className="mb-8 text-center">
           <div className="mb-5 inline-flex items-center gap-3">
-            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-600 text-lg font-bold text-white shadow-lg shadow-indigo-200">N</span>
+            <span className="nexus-brand"><Image src="/nexus-logo.svg" alt="" width={28} height={28} /></span>
             <span className="text-xl font-bold tracking-[0.22em] text-slate-900">NEXUS</span>
           </div>
           <h1 className="text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">Lengkapi Profil NEXUS</h1>

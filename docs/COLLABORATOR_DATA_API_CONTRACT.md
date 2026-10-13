@@ -2,6 +2,16 @@
 
 Baseline: `main` commit `2245ac5bde38f45921019e369c7fe65df4a946de`, diperiksa 11 Oktober 2026. Kontrak berikut mendokumentasikan implementasi, bukan menambah endpoint atau izin. Bucket diperiksa langsung melalui metadata Supabase. Pemeriksaan ini tidak menjalankan ulang alur browser.
 
+## Addendum 13 Oktober 2026
+
+- Kontrak baseline di bawah tetap referensi historis; status terkini ada di [rencana rilis](RELEASE_PLAN_2026-10-18.md).
+- Server Action baru: impor `transferSquadLeadership` dari `@/app/squads/[squadId]/actions`; panggil `await transferSquadLeadership(squadId, newLeaderId)`. Kedua parameter UUID string dari data sebenarnya. Hasil: `{success:true}` atau `{success:false,message:string}`; gunakan `MembershipActionResult` pada module types Squad. Ini Server Action, bukan endpoint GET/PATCH baru.
+- Akses transfer: STUDENT ACTIVE yang menjadi Ketua pada Squad OPEN_RECRUITMENT/FULL; pengganti ANGGOTA ACTIVE dengan akun STUDENT ACTIVE. Diri sendiri/nonmember/Finalized ditolak. Setelah berhasil Ketua lama menjadi anggota dan boleh leave. Revalidation/refresh biasa pada Room, My Squad, Mission dan Home; tidak memerlukan Realtime baru.
+- Create Squad kini membatalkan application PENDING milik pembuat pada Mission yang sama secara atomic. Input/return action tetap; application user lain atau Mission lain tidak berubah.
+- LoginForm memakai `loginWithProfile` dari `src/lib/auth/login.ts` untuk login, pemeriksaan profil/role/status, cleanup sesi gagal dan pemilihan tujuan. Pakai helper existing; jangan melewati pemeriksaan profil setelah login SDK.
+- Owner melaporkan QA login/avatar dan tiga bucket dokumen PASS. Tes tersebut belum membuktikan cookie/browser, upload melalui form, approval admin atau realtime gabungan frontend.
+- Remediasi RLS/ACL tidak membuat bucket dokumen publik atau menambah key frontend. Env tetap URL project dasar dan publishable key; service_role/secret tidak dibagikan.
+
 ## Mulai bekerja
 
 Baca [CONTRIBUTING](../CONTRIBUTING.md), [AGENTS](../AGENTS.md), dan [PRD](reference/NEXUS_PRD_UNIFIED.md). Jalankan `npm ci`, isi `.env.local` dengan `NEXT_PUBLIC_SUPABASE_URL` dan `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` dari owner, lalu `npm run dev`. Jangan commit kredensial. Akses repo tidak otomatis memberi akses dashboard Supabase atau role ADMIN aplikasi.

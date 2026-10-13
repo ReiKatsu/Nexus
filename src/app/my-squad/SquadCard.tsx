@@ -27,7 +27,7 @@ export default function SquadCard({
       : formatSquadStatus(item.squadStatus);
 
   return (
-    <article className="flex min-w-0 flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm shadow-slate-200/60 sm:p-6">
+    <article className="squad-workspace-card flex min-w-0 flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm shadow-slate-200/60 sm:p-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <h3 className="break-words text-lg font-bold text-slate-950 [overflow-wrap:anywhere]">

@@ -83,11 +83,14 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
     : null;
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
+    <div className="nexus-app-page min-h-screen bg-slate-50 text-slate-900">
       {profile && <Navbar displayName={profile.nama_lengkap} activeItem="leaderboard"
         isAdmin={profile.role_app === "ADMIN"} />}
-      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
-        <h1 className="text-3xl font-bold">Leaderboard</h1>
+      <main className="nexus-page-shell leaderboard-page mx-auto max-w-6xl px-4 py-8 sm:px-6">
+        <header className="nexus-page-heading">
+          <p className="nexus-eyebrow">SEASON AKTIF</p>
+          <h1 className="text-3xl font-bold">Para penantang teratas.</h1>
+        </header>
         {!allowed ? <ErrorMessage message="Leaderboard tersedia untuk mahasiswa aktif." />
           : seasonResult.error || programResult.error || facultyResult.error || topResult.error || listResult.error
             ? <ErrorMessage message="Peringkat belum dapat dimuat. Coba muat ulang." />
@@ -96,10 +99,10 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
               : !canLoad
                 ? <ErrorMessage message="Data akademik belum dapat dimuat." />
                 : <>
-                    <p className="mt-2 text-sm text-slate-600">
+                    <p className="nexus-page-lead mt-2 text-sm text-slate-600">
                       {seasonResult.data.nama_season} · berakhir {date} · berdasarkan Seasonal XP
                     </p>
-                    <nav aria-label="Lingkup Leaderboard" className="mt-6 flex flex-wrap gap-2">
+                    <nav aria-label="Lingkup Leaderboard" className="nexus-segmented mt-6 flex flex-wrap gap-2">
                       {scopes.map((option) => (
                         <Link key={option} href={pageUrl(option, q)}
                           aria-current={scope === option ? "page" : undefined}
@@ -110,13 +113,13 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
                         </Link>
                       ))}
                     </nav>
-                    <h2 className="mt-6 text-xl font-bold">{scopeName}</h2>
+                    <h2 className="mt-8 text-xl font-bold">{scopeName}</h2>
                     <p className="mt-1 text-sm text-slate-600">{top[0]?.population_total ?? 0} mahasiswa dalam lingkup ini</p>
                     {top.length ? <>
                       <h3 className="mt-8 text-lg font-semibold">Tiga teratas</h3>
                       <TopThree entries={top} currentUserId={auth.user.id} imageUrl={imageUrl} highlightedName={q} />
                     </> : <p className="mt-6 rounded-xl bg-white p-5">Belum ada mahasiswa pada lingkup ini.</p>}
-                    <section className="mt-10" aria-labelledby="leaderboard-list">
+                    <section className="glass-card leaderboard-list mt-10" aria-labelledby="leaderboard-list">
                       <h3 id="leaderboard-list" className="text-lg font-semibold">Peringkat berikutnya</h3>
                       <form method="get" action="/leaderboard" className="mt-4 flex flex-wrap gap-2">
                         <input type="hidden" name="scope" value={scope} />
