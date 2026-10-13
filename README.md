@@ -19,6 +19,10 @@ NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=PROJECT_PUBLISHABLE_KEY
 
 Jalankan `npm run dev` lalu buka [http://localhost:3000](http://localhost:3000). `.env.local` tidak masuk Git. Jalankan `npm run lint` dan `npm run build` sebelum mengajukan PR.
 
+Periksa bentuk konfigurasi tanpa menampilkan key dengan `npm run qa:environment`. Gunakan `.env.example` sebagai acuan placeholder; environment aktual diisi owner. Pemeriksaan ini tidak memverifikasi koneksi, akun atau pemisahan dari produksi.
+
+Untuk persiapan QA, isi `NEXUS_QA_ENVIRONMENT=development`, `testing`, atau `staging` sesuai lingkungan sebenarnya lalu jalankan `npm run qa:environment -- --testing`. Status session/deploy dan batas bukti tersedia dalam [rencana rilis](docs/RELEASE_PLAN_2026-10-18.md).
+
 ## Petunjuk proyek
 
 - [Aturan kontribusi dan pembagian frontend/backend](CONTRIBUTING.md)

@@ -20,6 +20,8 @@ Baseline backend main: cd0fe898e2fbfcf0f2cd3cc63eabfb042c5ae95f. Kandidat memaka
 | Frontend | Kandidat menggabungkan 31 file PR #29: Home/XP/Missions/Profile/Leaderboard/Squad dan tema bersama. Handler/action/ACL terbaru tetap utuh; retry mengambil ulang data, tautan review Mission tersedia di mobile. |
 | Kandidat gabungan | Lint, production build/TypeScript dan 19 tes PASS. HTTP production /login, CSS/logo/background 200; kontrol email/password dan submit kosong disabled ter-render. Tidak mengirim kredensial; bukan browser login atau verifikasi seluruh desain. |
 
+**Lanjutan sesi 13 Oktober:** Proxy refresh cookie server dan env preflight ditambahkan setelah baseline integrasi di atas. Total suite kini **27 tes PASS**; lint/build PASS. SDK SSR asli dengan Auth lokal sintetis membuktikan satu refresh token expired dan persist cookie/cache headers. HTTP production anon/role boundary juga diperiksa dengan env sintetis. Ini belum menggantikan login browser/project uji sebenarnya. Detail: [SSR session dan env readiness](security/SSR_SESSION_RELEASE_CHECK_2026-10-13.md).
+
 [FRONTEND_HANDOFF](FRONTEND_HANDOFF.md) berisi bukti dari penulis PR, bukan pengujian ulang backend pada kandidat gabungan. Tes Home/badge memakai respons sintetis pada page asli, tanpa route bypass atau seed demo.
 
 Bukti scheduler 12 Oktober: award mingguan 00.00 WIB succeeded, menambah 9 badge; total saat audit 22 dan XP 1.115. Cleanup 02.00 WIB serta season worker succeeded. Ini snapshot tanggal tersebut, bukan jumlah terkini atau bukti rollover Juli nyata.
@@ -60,5 +62,6 @@ Kemajuan kode mendukung jadwal. Rilis sebelum 20 Oktober belum dapat dijamin sel
 
 - [Lifecycle Squad](SQUAD_LIFECYCLE_2026-10-12.md), [Skill/Endorsement](skills_concurrency_endorsement_access_qa.md), [operational concurrency](privilege_hardening_operations_concurrency_qa.md), serta [security reviews](security/).
 - npm test, npm run lint, npm run build, npm run audit:production: pemeriksaan kode kandidat.
+- npm run qa:environment: bentuk URL/key; tambahkan -- --testing untuk memeriksa deklarasi environment QA. Tidak melakukan request atau menampilkan key.
 - scripts/qa/auth-avatar.mjs dan documents.mjs: hasil API owner dicatat di atas; tidak perlu diulang tanpa alasan.
 - supabase/tests/operations_readiness_readonly.sql dan dashboard_reads_runtime_readonly.sql: metadata/SQL/RLS, bukan Auth/REST/browser.
