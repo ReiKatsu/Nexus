@@ -1191,7 +1191,7 @@ Semua data contoh, nama pengguna, XP, tahun, hitungan, tanggal, dan isi chat C1 
 
 - Header: nama Squad, Mission, Tier, jumlah anggota, deadline lomba dari field yang benar.
 - Panel Mission: nama, penyelenggara, cakupan, biaya, mode, deadline; panel anggota: nama/avatar, Primary Class, peran, penanda diri sendiri.
-- Chat: nama pengirim, isi pesan, waktu, input pesan dan aksi kirim. Tidak menambah DM, panggilan video, attachment chat, atau read receipt dari asumsi gambar.
+- Chat: nama pengirim, isi pesan, waktu, input pesan dan aksi kirim. Nama diri sendiri tetap ditampilkan dengan penanda `(Kamu)`; identitas memakai `sender_id` dan data anggota Room yang berhak diakses. Tidak menambah DM, panggilan video, attachment chat, atau read receipt dari asumsi gambar.
 - Pesan kosong ditolak; pending/gagal kirim tidak dianggap pesan tersimpan; refresh/reconnect tidak menggandakan pesan yang sudah tersimpan. Transport Realtime mengikuti verifikasi CHAT-01.
 - Ketua FINALIZED mendapat Submit Hasil Mission. Laporan Admin Intervention bagi anggota ACTIVE FINALIZED ditunda sesuai keputusan 8 Oktober 2026; jangan tampilkan aksi yang belum diimplementasikan. Aksi anggota/Finalize mengikuti UI-11, bukan label Locked saja.
 - Sebelum FINALIZED chat sudah boleh dipakai. Setelah completed, nonmember, removed, atau admin: akses chat mengikuti CHAT-01; jangan sekadar menyembunyikan input sementara pesan tetap dibaca.

@@ -172,6 +172,7 @@ export default function SquadChat({
         ) : (
           initialMessages.map((message) => {
             const isOwn = message.sender_id === currentUserId;
+            const senderName = memberNames.get(message.sender_id)?.trim();
             return (
               <article
                 key={message.message_id}
@@ -181,10 +182,9 @@ export default function SquadChat({
                     : "self-start border border-slate-200 bg-white text-slate-800"
                 }`}
               >
-                <p className="font-bold">
-                  {isOwn
-                    ? "Kamu"
-                    : memberNames.get(message.sender_id) ?? "Mantan anggota"}
+                <p className="break-words font-bold [overflow-wrap:anywhere]">
+                  {senderName || (isOwn ? "Kamu" : "Mantan anggota")}
+                  {isOwn && senderName && " (Kamu)"}
                 </p>
                 <p className="mt-1 whitespace-pre-wrap break-words [overflow-wrap:anywhere]">
                   {message.content}
