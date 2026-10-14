@@ -946,7 +946,7 @@ Enam object turunan terinventaris kolomnya: public_profiles, career_xp_totals, c
 | G05 | Create ketika ada PENDING application lain | RESOLVED 12 Oktober: auto-cancel hanya PENDING pembuat pada Mission sama dalam transaksi Create. Migration dan RPC runtime Supabase PASS; browser QA belum |
 | G06 | RESOLVED 13 Oktober: transfer dan pembubaran solo sebelum Finalized | Transfer ke anggota ACTIVE; solo disband menyimpan DISBANDED/history, mengakhiri membership dan membatalkan PENDING dengan notifikasi secara atomic. Runtime rollback PASS; browser dan concurrency COMMIT belum terverifikasi penuh |
 | G07 | Cleanup chat-only idle >30 hari, skip PENDING. Dua urutan concurrency chat/cleanup COMMIT PASS 11 Oktober; job harian 12 Oktober 02.00 WIB succeeded | Cleanup vs submit hasil dan refresh browser belum diuji. Pembubaran/reopen tetap belum diputuskan; H-3 proposal |
-| G08 | Skills lintas-Class dan perubahan Class setelah join | Pertahankan bebas ubah; jangan menghapus Skills/membership tanpa keputusan |
+| G08 | Skills lintas-Class dan perubahan Class setelah join; UI disepakati 14 Oktober: pilihan tambah Skill mengikuti Primary Class | Pertahankan bebas ubah dan Skill existing; filter dropdown bukan constraint database atau izin menghapus Skills/membership |
 | G09 | Populasi STUDENT ACTIVE termasuk 0 XP, tanpa ADMIN/SUSPENDED. Job mingguan Senin 12 Oktober 00.00 WIB succeeded dan mencatat 9 badge baru; coverage saat audit lengkap | Kebijakan historical/current serta exact 3% belum berubah. Browser badge masih perlu diuji setelah perbaikan pembacaan relasi profil |
 | G10 | WIB tanpa masa tenggang; late approval Career-only, snapshot CLOSED tetap. Cutoff/rollover sequential rollback PASS; closure vs Legacy approval benar-benar menunggu lock pada 11 Oktober, keduanya rollback | Season worker terjadwal nyata succeeded 12 Oktober; bukan rollover Juli nyata. Reverse order dan rollover/Verified concurrency COMMIT masih belum diuji |
 | G11 | Mission expired RLS berbeda target; NOT VERIFIED | Inspect current policy dan implementasi; fix hanya dalam task berizin |
@@ -1262,6 +1262,7 @@ Semua data contoh, nama pengguna, XP, tahun, hitungan, tanggal, dan isi chat C1 
 **Dasar:** C1 Ganti foto, Nama Lengkap, Bio, Primary Class, Skills, Simpan Perubahan; CLASS-01.
 
 - Foto, nama lengkap, bio, tepat satu Primary Class, Skills dengan tambah/hapus dan indikator maksimal lima. Tampilkan seluruh lima Class kanonik termasuk Creative yang tidak konsisten terlihat di daftar C1.
+- Keputusan UI 14 Oktober: dropdown tambah Skill hanya menampilkan Skill Primary Class yang dipilih dan belum dimiliki. Ganti Class mereset calon Skill; simpan Class sebelum menambah Skill. Skill existing tetap terlihat dan bisa dihapus, termasuk dari Class lama. Ini filter pilihan UI; constraint database lintas-Class belum ditambahkan.
 - Badge Chest dapat diakses sebagai section/panel; aturan equip UI-19.
 - Identitas akademik, email, NIM, role, status, XP dan Rank tidak menjadi input edit biasa.
 - Simpan Perubahan memperbarui profil setelah validasi; error mempertahankan input. Upload foto gagal tidak boleh dilaporkan berhasil mengganti foto.
@@ -1312,7 +1313,7 @@ Semua data contoh, nama pengguna, XP, tahun, hitungan, tanggal, dan isi chat C1 
 
 **Dasar:** C1 “Hari ini”, “Minggu Ini”, waktu relatif, recruitment, reward, Mission ditolak, cleanup; OPS-01.
 
-- Daftar judul, isi ringkas, waktu dan status baca; pengelompokan waktu boleh mengikuti C1 dengan timezone konsisten.
+- Daftar judul, isi, waktu dan status baca; pengelompokan waktu boleh mengikuti C1 dengan timezone konsisten. Keputusan UI 14 Oktober: notifikasi belum dibaca memiliki titik biru/border berbeda. Buka kartu untuk membaca isi; update hanya notifikasi tersebut dan hilangkan titik setelah penyimpanan berhasil. Tidak memakai tombol Tandai dibaca, tidak menandai data melalui GET/prefetch, dan tidak menandai seluruh daftar sekaligus.
 - Jenis normatif: permintaan/hasil recruitment, hasil validasi Mission/achievement/result, Rank-Up/reward dan pembaruan laporan sesuai event yang benar-benar dibuat backend.
 - Baca hanya notifikasi sendiri; perubahan user hanya is_read. Klik menuju objek terkait hanya bila pemetaan tujuan/data pendukung tersedia; UI-G09.
 - Pesan “Klaim reward” tidak membuat pemberian reward manual baru. Peringatan cleanup H-3 tetap proposal; jangan tampilkan hitungan hapus otomatis jika scheduler/keputusan G07 belum siap.

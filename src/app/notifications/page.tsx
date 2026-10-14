@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import { createClient } from "@/lib/supabase/server";
 
-import MarkReadButton from "./MarkReadButton";
+import NotificationItem from "./NotificationItem";
 
 export default async function NotificationsPage() {
   const supabase = await createClient();
@@ -33,6 +33,7 @@ export default async function NotificationsPage() {
       <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
         <h1 className="text-2xl font-bold">Notifikasi</h1>
         <p className="mt-2 text-sm text-slate-600">50 notifikasi terbaru untuk akunmu.</p>
+        <p className="mt-1 text-xs text-slate-500">Buka notifikasi untuk membaca isinya. Titik biru berarti belum dibaca.</p>
         {!eligible ? (
           <p role="alert" className="mt-6 rounded-xl bg-white p-5 text-red-700">
             Notifikasi belum dapat dibuka. Periksa status akun atau coba lagi.
@@ -43,22 +44,7 @@ export default async function NotificationsPage() {
           </p>
         ) : notifications?.length ? (
           <ul className="mt-6 space-y-3">
-            {notifications.map((item) => (
-              <li key={item.notification_id}
-                className={`rounded-2xl border bg-white p-5 ${item.is_read ? "border-slate-200" : "border-indigo-200"}`}>
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <h2 className="font-bold">{item.title}</h2>
-                  <span className={`rounded-full px-2 py-1 text-xs font-semibold ${item.is_read ? "bg-slate-100 text-slate-600" : "bg-indigo-50 text-indigo-700"}`}>
-                    {item.is_read ? "Dibaca" : "Belum dibaca"}
-                  </span>
-                </div>
-                <p className="mt-2 whitespace-pre-line text-sm text-slate-700">{item.body}</p>
-                <time dateTime={item.created_at} className="mt-3 block text-xs text-slate-500">
-                  {new Date(item.created_at).toLocaleString("id-ID", { timeZone: "Asia/Jakarta" })} WIB
-                </time>
-                {!item.is_read && <MarkReadButton notificationId={item.notification_id} />}
-              </li>
-            ))}
+            {notifications.map((item) => <NotificationItem key={item.notification_id} item={item} />)}
           </ul>
         ) : (
           <p className="mt-6 rounded-xl bg-white p-5 text-sm text-slate-600">

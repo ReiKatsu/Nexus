@@ -1,11 +1,9 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
-
 import { createClient } from "@/lib/supabase/server";
 
 const UUID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 type MarkReadResult = { success: true } | { success: false; message: string };
 
@@ -33,10 +31,17 @@ export async function markNotificationRead(notificationId: string): Promise<Mark
     .eq("is_read", false)
     .select("notification_id")
     .maybeSingle();
-  if (error || !data) {
+  if (error) {
     return { success: false, message: "Notifikasi belum dapat ditandai. Muat ulang lalu coba lagi." };
   }
+  if (!data) {
+    // Another tab may have read it already; still verify ownership before success.
+    const existing = await supabase.from("notifications").select("is_read")
+      .eq("notification_id", notificationId).eq("user_id", auth.user.id).maybeSingle();
+    if (existing.error || existing.data?.is_read !== true) {
+      return { success: false, message: "Notifikasi tidak tersedia untuk akunmu." };
+    }
+  }
 
-  revalidatePath("/notifications");
   return { success: true };
 }
