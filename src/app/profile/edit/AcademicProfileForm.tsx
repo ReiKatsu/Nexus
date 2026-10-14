@@ -25,6 +25,9 @@ export default function AcademicProfileForm({ classes, skills, currentClassId, c
   const busy = useRef(false);
   const router = useRouter();
   const chosen = new Set(selected);
+  const options = skills.filter((skill) => skill.classId === classId && !chosen.has(skill.id));
+  const classChanged = classId !== savedClassId;
+  const candidateAvailable = options.some((skill) => String(skill.id) === candidate);
 
   async function run(action: () => Promise<Result>, onSuccess: () => void) {
     if (busy.current) return;
@@ -60,7 +63,10 @@ export default function AcademicProfileForm({ classes, skills, currentClassId, c
           <label className="min-w-48 flex-1 text-sm font-medium">
             Pilih Class
             <select value={classId} disabled={pending}
-              onChange={(event) => setClassId(Number(event.target.value))}
+              onChange={(event) => {
+                setClassId(Number(event.target.value));
+                setCandidate("");
+              }}
               className="mt-1 block w-full rounded-lg border border-slate-300 p-2">
               {classes.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
             </select>
@@ -79,8 +85,9 @@ export default function AcademicProfileForm({ classes, skills, currentClassId, c
       <div className="border-t border-slate-100 pt-5">
         <h2 className="font-semibold">Skills ({selected.length}/5)</h2>
         <p className="mt-1 text-xs text-slate-600">
-          Pilih hingga lima Skills. Skills dari Class lain juga dapat dipilih.
+          Pilihan mengikuti Primary Class yang dipilih. Maksimal lima Skills.
         </p>
+        {classChanged && <p className="mt-1 text-xs text-amber-700">Simpan Class sebelum menambahkan Skill.</p>}
         {selected.length > 0 && (
           <ul className="mt-3 flex flex-wrap gap-2">
             {selected.map((id) => {
@@ -101,19 +108,14 @@ export default function AcademicProfileForm({ classes, skills, currentClassId, c
         <div className="mt-3 flex flex-wrap items-end gap-3">
           <label className="min-w-48 flex-1 text-sm font-medium">
             Tambah Skill
-            <select value={candidate} disabled={pending || selected.length >= 5}
+            <select value={candidate} disabled={pending || classChanged || selected.length >= 5}
               onChange={(event) => setCandidate(event.target.value)}
               className="mt-1 block w-full rounded-lg border border-slate-300 p-2">
               <option value="">Pilih Skill</option>
-              {classes.map((group) => {
-                const options = skills.filter((skill) => skill.classId === group.id && !chosen.has(skill.id));
-                return options.length ? <optgroup key={group.id} label={group.name}>
-                  {options.map((skill) => <option key={skill.id} value={skill.id}>{skill.name}</option>)}
-                </optgroup> : null;
-              })}
+              {options.map((skill) => <option key={skill.id} value={skill.id}>{skill.name}</option>)}
             </select>
           </label>
-          <button type="button" disabled={pending || selected.length >= 5 || !candidate}
+          <button type="button" disabled={pending || classChanged || selected.length >= 5 || !candidateAvailable}
             onClick={() => {
               const id = Number(candidate);
               run(() => addProfileSkill(id), () => {
