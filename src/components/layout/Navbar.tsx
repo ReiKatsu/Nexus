@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import LogoutButton from "./LogoutButton";
 
 type NavbarProps = {
   displayName: string;
@@ -38,6 +39,7 @@ export default function Navbar({ displayName, activeItem, isAdmin = false }: Nav
             aria-current={activeItem === "profile" ? "page" : undefined}>{initials}</Link>
           {isAdmin && <Link href="/admin/missions" className="nexus-admin-shortcut"
             title="Review pengajuan Mission">Mission Review</Link>}
+          <LogoutButton />
         </div>
       </div>
     </header>

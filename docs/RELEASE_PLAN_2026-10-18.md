@@ -1,4 +1,4 @@
-# NEXUS — rencana rilis, diperbarui 13 Oktober 2026
+# NEXUS — rencana rilis, diperbarui 14 Oktober 2026
 
 Target backend siap integrasi **18 Oktober**; 19–20 Oktober cadangan. Rilis lengkap bergantung pada pengujian browser dan deployment. Frontend tanggal 15 belum dijanjikan tim frontend. Tidak ada pekerjaan otomatis di luar sesi aktif.
 
@@ -27,6 +27,8 @@ Baseline backend main: cd0fe898e2fbfcf0f2cd3cc63eabfb042c5ae95f. Kandidat memaka
 Bukti scheduler 12 Oktober: award mingguan 00.00 WIB succeeded, menambah 9 badge; total saat audit 22 dan XP 1.115. Cleanup 02.00 WIB serta season worker succeeded. Ini snapshot tanggal tersebut, bukan jumlah terkini atau bukti rollover Juli nyata.
 
 ## Belum selesai
+
+**Browser owner 14 Oktober:** STUDENT refresh Home/Profil PASS, akses `/admin/results` ditolak 404; ADMIN review/refresh PASS. Logout ditemukan belum tersedia, sehingga tombol Keluar ditambahkan untuk kedua role. Suite kini 37 tes PASS, lint/build serta request logout production dengan Auth lokal sintetis PASS. Logout browser hosted dan mobile belum diuji. [Bukti dan langkah berikutnya](security/LOGOUT_BROWSER_CHECK_2026-10-14.md). Localhost memakai project existing yang akan menjadi produksi; tidak dinyatakan sebagai testing terisolasi.
 
 **G06 diputuskan dan diterapkan 13 Oktober:** Ketua solo boleh membubarkan Squad sebelum FINALIZED. Migration/RPC live, rollback QA serta 33 tes aplikasi PASS; history/cancel/notifikasi ditangani atomic. [Laporan solo disband](SOLO_SQUAD_DISBAND_2026-10-13.md). Browser dan concurrency dua sesi belum dinyatakan PASS.
 
