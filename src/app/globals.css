@@ -267,7 +267,7 @@ body:has(.nexus-nav-link[href="/admin/results"][aria-current="page"]) main::befo
   .nexus-nav-inner { flex-wrap: wrap; gap: 10px; padding: 12px 20px; }
   .nexus-nav-links { order: 3; flex-basis: 100%; justify-content: space-between; gap: 6px; }
   .nexus-nav-link { font-size: 12px; }
-  .nexus-nav-actions { margin-left: auto; }
+  .nexus-nav-actions { margin-left: auto; min-width: 0; flex: 1; flex-wrap: wrap; justify-content: flex-end; gap: 10px; }
   .dashboard-grid { grid-template-columns: 1fr; }
   .nexus-dashboard { padding: 30px 18px 45px; }
   .dashboard-greeting p { font-size: 19px; }
