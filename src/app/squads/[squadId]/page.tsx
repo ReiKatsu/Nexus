@@ -103,7 +103,10 @@ export default async function SquadRoomPage({ params }: SquadRoomPageProps) {
     return <PageMessage displayName={profile.nama_lengkap} title="Room belum dapat dimuat" description="Data Squad sedang tidak tersedia." />;
   }
 
-  if (["MISSION_COMPLETED", "DISBANDED"].includes(squad.status_squad)) {
+  if (squad.status_squad === "MISSION_COMPLETED") {
+    redirect(`/squads/${squadId}/endorsements`);
+  }
+  if (squad.status_squad === "DISBANDED") {
     return <PageMessage displayName={profile.nama_lengkap} title="Room Squad telah ditutup" description="Mission ini sudah selesai. Riwayat Squad tetap tersedia di My Squad." />;
   }
 

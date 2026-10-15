@@ -6,6 +6,8 @@ Baseline: `main` commit `2245ac5bde38f45921019e369c7fe65df4a946de`, diperiksa 11
 
 - Entry utama: `/my-squad` → kartu Riwayat MISSION_COMPLETED →
   `/squads/[squadId]/endorsements` → `/profile/[userId]?squad=[squadId]`.
+  Label kartu dan halaman adalah Detail Squad, memuat hasil approved, XP caller
+  dari ledger serta daftar rekan. URL Room completed mengarah ke detail tanpa chat.
   Route daftar rekan memerlukan STUDENT ACTIVE/onboarded dengan riwayat membership;
   parameter profil hanya memilih konteks shared yang sudah eligible. Link baru
   memakai `prefetch={false}`; nama rekan dibaca sekaligus lewat public_profiles.

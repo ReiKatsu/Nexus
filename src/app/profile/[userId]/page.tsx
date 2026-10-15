@@ -65,7 +65,7 @@ export default async function PeerProfilePage({ params, searchParams }: {
       <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
         <Link href={context ? `/squads/${context.squadId}/endorsements` : "/leaderboard"}
           prefetch={false} className="text-sm font-semibold text-indigo-700 hover:underline">
-          {context ? `← Rekan ${context.name}` : "← Leaderboard"}
+          {context ? `← Detail ${context.name}` : "← Leaderboard"}
         </Link>
         <section className="mt-5 rounded-2xl border border-slate-200 bg-white p-6">
           <div className="flex items-center gap-4">

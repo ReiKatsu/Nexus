@@ -4,6 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import { endorsementWindow } from "@/lib/endorsement-window";
 import { createClient } from "@/lib/supabase/server";
+import { RESULT_OPTIONS } from "../result/types";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -13,7 +14,7 @@ function LoadError({ displayName }: { displayName: string }) {
       <Navbar displayName={displayName} activeItem="my-squad" />
       <main className="mx-auto max-w-3xl px-4 py-8">
         <Link href="/my-squad" prefetch={false} className="font-bold text-indigo-700">← My Squad</Link>
-        <p role="alert" className="mt-6">Daftar rekan belum dapat dimuat. Muat ulang untuk mencoba lagi.</p>
+        <p role="alert" className="mt-6">Detail Squad belum dapat dimuat. Muat ulang untuk mencoba lagi.</p>
       </main>
     </div>
   );
@@ -33,7 +34,7 @@ export default async function SquadEndorsementsPage({ params }: {
       .eq("user_id", auth.user.id).maybeSingle(),
     supabase.from("squad_members").select("squad_id")
       .eq("squad_id", squadId).eq("user_id", auth.user.id).limit(1).maybeSingle(),
-    supabase.from("squads").select("nama_squad,status_squad,completed_at")
+    supabase.from("squads").select("nama_squad,status_squad,completed_at,mission_id")
       .eq("squad_id", squadId).maybeSingle(),
   ]);
   if (profile.error) return <LoadError displayName="NEXUS" />;
@@ -42,10 +43,13 @@ export default async function SquadEndorsementsPage({ params }: {
   if (membership.error || squad.error) return <LoadError displayName={profile.data.nama_lengkap} />;
   if (!membership.data || !squad.data || squad.data.status_squad !== "MISSION_COMPLETED") notFound();
 
-  const [members, ratings] = await Promise.all([
-    supabase.from("squad_members").select("user_id").eq("squad_id", squadId),
+  const [members, ratings, resultQuery] = await Promise.all([
+    supabase.from("squad_members").select("user_id,status_member").eq("squad_id", squadId),
     supabase.from("endorsements").select("to_user_id")
       .eq("squad_id", squadId).eq("from_user_id", auth.user.id),
+    supabase.from("mission_result_submissions")
+      .select("status_validation,hasil_kompetisi,approved_hasil_kompetisi,xp_transactions(xp_amount)")
+      .eq("squad_id", squadId).eq("xp_transactions.user_id", auth.user.id).maybeSingle(),
   ]);
   if (members.error || ratings.error) return <LoadError displayName={profile.data.nama_lengkap} />;
   const peerIds = [...new Set((members.data ?? []).map(member => member.user_id))]
@@ -57,6 +61,17 @@ export default async function SquadEndorsementsPage({ params }: {
   const names = new Map((peers.data ?? []).map(peer => [peer.user_id, peer.nama_lengkap]));
   const rated = new Set((ratings.data ?? []).map(rating => rating.to_user_id));
   const window = endorsementWindow(squad.data.completed_at);
+  const result = resultQuery.data as {
+    status_validation: string; hasil_kompetisi: string; approved_hasil_kompetisi: string | null;
+    xp_transactions: { xp_amount: number }[];
+  } | null;
+  const approved = result?.status_validation === "APPROVED";
+  const resultLabel = approved ? RESULT_OPTIONS.find(option => option.value ===
+    (result.approved_hasil_kompetisi ?? result.hasil_kompetisi))?.label : null;
+  const transactions = approved ? result.xp_transactions ?? [] : [];
+  const earnedXp = transactions.reduce((sum, transaction) => sum + transaction.xp_amount, 0);
+  const canReadResultPage = (members.data ?? []).some(member =>
+    member.user_id === auth.user.id && member.status_member === "ACTIVE");
 
   return (
     <div className="nexus-app-page min-h-screen bg-slate-50 text-slate-900">
@@ -64,8 +79,27 @@ export default async function SquadEndorsementsPage({ params }: {
       <main className="nexus-page-shell mx-auto max-w-3xl px-4 py-8 sm:px-6">
         <Link href="/my-squad" prefetch={false} className="text-sm font-bold text-indigo-700">← My Squad</Link>
         <section className="glass-card mt-6 rounded-2xl border border-slate-200 bg-white p-6">
-          <h1 className="text-2xl font-bold">Nilai rekan Squad</h1>
+          <h1 className="text-2xl font-bold">Detail Squad</h1>
           <p className="mt-2 break-words font-semibold">{squad.data.nama_squad}</p>
+          <p className="mt-2 text-sm text-slate-600">Mission Completed · Riwayat tim</p>
+          <section aria-labelledby="squad-result-summary" className="mt-6 rounded-xl border border-slate-200 p-4">
+            <h2 id="squad-result-summary" className="font-bold">Hasil dan XP</h2>
+            {resultQuery.error ? (
+              <p role="alert" className="mt-2 text-sm">Ringkasan hasil belum dapat dimuat. Coba muat ulang.</p>
+            ) : (
+              <>
+                <p className="mt-2 text-sm">Hasil Squad: {resultLabel ?? "Belum ada hasil tervalidasi"}</p>
+                <p className="mt-1 text-sm">XP kamu: {transactions.length > 0 ? `+${earnedXp} XP` : "Tidak tercatat"}</p>
+              </>
+            )}
+            <div className="mt-3 flex flex-wrap gap-4 text-sm font-semibold text-indigo-700">
+              {canReadResultPage && <Link href={`/squads/${squadId}/result`} prefetch={false}
+                className="hover:underline">Lihat pengajuan hasil</Link>}
+              <Link href={`/missions/${squad.data.mission_id}`} prefetch={false}
+                className="hover:underline">Lihat Mission</Link>
+            </div>
+          </section>
+          <h2 className="mt-6 text-lg font-bold">Rekan Squad dan penilaian</h2>
           <p className="mt-2 text-sm text-slate-600">
             Pilih rekan dari riwayat tim ini. Penilaian tidak menambah XP.
           </p>

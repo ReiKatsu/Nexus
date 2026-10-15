@@ -66,6 +66,13 @@ Tidak ada query baru pada daftar My Squad, migration atau perubahan eligibility.
 rekan melalui proyeksi publik. Browser entry baru masih perlu dicek owner.
 [Detail](ENDORSEMENT_ENTRY_2026-10-15.md).
 
+**Detail Squad selesai 15 Oktober:** owner masih kesulitan mengakses tim setelah
+Room ditutup. Kartu completed diringkas menjadi Detail Squad + tautan kecil Mission;
+detail menampilkan hasil approved, XP caller dari ledger, daftar rekan dan penilaian.
+URL Room completed milik anggota ACTIVE redirect ke detail sebelum query chat.
+59 tes, lint/build PASS; SQL authenticated memverifikasi snapshot owner. Browser
+detail baru belum dicek owner; npm start memerlukan build ulang/restart setelah pull.
+
 | Tanggal WIB | Pemilik | Hasil yang dituju |
 |---|---|---|
 | 13–14 Okt | Backend + frontend | Merge kandidat setelah CI, perbaiki bug integrasi, siapkan regresi dan staging. Remediasi awal dependency/akses sudah dilakukan. |

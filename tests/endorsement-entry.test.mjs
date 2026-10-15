@@ -30,7 +30,9 @@ function setup(options = {}) {
     auth: { getUser: async () => ({ data: { user: options.anonymous ? null : { id } }, error: null }) },
     from(table) {
       const call = { table, filters: [] }; calls.push(call);
-      const rows = table === 'squad_members' ? options.empty ? [] : [{ user_id: id }, { user_id: peer }, { user_id: peer }]
+      const rows = table === 'squad_members' ? options.empty ? [] : [
+        { user_id: id, status_member: options.former ? 'LEFT' : 'ACTIVE' },
+        { user_id: peer, status_member: 'ACTIVE' }, { user_id: peer, status_member: 'LEFT' }]
         : table === 'endorsements' ? options.rated ? [{ to_user_id: peer }] : []
         : [{ user_id: peer, nama_lengkap: 'Rekan <QA>' }];
       const q = {
@@ -41,8 +43,12 @@ function setup(options = {}) {
           ? { nama_lengkap: 'QA', role_app: options.admin ? 'ADMIN' : 'STUDENT',
               status_akun: options.suspended ? 'SUSPENDED' : 'ACTIVE', primary_class_id: options.onboarding ? null : 1 }
           : table === 'squad_members' ? options.outsider ? null : { squad_id: squadId }
+          : table === 'mission_result_submissions' ? { status_validation: 'APPROVED',
+              hasil_kompetisi: 'JUARA_1', approved_hasil_kompetisi: 'PARTICIPANT',
+              xp_transactions: options.former ? [] : [{ xp_amount: 230 }] }
           : { nama_squad: 'QA Squad', status_squad: options.status ?? 'MISSION_COMPLETED',
-              completed_at: options.expired ? '2020-01-01T00:00:00Z' : new Date().toISOString() }, error: null }),
+              mission_id: otherId, completed_at: options.expired ? '2020-01-01T00:00:00Z' : new Date().toISOString() },
+          error: options.error === table ? {} : null }),
         then: resolve => Promise.resolve({ data: options.error === table ? null : rows,
           error: options.error === table ? {} : null }).then(resolve),
       };
@@ -55,6 +61,7 @@ function setup(options = {}) {
     '@/components/layout/Navbar': { default: () => null },
     '@/lib/supabase/server': { createClient: async () => client },
     '@/lib/endorsement-window': load('../src/lib/endorsement-window.ts'),
+    '../result/types': load('../src/app/squads/[squadId]/result/types.ts'),
   }).default;
   return { calls, run: (routeId = squadId) => Page({ params: Promise.resolve({ squadId: routeId }) }) };
 }
@@ -73,6 +80,12 @@ test('completed history exposes a roster link for active and former members, wit
       const links = []; walk(element, node => { if (node.props?.href?.endsWith('/endorsements')) links.push(node.props); });
       assert.equal(links.length, status === 'MISSION_COMPLETED' ? 1 : 0);
       if (links.length) assert.equal(links[0].prefetch, false);
+      if (status === 'MISSION_COMPLETED') {
+        const html = render(element);
+        assert.match(html, />Detail Squad</); assert.match(html, />Lihat Mission</);
+        assert.doesNotMatch(html, /Lihat Hasil Mission|>Nilai rekan</);
+        assert.equal((html.match(/<a /g) ?? []).length, 2);
+      }
     }
   }
 });
@@ -105,6 +118,22 @@ test('roster distinguishes already rated, expired, empty and failed reads', asyn
   assert.ok(!empty.calls.some(c => c.table === 'public_profiles'));
   const failed = render(await setup({ error: 'public_profiles' }).run());
   assert.match(failed, /role="alert"/); assert.doesNotMatch(failed, /Belum ada rekan/);
+});
+
+test('Detail Squad shows the approved result and owner-scoped XP; former members retain history without private result-page access', async () => {
+  const s = setup(), html = render(await s.run());
+  assert.match(html, /<h1[^>]*>Detail Squad/);
+  assert.match(html, /Hasil Squad: Participant/); assert.match(html, /XP kamu: \+230 XP/);
+  assert.match(html, /Lihat pengajuan hasil/);
+  const result = s.calls.find(c => c.table === 'mission_result_submissions');
+  assert.ok(result.fields.includes('xp_transactions(xp_amount)'));
+  assert.deepEqual(result.filters, [['squad_id', squadId], ['xp_transactions.user_id', id]]);
+  const former = render(await setup({ former: true }).run());
+  assert.match(former, /Hasil Squad: Participant/); assert.match(former, /XP kamu: Tidak tercatat/);
+  assert.doesNotMatch(former, /Lihat pengajuan hasil/); assert.match(former, /Rekan &lt;QA&gt;/);
+  const failed = render(await setup({ error: 'mission_result_submissions' }).run());
+  assert.match(failed, /Ringkasan hasil belum dapat dimuat/); assert.match(failed, /Rekan &lt;QA&gt;/);
+  assert.doesNotMatch(failed, /XP kamu: \+230/);
 });
 
 test('profile context uses only an eligible shared Squad and keeps the return link; other parameters do not authorize access', async () => {
