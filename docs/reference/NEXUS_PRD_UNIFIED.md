@@ -294,9 +294,9 @@ Semua badge yang pernah diberikan tetap di Chest; hanya satu equipped, termasuk 
 
 ### END-01 Endorsement
 
-Alur utama My Squad → Riwayat Squad completed → Detail Squad → Nilai rekan → profile rekan dengan konteks Squad terpilih. Leaderboard → profile tetap jalur tambahan; posisi/perolehan XP bukan syarat Endorsement. Keduanya harus pernah menjadi member Squad sama yang MISSION_COMPLETED. Keputusan pengguna 15 Oktober 2026: pengajuan baru hanya selama 14 x 24 jam sejak hasil disetujui admin, memakai `squads.completed_at` yang ditulis approval. Awal inklusif, akhir eksklusif; timestamp kosong/future ditolak. Form menampilkan batas dalam WIB dan menutup pilihan kedaluwarsa; database memeriksa waktu sebenarnya pada INSERT. Penilaian existing tetap terlihat sesudah jendela tutup. Empat nilai integer 1–5: communication, contribution, teamwork, responsibility. Tidak self-endorse; satu per pasangan arah pemberi-penerima per Squad; tanpa ulasan teks panjang. Ringkasan rata-rata/bintang ditampilkan, tidak mengubah XP/Rank.
+Alur utama My Squad → Riwayat Squad completed → Detail Squad → Nilai rekan → profile rekan dengan konteks Squad terpilih. Leaderboard → profile tetap jalur tambahan; posisi/perolehan XP bukan syarat Endorsement. Keputusan pengguna 15 Oktober 2026: pemberi dan penerima harus menjadi anggota saat Squad difinalisasi, lalu Squad berstatus MISSION_COMPLETED setelah approval hasil. Riwayat bergabung sebelum finalisasi saja tidak mencukupi. Keputusan pengguna 15 Oktober 2026: pengajuan baru hanya selama 14 x 24 jam sejak hasil disetujui admin, memakai `squads.completed_at` yang ditulis approval. Awal inklusif, akhir eksklusif; timestamp kosong/future ditolak. Form menampilkan batas dalam WIB dan menutup pilihan kedaluwarsa; database memeriksa waktu sebenarnya pada INSERT. Penilaian existing tetap terlihat sesudah jendela tutup. Empat nilai integer 1–5: communication, contribution, teamwork, responsibility. Tidak self-endorse; satu per pasangan arah pemberi-penerima per Squad; tanpa ulasan teks panjang. Ringkasan rata-rata/bintang ditampilkan, tidak mengubah XP/Rank.
 
-Snapshot guard memeriksa pernah menjadi member, bukan hanya ACTIVE. Jangan otomatis melarang LEFT/KICKED/ADMIN_REMOVED menerima/memberi karena itu pengetatan produk baru; konfirmasi jika akan diubah.
+Koreksi aturan oleh pengguna 15 Oktober 2026: daftar tim final dan eligibility memakai interval `joined_at <= finalized_at` serta `ended_at IS NULL OR ended_at > finalized_at`. Keluar/kick sebelum atau tepat saat finalisasi dan join setelah finalisasi tidak eligible. Anggota yang dikeluarkan sesudah finalisasi tetap bagian tim final, sehingga status ACTIVE saat ini bukan pengganti interval tersebut. View `finalized_squad_members` dengan security_invoker menyatukan pembacaan UI/action dan guard INSERT; `finalized_at` hanya diubah jalur internal finalisasi. History membership dan rating existing tetap tersimpan; XP tetap mengikuti kebijakan approval existing.
 
 ## 10. Chat, Admin Intervention, notification, storage
 
@@ -798,7 +798,7 @@ Partial UNIQUE: only one row per user may have `is_equipped = true`.
 
 Unique: `(squad_id, from_user_id, to_user_id)`.
 Check: `from_user_id <> to_user_id`.
-Business rule: both users must have been members of the same Squad and the Squad must be Mission Completed.
+Business rule (15 October 2026): both users must be members at Squad finalization, the Squad must be Mission Completed, and new ratings must be within 336 hours of completed_at.
 
 ### DATA-27 `admin_reports`
 
@@ -1170,7 +1170,7 @@ Semua data contoh, nama pengguna, XP, tahun, hitungan, tanggal, dan isi chat C1 
 - Kartu aktif: nama Squad/Mission, Tier, cakupan/biaya/mode, anggota ACTIVE/kapasitas, status, peran user, avatar yang berhak ditampilkan, akses Squad Room.
 - History: nama Squad/Mission, Tier, cakupan, peran historis user; hasil tervalidasi, XP yang benar-benar diterima user, dan tanggal jika tersedia. LEFT/KICKED tidak otomatis dianggap meraih hasil/XP tim.
 - Tombol Squad Room membuka Squad terkait; history tidak menghidupkan kembali chat yang sudah dihapus.
-- Pada history MISSION_COMPLETED, kartu menampilkan satu tombol utama Detail Squad dan tautan kecil Lihat Mission. Detail Squad memuat ringkasan hasil approved, XP user dari ledger, tautan pengajuan untuk anggota ACTIVE dan daftar rekan historis. User sendiri dikecualikan, nama diambil dari proyeksi profil publik. Tampilkan status sudah dinilai/ditutup; tautan profil membawa konteks Squad dan akses kembali ke daftar rekan. LEFT/KICKED tetap mengikuti eligibility END-01. Jalur ini tidak memerlukan pencarian di Leaderboard.
+- Pada history MISSION_COMPLETED, kartu menampilkan satu tombol utama Detail Squad dan tautan kecil Lihat Mission. Detail Squad memuat ringkasan hasil approved, XP user dari ledger, tautan pengajuan untuk anggota ACTIVE dan daftar anggota saat finalisasi dari `finalized_squad_members`. User sendiri terlihat dengan label (Kamu) tanpa aksi menilai diri; nama rekan diambil dari proyeksi profil publik. Tampilkan status sudah dinilai/ditutup; tautan profil membawa konteks Squad dan akses kembali ke daftar rekan. LEFT/KICKED tetap mengikuti eligibility END-01. Jalur ini tidak memerlukan pencarian di Leaderboard.
 - “Waktu Tersisa 30/60 Hari”, “11/50 Hari” tidak disalin tanpa definisi awal/akhir; UI-G05. Simbol tambah tanpa fungsi yang terbukti mengikuti UI-G11.
 - Empty active/history masing-masing jelas. Jangan menampilkan “5/5 Open” hanya karena contoh Canva; status mengikuti SQ-01 dan actual data.
 - **Data/tes:** memberships termasuk riwayat, squads, missions, hasil, xp_transactions; T16–T18, U07.

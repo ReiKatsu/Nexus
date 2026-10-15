@@ -55,7 +55,7 @@ export default function EndorsementForm({ targetUserId, squads }: {
     <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-5">
       <h2 className="text-lg font-bold">Nilai rekan Squad</h2>
       <p className="mt-1 text-sm text-slate-600">
-        Penilaian tersedia selama 14 hari sejak hasil Mission disetujui admin.
+        Penilaian antar anggota saat finalisasi tersedia selama 14 hari sejak hasil Mission disetujui admin.
       </p>
       {squads.some((squad) => squad.alreadyRated) && (
         <p className="mt-2 text-sm text-slate-600">

@@ -21,14 +21,14 @@ export async function loadSharedCompletedSquads(
   viewerId: string,
   targetUserId: string,
 ): Promise<SharedSquad[] | null> {
-  const { data: mine, error: mineError } = await supabase.from("squad_members")
+  const { data: mine, error: mineError } = await supabase.from("finalized_squad_members")
     .select("squad_id").eq("user_id", viewerId);
   if (mineError || !mine) return null;
   const squadIds = [...new Set(mine.map((row) => row.squad_id))];
   if (squadIds.length === 0) return [];
 
   const [peer, completed, rated] = await Promise.all([
-    supabase.from("squad_members").select("squad_id")
+    supabase.from("finalized_squad_members").select("squad_id")
       .eq("user_id", targetUserId).in("squad_id", squadIds),
     supabase.from("squads").select("squad_id,nama_squad,completed_at")
       .eq("status_squad", "MISSION_COMPLETED").in("squad_id", squadIds),

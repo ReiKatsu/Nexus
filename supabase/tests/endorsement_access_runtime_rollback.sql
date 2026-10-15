@@ -15,7 +15,7 @@ do $fixture$ begin
  and role_app='STUDENT' and status_akun='ACTIVE' and primary_class_id is not null)<>3
  then raise exception 'Three distinct ACTIVE onboarded QA students required'; end if;
  if not exists(select 1 from public.squads where squad_id=current_setting('qa.completed_squad')::uuid and status_squad='MISSION_COMPLETED')
- or (select count(distinct user_id) from public.squad_members where squad_id=current_setting('qa.completed_squad')::uuid
+ or (select count(distinct user_id) from public.finalized_squad_members where squad_id=current_setting('qa.completed_squad')::uuid
  and user_id in(current_setting('qa.member_id')::uuid,current_setting('qa.peer_id')::uuid))<>2
  or exists(select 1 from public.squad_members where squad_id=current_setting('qa.completed_squad')::uuid and user_id=current_setting('qa.outsider_id')::uuid)
  then raise exception 'Invalid completed Squad fixture'; end if;
@@ -38,7 +38,7 @@ do $t$ declare msg text; changed integer; begin
     values(current_setting('qa.completed_squad')::uuid,current_setting('qa.member_id')::uuid,current_setting('qa.peer_id')::uuid,4,4,4,4);
     raise exception 'FAIL outsider/forged sender accepted';
   exception when sqlstate 'P0001' then get stacked diagnostics msg=message_text;
-    if msg<>'Both users must have been members of the same completed Squad' then raise; end if;
+    if msg<>'Both users must be members at Squad finalization' then raise; end if;
   end;
   update public.endorsements set communication=1 where squad_id=current_setting('qa.completed_squad')::uuid;
   get diagnostics changed=row_count;
@@ -56,7 +56,7 @@ do $t$ declare msg text; sid uuid; begin
     values(current_setting('qa.completed_squad')::uuid,auth.uid(),current_setting('qa.outsider_id')::uuid,4,4,4,4);
     raise exception 'FAIL outsider recipient accepted';
   exception when sqlstate 'P0001' then get stacked diagnostics msg=message_text;
-    if msg<>'Both users must have been members of the same completed Squad' then raise; end if;
+    if msg<>'Both users must be members at Squad finalization' then raise; end if;
   end;
   select squad_id into strict sid from public.squads where status_squad<>'MISSION_COMPLETED' limit 1;
   begin

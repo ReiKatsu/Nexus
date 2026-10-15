@@ -17,7 +17,15 @@ akhir eksklusif. Gunakan types/helper repository: `SharedSquad` menambahkan
 `closesAt: string | null` dan `windowOpen: boolean`; sudah dinilai tetap ditampilkan.
 `submitEndorsement` dapat mengembalikan `{ success: false, message, windowClosed: true }`;
 refresh ketersediaan bila jendela tutup. INSERT langsung tetap diperiksa trigger.
-Tidak ada endpoint, key, query tambahan atau kewajiban Realtime baru.
+Tidak ada endpoint, key, jumlah request tambahan atau kewajiban Realtime baru.
+
+Koreksi roster 15 Oktober: UI/action mengambil peserta dari view read-only
+`finalized_squad_members` (kolom `squad_id,user_id,status_member`, SELECT authenticated,
+security_invoker mengikuti RLS tabel asal). Pemberi dan penerima harus anggota
+pada waktu `finalized_at`, bukan sekadar pernah bergabung atau ACTIVE sekarang.
+Keluar sebelum/tepat finalisasi dan join sesudahnya dikecualikan; removal sesudah
+finalisasi tetap tercatat. Guard INSERT menegakkan aturan yang sama. Detail history
+tetap dapat dibaca mantan anggota, tanpa tombol menilai bila bukan peserta final.
 
 ## Addendum 13 Oktober 2026
 
@@ -159,7 +167,7 @@ await fetch(`/api/squads/${squadId}/result`, { method:"POST", body:resultForm })
 | file yang sama | `addProfileSkill(skillId)` | OK / ERR | STUDENT siap; Skill ada, maksimal 5, tidak duplikat; tidak memaksa Class Skill sama pada action ini |
 | file yang sama | `removeProfileSkill(skillId)` | OK / ERR | STUDENT siap, Skill milik sendiri |
 | `profile/badges/actions.ts` | `equipBadge(userBadgeId)` | OK / ERR | STUDENT siap, UUID record **user_badges**, harus dimiliki; sudah equipped idempotent |
-| `profile/[userId]/actions.ts` | `submitEndorsement(targetUserId, squadId, {communication:4, contribution:5, teamwork:4, responsibility:5})` | OK / ERR | STUDENT siap, bukan diri sendiri, pernah satu Squad MISSION_COMPLETED; integer 1–5; duplikat ditolak |
+| `profile/[userId]/actions.ts` | `submitEndorsement(targetUserId, squadId, {communication:4, contribution:5, teamwork:4, responsibility:5})` | OK / ERR | STUDENT siap, bukan diri sendiri, sama-sama anggota saat finalisasi Squad MISSION_COMPLETED; jendela 14 hari; integer 1–5; duplikat ditolak |
 | `notifications/actions.ts` | `markNotificationRead(notificationId)` | OK / ERR | Akun ACTIVE, notifikasi sendiri yang belum dibaca; sudah read menghasilkan error muat ulang |
 | `missions/[missionId]/actions.ts` | `createSquad({missionId,namaSquad:"Tim Demo",deskripsiSquad:"Deskripsi",kapasitasAnggota:3,requirements:[{primaryClassId:classId,slots:2}]})` | `{success:true,squadId}` atau `{success:false,code,message}` | Student eligible; deadline terbuka, kapasitas sesuai Mission, total slot = kapasitas - Ketua; gunakan `CreateSquadInput/Result` |
 | file yang sama | `submitSquadApplication(squadId)` | `{success:true,applicationId}` atau `{success:false,code,message}` | Sama dengan API Join; maksimal 3 PENDING dan satu membership ACTIVE per Mission |

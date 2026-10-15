@@ -30,8 +30,8 @@ function setup(options = {}) {
     auth: { getUser: async () => ({ data: { user: options.anonymous ? null : { id } }, error: null }) },
     from(table) {
       const call = { table, filters: [] }; calls.push(call);
-      const rows = table === 'squad_members' ? options.empty ? [] : [
-        { user_id: id, status_member: options.former ? 'LEFT' : 'ACTIVE' },
+      const rows = table === 'finalized_squad_members' ? options.empty ? [] : [
+        ...options.leftBefore ? [] : [{ user_id: id, status_member: options.former ? 'LEFT' : 'ACTIVE' }],
         { user_id: peer, status_member: 'ACTIVE' }, { user_id: peer, status_member: 'LEFT' }]
         : table === 'endorsements' ? options.rated ? [{ to_user_id: peer }] : []
         : [{ user_id: peer, nama_lengkap: 'Rekan <QA>' }];
@@ -98,9 +98,12 @@ test('roster route denies invalid IDs, anonymous/admin/suspended/nonmember and u
   }
   await assert.rejects(setup({ onboarding: true }).run(), /redirect:\/onboarding/);
 });
-test('roster uses one bulk public-name query, deduplicates peers, excludes self and preserves Squad context', async () => {
+test('finalized roster uses one bulk public-name query, shows self without a rating link and preserves Squad context', async () => {
   const s = setup(), element = await s.run(), html = render(element);
   assert.match(html, /Rekan &lt;QA&gt;/);
+  assert.match(html, /QA \(Kamu\)/); assert.match(html, /Anggota saat finalisasi/);
+  assert.doesNotMatch(html, new RegExp('/profile/' + id));
+  assert.equal(s.calls.filter(c => c.table === 'finalized_squad_members').length, 1);
   assert.match(html, new RegExp('/profile/' + peer + '\\?squad=' + squadId));
   const names = s.calls.filter(c => c.table === 'public_profiles'); assert.equal(names.length, 1);
   assert.equal(names[0].fields, 'user_id,nama_lengkap');
@@ -114,10 +117,19 @@ test('roster distinguishes already rated, expired, empty and failed reads', asyn
   assert.match(render(await setup({ rated: true }).run()), /Sudah dinilai/);
   const expired = render(await setup({ expired: true }).run());
   assert.match(expired, /Penilaian sudah ditutup/); assert.match(expired, />Lihat profil</);
-  const empty = setup({ empty: true }); assert.match(render(await empty.run()), /Belum ada rekan/);
+  const empty = setup({ empty: true }); assert.match(render(await empty.run()), /Data anggota saat finalisasi belum tersedia/);
   assert.ok(!empty.calls.some(c => c.table === 'public_profiles'));
   const failed = render(await setup({ error: 'public_profiles' }).run());
-  assert.match(failed, /role="alert"/); assert.doesNotMatch(failed, /Belum ada rekan/);
+  assert.match(failed, /role="alert"/); assert.doesNotMatch(failed, /Data anggota saat finalisasi belum tersedia/);
+});
+
+test('a member who left before finalization retains history but cannot see rating buttons', async () => {
+  const html = render(await setup({ leftBefore: true, former: true }).run());
+  assert.match(html, /Kamu bukan anggota saat finalisasi/); assert.match(html, />Lihat profil</);
+  assert.doesNotMatch(html, />Nilai rekan</); assert.doesNotMatch(html, /QA \(Kamu\)/);
+  assert.doesNotMatch(html, /Lihat pengajuan hasil/);
+  const failed = render(await setup({ error: 'finalized_squad_members' }).run());
+  assert.match(failed, /role="alert"/); assert.doesNotMatch(failed, />Nilai rekan</);
 });
 
 test('Detail Squad shows the approved result and owner-scoped XP; former members retain history without private result-page access', async () => {
