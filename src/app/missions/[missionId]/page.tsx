@@ -41,10 +41,10 @@ function ProfileLoadError() {
   );
 }
 
-function MissionLoadError({ displayName }: { displayName: string }) {
+function MissionLoadError({ displayName, avatarPath }: { displayName: string; avatarPath?: string | null }) {
   return (
     <div className="flex min-h-screen flex-col bg-slate-50">
-      <Navbar displayName={displayName} activeItem="missions" />
+      <Navbar displayName={displayName} avatarPath={avatarPath} activeItem="missions" />
       <main className="flex flex-1 items-center justify-center px-4 py-8 text-slate-900">
         <section className="w-full max-w-lg rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-xl shadow-slate-200/60">
           <p className="text-sm font-bold tracking-[0.22em] text-indigo-600">
@@ -73,7 +73,7 @@ export default async function MissionDetailPage({
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("nama_lengkap, primary_class_id, status_akun")
+    .select("nama_lengkap, primary_class_id, status_akun, foto_profil_path")
     .eq("user_id", authData.user.id)
     .maybeSingle();
 
@@ -112,7 +112,7 @@ export default async function MissionDetailPage({
     .maybeSingle();
 
   if (missionError) {
-    return <MissionLoadError displayName={profile.nama_lengkap} />;
+    return <MissionLoadError displayName={profile.nama_lengkap} avatarPath={profile.foto_profil_path} />;
   }
   if (!mission) notFound();
 
@@ -217,7 +217,7 @@ export default async function MissionDetailPage({
 
   return (
     <div className="flex min-h-screen w-full min-w-0 flex-col overflow-x-clip bg-slate-50">
-      <Navbar displayName={profile.nama_lengkap} activeItem="missions" />
+      <Navbar displayName={profile.nama_lengkap} avatarPath={profile.foto_profil_path} activeItem="missions" />
       <main className="relative flex w-full min-w-0 flex-1 justify-center overflow-x-clip px-4 py-7 text-slate-900 sm:px-6 sm:py-10 lg:py-14">
         <div
           aria-hidden="true"

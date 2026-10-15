@@ -54,7 +54,7 @@ export default async function MySquadPage() {
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("nama_lengkap, primary_class_id, status_akun")
+    .select("nama_lengkap, primary_class_id, status_akun, foto_profil_path")
     .eq("user_id", authData.user.id)
     .maybeSingle();
 
@@ -265,7 +265,7 @@ export default async function MySquadPage() {
 
   return (
     <div className="nexus-app-page flex min-h-screen w-full min-w-0 flex-col overflow-x-clip bg-slate-50">
-      <Navbar displayName={profile.nama_lengkap} activeItem="my-squad" />
+      <Navbar displayName={profile.nama_lengkap} avatarPath={profile.foto_profil_path} activeItem="my-squad" />
       <main className="nexus-page-shell my-squad-page relative flex w-full min-w-0 flex-1 justify-center overflow-x-clip px-4 py-7 text-slate-900 sm:px-6 sm:py-10 lg:py-14">
         <div
           aria-hidden="true"

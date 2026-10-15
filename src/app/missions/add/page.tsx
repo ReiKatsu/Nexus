@@ -15,7 +15,7 @@ export default async function AddMissionPage({ searchParams }: {
   const { data: auth, error: authError } = await supabase.auth.getUser();
   if (authError || !auth.user) redirect("/login");
   const { data: profile, error: profileError } = await supabase.from("profiles")
-    .select("nama_lengkap,role_app,status_akun,primary_class_id")
+    .select("nama_lengkap,role_app,status_akun,primary_class_id, foto_profil_path")
     .eq("user_id", auth.user.id).maybeSingle();
   if (!profileError && profile?.role_app === "STUDENT" && profile.primary_class_id === null) {
     redirect("/onboarding");
@@ -33,7 +33,7 @@ export default async function AddMissionPage({ searchParams }: {
   if (error || (id && !initial)) notFound();
 
   return <div className="min-h-screen bg-slate-50 text-slate-900">
-    <Navbar displayName={profile.nama_lengkap} activeItem="missions" />
+    <Navbar displayName={profile.nama_lengkap} avatarPath={profile.foto_profil_path} activeItem="missions" />
     <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
       <Link href="/missions/submissions" className="text-sm font-semibold text-indigo-700">
         ← Pengajuan saya

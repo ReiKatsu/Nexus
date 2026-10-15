@@ -56,7 +56,7 @@ export default async function MissionsPage({ searchParams }: MissionsPageProps) 
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("nama_lengkap, primary_class_id")
+    .select("nama_lengkap, primary_class_id, foto_profil_path")
     .eq("user_id", authData.user.id)
     .maybeSingle();
 
@@ -184,7 +184,7 @@ export default async function MissionsPage({ searchParams }: MissionsPageProps) 
 
   return (
     <div className="flex min-h-screen w-full min-w-0 flex-col overflow-x-clip bg-slate-50">
-      <Navbar displayName={profile.nama_lengkap} activeItem="missions" />
+      <Navbar displayName={profile.nama_lengkap} avatarPath={profile.foto_profil_path} activeItem="missions" />
       <main className="relative flex w-full min-w-0 flex-1 justify-center overflow-x-clip px-4 py-7 text-slate-900 sm:px-6 sm:py-10 lg:py-14">
         <div
           aria-hidden="true"

@@ -23,7 +23,7 @@ export default async function PeerProfilePage({ params, searchParams }: {
   if (auth.user.id === userId) redirect("/profile");
 
   const [viewerResult, peerResult] = await Promise.all([
-    supabase.from("profiles").select("nama_lengkap, role_app, status_akun")
+    supabase.from("profiles").select("nama_lengkap, role_app, status_akun, foto_profil_path")
       .eq("user_id", auth.user.id).maybeSingle(),
     supabase.from("public_profiles")
       .select("nama_lengkap, bio, tahun_masuk, foto_profil_path, primary_class_id, program_studi_id")
@@ -60,7 +60,7 @@ export default async function PeerProfilePage({ params, searchParams }: {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
-      <Navbar displayName={viewerResult.data.nama_lengkap} activeItem={context ? "my-squad" : "leaderboard"}
+      <Navbar displayName={viewerResult.data.nama_lengkap} avatarPath={viewerResult.data.foto_profil_path} activeItem={context ? "my-squad" : "leaderboard"}
         isAdmin={viewerResult.data.role_app === "ADMIN"} />
       <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
         <Link href={context ? `/squads/${context.squadId}/endorsements` : "/leaderboard"}

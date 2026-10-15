@@ -34,16 +34,18 @@ function formatLabel(value: string): string {
 
 function PageMessage({
   displayName,
+  avatarPath,
   title,
   description,
 }: {
   displayName: string;
+  avatarPath?: string | null;
   title: string;
   description: string;
 }) {
   return (
     <div className="nexus-app-page flex min-h-screen flex-col bg-slate-50">
-      <Navbar displayName={displayName} activeItem="my-squad" />
+      <Navbar displayName={displayName} avatarPath={avatarPath} activeItem="my-squad" />
       <main className="flex flex-1 items-center justify-center px-4 py-8">
         <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-8 text-center">
           <h1 className="text-2xl font-bold text-slate-950">{title}</h1>
@@ -67,7 +69,7 @@ export default async function SquadRoomPage({ params }: SquadRoomPageProps) {
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("nama_lengkap, primary_class_id, status_akun")
+    .select("nama_lengkap, primary_class_id, status_akun, foto_profil_path")
     .eq("user_id", authData.user.id)
     .maybeSingle();
 
@@ -76,7 +78,7 @@ export default async function SquadRoomPage({ params }: SquadRoomPageProps) {
   }
   if (profile.primary_class_id === null) redirect("/onboarding");
   if (profile.status_akun !== "ACTIVE") {
-    return <PageMessage displayName={profile.nama_lengkap} title="Akses Squad dibatasi" description="Akunmu sedang tidak aktif." />;
+    return <PageMessage displayName={profile.nama_lengkap} avatarPath={profile.foto_profil_path} title="Akses Squad dibatasi" description="Akunmu sedang tidak aktif." />;
   }
 
   const { data: membership, error: membershipError } = await supabase
@@ -89,7 +91,7 @@ export default async function SquadRoomPage({ params }: SquadRoomPageProps) {
     .maybeSingle();
 
   if (membershipError) {
-    return <PageMessage displayName={profile.nama_lengkap} title="Room belum dapat dimuat" description="Keanggotaan Squad belum dapat diperiksa." />;
+    return <PageMessage displayName={profile.nama_lengkap} avatarPath={profile.foto_profil_path} title="Room belum dapat dimuat" description="Keanggotaan Squad belum dapat diperiksa." />;
   }
   if (!membership) notFound();
 
@@ -100,14 +102,14 @@ export default async function SquadRoomPage({ params }: SquadRoomPageProps) {
     .maybeSingle();
 
   if (squadError || !squad) {
-    return <PageMessage displayName={profile.nama_lengkap} title="Room belum dapat dimuat" description="Data Squad sedang tidak tersedia." />;
+    return <PageMessage displayName={profile.nama_lengkap} avatarPath={profile.foto_profil_path} title="Room belum dapat dimuat" description="Data Squad sedang tidak tersedia." />;
   }
 
   if (squad.status_squad === "MISSION_COMPLETED") {
     redirect(`/squads/${squadId}/endorsements`);
   }
   if (squad.status_squad === "DISBANDED") {
-    return <PageMessage displayName={profile.nama_lengkap} title="Room Squad telah ditutup" description="Mission ini sudah selesai. Riwayat Squad tetap tersedia di My Squad." />;
+    return <PageMessage displayName={profile.nama_lengkap} avatarPath={profile.foto_profil_path} title="Room Squad telah ditutup" description="Mission ini sudah selesai. Riwayat Squad tetap tersedia di My Squad." />;
   }
 
   const [missionResult, membersResult, messagesResult] = await Promise.all([
@@ -126,7 +128,7 @@ export default async function SquadRoomPage({ params }: SquadRoomPageProps) {
   ]);
 
   if (missionResult.error || !missionResult.data || membersResult.error || messagesResult.error) {
-    return <PageMessage displayName={profile.nama_lengkap} title="Room belum dapat dimuat" description="Data Mission, anggota, atau chat sedang tidak tersedia." />;
+    return <PageMessage displayName={profile.nama_lengkap} avatarPath={profile.foto_profil_path} title="Room belum dapat dimuat" description="Data Mission, anggota, atau chat sedang tidak tersedia." />;
   }
 
   const mission = missionResult.data;
@@ -145,7 +147,7 @@ export default async function SquadRoomPage({ params }: SquadRoomPageProps) {
 
   return (
     <div className="flex min-h-screen flex-col bg-slate-50">
-      <Navbar displayName={profile.nama_lengkap} activeItem="my-squad" />
+      <Navbar displayName={profile.nama_lengkap} avatarPath={profile.foto_profil_path} activeItem="my-squad" />
       <main className="nexus-page-shell squad-room-page mx-auto w-full max-w-6xl px-4 py-8 text-slate-900 sm:px-6">
         <Link href="/my-squad" className="text-sm font-bold text-indigo-600 hover:text-indigo-700">
           ← Kembali ke My Squad
