@@ -122,25 +122,23 @@ export default function SquadCard({
       ) : null}
 
       <div className="mt-auto pt-5">
-        {isHistory && item.squadStatus === "MISSION_COMPLETED" && (
-          <Link href={`/squads/${item.squadId}/endorsements`} prefetch={false}
-            className="mb-3 inline-flex w-full justify-center rounded-xl border border-indigo-200 px-4 py-2.5 text-sm font-bold text-indigo-700">
-            Nilai rekan
+        {isHistory && item.squadStatus === "MISSION_COMPLETED" ? (
+          <>
+            <Link href={`/squads/${item.squadId}/endorsements`} prefetch={false}
+              className="inline-flex w-full justify-center rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-indigo-700">
+              Detail Squad
+            </Link>
+            <Link href={`/missions/${item.missionId}`} prefetch={false}
+              className="mt-3 block text-center text-sm font-semibold text-indigo-700 hover:underline">
+              Lihat Mission
+            </Link>
+          </>
+        ) : (
+          <Link href={isHistory ? `/missions/${item.missionId}` : `/squads/${item.squadId}`}
+            className="inline-flex w-full justify-center rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:ring-offset-2">
+            {isHistory ? "Lihat Mission" : "Buka Squad Room"}
           </Link>
         )}
-        {isHistory && item.membershipStatus === "ACTIVE" &&
-          item.squadStatus === "MISSION_COMPLETED" && (
-            <Link href={`/squads/${item.squadId}/result`}
-              className="mb-3 inline-flex w-full justify-center rounded-xl border border-indigo-200 px-4 py-2.5 text-sm font-bold text-indigo-700">
-              Lihat Hasil Mission
-            </Link>
-          )}
-        <Link
-          href={isHistory ? `/missions/${item.missionId}` : `/squads/${item.squadId}`}
-          className="inline-flex w-full justify-center rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:ring-offset-2"
-        >
-          {isHistory ? "Lihat Mission" : "Buka Squad Room"}
-        </Link>
       </div>
     </article>
   );
