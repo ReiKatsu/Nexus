@@ -19,6 +19,9 @@ do $fixture$ begin
  and user_id in(current_setting('qa.member_id')::uuid,current_setting('qa.peer_id')::uuid))<>2
  or exists(select 1 from public.squad_members where squad_id=current_setting('qa.completed_squad')::uuid and user_id=current_setting('qa.outsider_id')::uuid)
  then raise exception 'Invalid completed Squad fixture'; end if;
+ if not exists(select 1 from public.squads where squad_id=current_setting('qa.completed_squad')::uuid
+   and completed_at<=clock_timestamp() and clock_timestamp()<completed_at+interval '336 hours')
+ then raise exception 'Completed QA fixture must be within the 14-day endorsement window';end if;
  if not exists(select 1 from public.endorsements where squad_id=current_setting('qa.completed_squad')::uuid)
  then raise exception 'Existing fixture rating required for meaningful UPDATE/DELETE denial checks'; end if;
 end $fixture$;

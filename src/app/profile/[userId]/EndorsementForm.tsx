@@ -11,8 +11,10 @@ export default function EndorsementForm({ targetUserId, squads }: {
   targetUserId: string;
   squads: SharedSquad[];
 }) {
-  const available = squads.filter((squad) => !squad.alreadyRated);
+  const available = squads.filter((squad) => !squad.alreadyRated && squad.windowOpen);
+  const closed = squads.filter((squad) => !squad.alreadyRated && !squad.windowOpen);
   const [squadId, setSquadId] = useState(available.length === 1 ? available[0].squadId : "");
+  const selectedSquad = available.find((squad) => squad.squadId === squadId);
   const [values, setValues] = useState<Record<EndorsementField, string>>({
     communication: "", contribution: "", teamwork: "", responsibility: "",
   });
@@ -24,7 +26,7 @@ export default function EndorsementForm({ targetUserId, squads }: {
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (submitting.current || !squadId || squadId === submittedSquadId) return;
+    if (submitting.current || !selectedSquad || squadId === submittedSquadId) return;
     submitting.current = true;
     setPending(true);
     setMessage("");
@@ -35,6 +37,7 @@ export default function EndorsementForm({ targetUserId, squads }: {
       const result = await submitEndorsement(targetUserId, squadId, scores);
       if (!result.success) {
         setMessage(result.message);
+        if (result.windowClosed) router.refresh();
         return;
       }
       setSubmittedSquadId(squadId);
@@ -51,11 +54,18 @@ export default function EndorsementForm({ targetUserId, squads }: {
   return (
     <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-5">
       <h2 className="text-lg font-bold">Nilai rekan Squad</h2>
-      <p className="mt-1 text-sm text-slate-600">Penilaian tersedia setelah Mission selesai.</p>
+      <p className="mt-1 text-sm text-slate-600">
+        Penilaian tersedia selama 14 hari sejak hasil Mission disetujui admin.
+      </p>
       {squads.some((squad) => squad.alreadyRated) && (
         <p className="mt-2 text-sm text-slate-600">
           Sudah dinilai: {squads.filter((squad) => squad.alreadyRated)
             .map((squad) => squad.name).join(", ")}.
+        </p>
+      )}
+      {closed.length > 0 && (
+        <p className="mt-2 text-sm text-slate-600">
+          Penilaian ditutup: {closed.map((squad) => squad.name).join(", ")}.
         </p>
       )}
       {available.length > 0 && (
@@ -64,11 +74,18 @@ export default function EndorsementForm({ targetUserId, squads }: {
             <select required value={squadId} disabled={pending}
               onChange={(event) => setSquadId(event.target.value)}
               className="mt-1 block w-full rounded-lg border border-slate-300 p-2">
-              {available.length > 1 && <option value="">Pilih Squad</option>}
+              <option value="">Pilih Squad</option>
               {available.map((squad) => <option key={squad.squadId} value={squad.squadId}>
                 {squad.name}</option>)}
             </select>
           </label>
+          {selectedSquad?.closesAt && (
+            <p className="text-sm text-slate-600">
+              Batas penilaian: {new Intl.DateTimeFormat("id-ID", {
+                dateStyle: "long", timeStyle: "short", timeZone: "Asia/Jakarta",
+              }).format(new Date(selectedSquad.closesAt))} WIB.
+            </p>
+          )}
           <div className="grid gap-4 sm:grid-cols-2">
             {ENDORSEMENT_FIELDS.map(([field, label]) => (
               <label key={field} className="block text-sm font-semibold">{label}
@@ -84,7 +101,7 @@ export default function EndorsementForm({ targetUserId, squads }: {
               </label>
             ))}
           </div>
-          <button type="submit" disabled={pending || !squadId || squadId === submittedSquadId}
+          <button type="submit" disabled={pending || !selectedSquad || squadId === submittedSquadId}
             className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60">
             {pending ? "Mengirim…" : "Kirim penilaian"}
           </button>

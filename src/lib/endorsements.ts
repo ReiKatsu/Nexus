@@ -1,4 +1,5 @@
 import type { createClient } from "@/lib/supabase/server";
+import { endorsementWindow } from "./endorsement-window";
 
 export const ENDORSEMENT_FIELDS = [
   ["communication", "Komunikasi"],
@@ -10,7 +11,10 @@ export const ENDORSEMENT_FIELDS = [
 export type EndorsementField = (typeof ENDORSEMENT_FIELDS)[number][0];
 export type EndorsementScores = Record<EndorsementField, number>;
 export type EndorsementSummary = { count: number; averages: EndorsementScores };
-export type SharedSquad = { squadId: string; name: string; alreadyRated: boolean };
+export type SharedSquad = {
+  squadId: string; name: string; alreadyRated: boolean;
+  closesAt: string | null; windowOpen: boolean;
+};
 
 export async function loadSharedCompletedSquads(
   supabase: Awaited<ReturnType<typeof createClient>>,
@@ -26,7 +30,7 @@ export async function loadSharedCompletedSquads(
   const [peer, completed, rated] = await Promise.all([
     supabase.from("squad_members").select("squad_id")
       .eq("user_id", targetUserId).in("squad_id", squadIds),
-    supabase.from("squads").select("squad_id,nama_squad")
+    supabase.from("squads").select("squad_id,nama_squad,completed_at")
       .eq("status_squad", "MISSION_COMPLETED").in("squad_id", squadIds),
     supabase.from("endorsements").select("squad_id")
       .eq("from_user_id", viewerId).eq("to_user_id", targetUserId)
@@ -40,6 +44,7 @@ export async function loadSharedCompletedSquads(
       squadId: squad.squad_id,
       name: squad.nama_squad,
       alreadyRated: ratedIds.has(squad.squad_id),
+      ...endorsementWindow(squad.completed_at),
     })).sort((a, b) => a.name.localeCompare(b.name));
 }
 

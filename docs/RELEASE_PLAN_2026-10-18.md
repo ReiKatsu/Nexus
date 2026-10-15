@@ -1,4 +1,4 @@
-# NEXUS — rencana rilis, diperbarui 14 Oktober 2026
+# NEXUS — rencana rilis, diperbarui 15 Oktober 2026
 
 Target backend siap integrasi **18 Oktober**; 19–20 Oktober cadangan. Rilis lengkap bergantung pada pengujian browser dan deployment. Frontend tanggal 15 belum dijanjikan tim frontend. Tidak ada pekerjaan otomatis di luar sesi aktif.
 
@@ -45,6 +45,18 @@ Bukti scheduler 12 Oktober: award mingguan 00.00 WIB succeeded, menambah 9 badge
 Admin Intervention tetap ditunda. Achievement Title Badge, PDF rank reward, poster publik baru, countdown/progress pekerjaan dan fitur di luar kontrak tidak ditambahkan. G08/G09/UI-G07 mengikuti perilaku existing sampai keputusan diperlukan untuk perubahan terkait.
 
 ## Jadwal berikutnya
+
+**QA owner 14 Oktober:** Apply/Tolak/Terima/Room, anggota keluar dan akses Room
+ditolak dilaporkan aman. Owner menjalankan hasil Mission Tolak → kirim ulang →
+Setujui; pemeriksaan read-only membuktikan MISSION_COMPLETED/APPROVED, tiga anggota
+ACTIVE masing-masing satu transaksi 230 XP, anggota LEFT tidak mendapat reward,
+satu record hasil dan 0 pesan chat. Transfer Ketua sempat dilaporkan aman tetapi
+urutan aktor belum jelas; tidak ditandai seluruh skenario browser PASS.
+
+**Endorsement 15 Oktober:** batas 14 hari disetujui dan diterapkan pada trigger,
+Server Action dan form tanpa query tambahan/polling. SQL terisolasi dan hosted
+rollback PASS, counts/ACL tetap; 51 tes aplikasi, lint/build PASS. Deadline browser
+owner sesudah pull belum diuji. [Rincian dan batas bukti](ENDORSEMENT_WINDOW_2026-10-15.md).
 
 | Tanggal WIB | Pemilik | Hasil yang dituju |
 |---|---|---|

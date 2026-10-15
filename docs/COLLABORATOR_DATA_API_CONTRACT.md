@@ -2,6 +2,15 @@
 
 Baseline: `main` commit `2245ac5bde38f45921019e369c7fe65df4a946de`, diperiksa 11 Oktober 2026. Kontrak berikut mendokumentasikan implementasi, bukan menambah endpoint atau izin. Bucket diperiksa langsung melalui metadata Supabase. Pemeriksaan ini tidak menjalankan ulang alur browser.
 
+## Addendum 15 Oktober 2026 — Endorsement
+
+Pengajuan baru dibatasi 14 x 24 jam sejak `squads.completed_at` (approval hasil),
+akhir eksklusif. Gunakan types/helper repository: `SharedSquad` menambahkan
+`closesAt: string | null` dan `windowOpen: boolean`; sudah dinilai tetap ditampilkan.
+`submitEndorsement` dapat mengembalikan `{ success: false, message, windowClosed: true }`;
+refresh ketersediaan bila jendela tutup. INSERT langsung tetap diperiksa trigger.
+Tidak ada endpoint, key, query tambahan atau kewajiban Realtime baru.
+
 ## Addendum 13 Oktober 2026
 
 - Pembubaran solo: impor `disbandSoloSquad` dari `@/app/squads/[squadId]/disband-actions`; input satu UUID squadId, output MembershipActionResult `{success:true}` atau `{success:false,message}`. STUDENT ACTIVE/onboarded, Ketua solo sebelum FINALIZED. PENDING pada Squad CANCELLED dengan notifikasi; DISBANDED/history dan membership LEFT tersimpan atomic. Refresh biasa, tanpa realtime baru. Detail: [solo disband](SOLO_SQUAD_DISBAND_2026-10-13.md).

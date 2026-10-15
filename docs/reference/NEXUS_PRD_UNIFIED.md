@@ -294,7 +294,7 @@ Semua badge yang pernah diberikan tetap di Chest; hanya satu equipped, termasuk 
 
 ### END-01 Endorsement
 
-Alur Leaderboard → profile rekan → widget rating jika keduanya pernah menjadi member Squad sama yang MISSION_COMPLETED. Widget disembunyikan jika tidak eligible. Empat nilai integer 1–5: communication, contribution, teamwork, responsibility. Tidak self-endorse; satu per pasangan arah pemberi-penerima per Squad; tanpa ulasan teks panjang. Ringkasan rata-rata/bintang ditampilkan, tidak mengubah XP/Rank.
+Alur Leaderboard → profile rekan → widget rating jika keduanya pernah menjadi member Squad sama yang MISSION_COMPLETED. Keputusan pengguna 15 Oktober 2026: pengajuan baru hanya selama 14 x 24 jam sejak hasil disetujui admin, memakai `squads.completed_at` yang ditulis approval. Awal inklusif, akhir eksklusif; timestamp kosong/future ditolak. Form menampilkan batas dalam WIB dan menutup pilihan kedaluwarsa; database memeriksa waktu sebenarnya pada INSERT. Penilaian existing tetap terlihat sesudah jendela tutup. Empat nilai integer 1–5: communication, contribution, teamwork, responsibility. Tidak self-endorse; satu per pasangan arah pemberi-penerima per Squad; tanpa ulasan teks panjang. Ringkasan rata-rata/bintang ditampilkan, tidak mengubah XP/Rank.
 
 Snapshot guard memeriksa pernah menjadi member, bukan hanya ACTIVE. Jangan otomatis melarang LEFT/KICKED/ADMIN_REMOVED menerima/memberi karena itu pengetatan produk baru; konfirmasi jika akan diubah.
 
@@ -1253,7 +1253,7 @@ Semua data contoh, nama pengguna, XP, tahun, hitungan, tanggal, dan isi chat C1 
 - Bagian reputasi publik sama dengan UI-16 sesuai izin data; tidak menampilkan Edit Profil/Klaim Achievement milik orang lain atau email/NIM.
 - Jika eligible, tampilkan pemberian Endorsement dalam konteks Squad completed yang sama, empat rating integer 1–5, tombol Kirim. Tidak menambah ulasan teks bebas.
 - “Kategori/Send” C1 diselaraskan menjadi empat dimensi END-01; tidak mengirim rating kategori sembarang.
-- Jika lebih dari satu Squad completed bersama, pemilihan konteks mengikuti UI-G07; jangan memilih squad_id pertama diam-diam. Jika sudah memberi penilaian pada Squad tersebut tampilkan status, bukan form duplikat.
+- Jika lebih dari satu Squad completed bersama, pemilihan konteks mengikuti UI-G07; jangan memilih squad_id pertama diam-diam. Jika sudah memberi penilaian pada Squad tersebut tampilkan status, bukan form duplikat. Pengajuan tersedia sebelum `completed_at + 336 hours`; tampilkan batas WIB atau status penilaian ditutup. Form lama yang melewati batas ditolak server/database lalu diperbarui, tanpa polling.
 - Profil tidak ditemukan, tidak boleh diakses, dan gagal memuat dibedakan. Hak anon dari tautan Bagikan Profil belum disepakati (UI-G08).
 - **Data/tes:** public profile projection, endorsements, memberships; T23, U12–U13.
 
