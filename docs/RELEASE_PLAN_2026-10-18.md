@@ -9,7 +9,20 @@ masih muncul di Detail Squad. Daftar tim dan kedua pihak Endorsement sekarang
 memakai anggota pada waktu finalisasi. View read-only security_invoker dan guard
 INSERT/anchor finalisasi diterapkan; history dan XP tidak diubah. Suite 62 tes,
 lint/build PASS; SQL prospektif serta verifikasi live terarah PASS. Browser owner
-sesudah pull masih perlu dicek. [Bukti dan batas](FINALIZED_SQUAD_ROSTER_2026-10-15.md).
+sesudah pull dilaporkan aman (lihat QA owner di bawah). [Bukti dan batas](FINALIZED_SQUAD_ROSTER_2026-10-15.md).
+
+**QA owner 15 Oktober — dilaporkan PASS:** Detail Squad/Endorsement sudah dicek:
+persist setelah F5, tidak menilai ulang dan XP tetap. Pengajuan Mission baru
+Tolak → edit → kirim ulang → Setujui aman. Klaim Prestasi: sertifikat admin,
+Tolak → perbaiki → kirim ulang → Setujui, Legacy XP dan F5 tanpa double credit
+juga dilaporkan aman. Ini laporan browser localhost owner, bukan pengujian ulang
+independen atau deployment. Chat dua akun tanpa F5/reconnect dan mobile belum
+terverifikasi; owner memilih pekerjaan keamanan berikutnya.
+
+**Review akses 15 Oktober:** izin tulis berlebih current_seasonal_xp_totals dibatasi
+menjadi SELECT; definition/RLS/policy dan data tetap. Dua suite SQL otomatis baru
+PASS: catalog ACL/RLS/18 RPC serta 32 probe denial missing/suspended dan forged
+metadata, dengan output view ACTIVE terjaga. [Laporan](security/RELEASE_ACCESS_REVIEW_2026-10-15.md).
 
 ## Sudah dikerjakan dan batas buktinya
 
@@ -46,7 +59,7 @@ Bukti scheduler 12 Oktober: award mingguan 00.00 WIB succeeded, menambah 9 badge
 1. **Browser gabungan:** dua STUDENT dan satu ADMIN pada environment uji yang dinyatakan. Login/cookie/refresh, onboarding, discovery/filter, Create/Join/accept/reject, transfer/leave/finalize, upload form/signed review, approval → XP/badge/history, notifications, chat/reconnect dan mobile. Tes API Storage tidak menutup alur form/approval.
 2. **Operasional deploy:** environment development/staging/production, env hosting, Auth redirect/domain, log, backup dan pemulihan belum tercatat sebagai gate PASS. Produksi belum dideploy dalam sesi ini.
 3. **Keputusan/data legacy:** G02 perubahan batas Mission yang punya Squad. G06 solo disband sudah diterapkan; verifikasi browser/concurrency tetap masuk gate. Empat profil domain lama memerlukan klasifikasi QA/asli sebelum perubahan identitas; tidak mengganti email/password otomatis.
-4. **Sisa review keamanan:** audit terakhir masih memuat 2 security-definer view yang telah diberi guard, 17 definer authenticated yang dipetakan, serta leaked-password protection disabled. Bukan 17 exploit terbukti. Dampak perlu dinilai untuk rilis. Search_path mutable dan anon definer terdahulu sudah ditangani.
+4. **Keamanan/Auth:** review 15 Oktober memetakan 2 guarded definer view dan 18 RPC authenticated (termasuk solo disband). Assertion katalog dan role/JWT rollback PASS pada batas yang diuji; grant tulis view total XP musiman telah dicabut. Advisory tetap tampil karena akses definer memang diperlukan. Leaked-password protection masih disabled dan memerlukan pengaturan Auth dashboard; bukan klaim audit keamanan global PASS. [Hasil dan batas](security/RELEASE_ACCESS_REVIEW_2026-10-15.md).
 5. **Tes terbatas:** concurrency closure/Verified dua urutan COMMIT, cleanup vs submit hasil dan batas ukuran Storage langsung belum tercakup seluruhnya. Gunakan fixture/environment terisolasi; approval nyata memengaruhi XP/badge.
 
 Admin Intervention tetap ditunda. Achievement Title Badge, PDF rank reward, poster publik baru, countdown/progress pekerjaan dan fitur di luar kontrak tidak ditambahkan. G08/G09/UI-G07 mengikuti perilaku existing sampai keputusan diperlukan untuk perubahan terkait.
