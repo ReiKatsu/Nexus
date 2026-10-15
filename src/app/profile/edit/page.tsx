@@ -42,7 +42,7 @@ export default async function EditProfilePage() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
-      <Navbar displayName={profile.nama_lengkap} activeItem="profile"
+      <Navbar displayName={profile.nama_lengkap} avatarPath={profile.foto_profil_path} activeItem="profile"
         isAdmin={profile.role_app === "ADMIN"} />
       <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
         <h1 className="text-2xl font-bold">Edit profil</h1>

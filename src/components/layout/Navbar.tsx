@@ -4,12 +4,15 @@ import LogoutButton from "./LogoutButton";
 
 type NavbarProps = {
   displayName: string;
+  avatarPath?: string | null;
   activeItem: "home" | "missions" | "leaderboard" | "my-squad" | "admin" | "notifications" | "profile";
   isAdmin?: boolean;
 };
 
-export default function Navbar({ displayName, activeItem, isAdmin = false }: NavbarProps) {
-  const initials = displayName.trim().split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase() || "N";
+export default function Navbar({ displayName, avatarPath, activeItem, isAdmin = false }: NavbarProps) {
+  const avatarUrl = avatarPath
+    ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/avatars/${avatarPath.split("/").map(encodeURIComponent).join("/")}`
+    : null;
   const items = [
     { href: "/", key: "home", label: "Home" },
     { href: "/missions", key: "missions", label: "Missions" },
@@ -36,7 +39,16 @@ export default function Navbar({ displayName, activeItem, isAdmin = false }: Nav
           </Link>
           <Link href="/profile" className="nexus-avatar" title={displayName}
             aria-label={`Buka profil ${displayName || "saya"}`}
-            aria-current={activeItem === "profile" ? "page" : undefined}>{initials}</Link>
+            aria-current={activeItem === "profile" ? "page" : undefined}>
+            {avatarUrl ? <Image src={avatarUrl} alt="" width={44} height={44} unoptimized
+              className="h-full w-full rounded-full object-cover" /> : (
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                strokeWidth="2" aria-hidden="true">
+                <circle cx="12" cy="8" r="4" />
+                <path d="M4 21v-2a8 8 0 0 1 16 0v2" />
+              </svg>
+            )}
+          </Link>
           {isAdmin && <Link href="/admin/missions" className="nexus-admin-shortcut"
             title="Review pengajuan Mission">Mission Review</Link>}
           <LogoutButton />

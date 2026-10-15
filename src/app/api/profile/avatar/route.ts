@@ -98,7 +98,6 @@ export async function POST(request: Request) {
     try { await storage.remove([oldPath]); } catch { /* Leave saved avatar intact. */ }
   }
 
-  revalidatePath("/profile");
-  revalidatePath("/profile/edit");
+  revalidatePath("/", "layout");
   return Response.json({ success: true });
 }

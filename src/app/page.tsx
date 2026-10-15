@@ -17,7 +17,7 @@ export default async function HomePage() {
   if (authError || !auth.user) redirect("/login");
   const userId = auth.user.id;
   const { data: profile, error: profileError } = await supabase.from("profiles")
-    .select("nama_lengkap, primary_class_id, role_app, status_akun").eq("user_id", userId).maybeSingle();
+    .select("nama_lengkap, primary_class_id, role_app, status_akun, foto_profil_path").eq("user_id", userId).maybeSingle();
   if (profileError || !profile) return <PageError message="Data profil sedang tidak tersedia. Coba muat ulang." />;
   if (profile.status_akun !== "ACTIVE") return <PageError message="Akunmu sedang tidak aktif. Hubungi administrator." />;
   if (profile.role_app === "ADMIN") redirect("/admin/results");
@@ -63,7 +63,7 @@ export default async function HomePage() {
       ? supabase.storage.from("avatars").getPublicUrl(entry.foto_profil_path).data.publicUrl : null,
   }));
   return <div className="min-h-screen">
-    <Navbar displayName={profile.nama_lengkap} activeItem="home" />
+    <Navbar displayName={profile.nama_lengkap} avatarPath={profile.foto_profil_path} activeItem="home" />
     <Dashboard name={profile.nama_lengkap} careerXp={career.data?.career_xp ?? null}
       seasonalXp={seasonal.data?.seasonal_xp ?? null} seasonName={season.data?.nama_season ?? null}
       rules={ranks.data ?? []}

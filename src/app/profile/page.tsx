@@ -101,7 +101,7 @@ export default async function ProfilePage() {
 
   return (
     <div className="nexus-app-page min-h-screen bg-slate-50 text-slate-900">
-      <Navbar displayName={profile.nama_lengkap} activeItem="profile"
+      <Navbar displayName={profile.nama_lengkap} avatarPath={profile.foto_profil_path} activeItem="profile"
         isAdmin={profile.role_app === "ADMIN"} />
       <main className="nexus-page-shell profile-page mx-auto max-w-6xl px-4 py-8 sm:px-6">
         <div className="nexus-page-heading flex flex-wrap items-center justify-between gap-3">

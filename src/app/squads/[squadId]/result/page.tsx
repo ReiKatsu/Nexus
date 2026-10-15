@@ -22,7 +22,7 @@ export default async function MissionResultPage({ params }: Props) {
 
   const [profileResult, memberResult, squadResult] = await Promise.all([
     supabase.from("profiles")
-      .select("nama_lengkap, role_app, status_akun, primary_class_id")
+      .select("nama_lengkap, role_app, status_akun, primary_class_id, foto_profil_path")
       .eq("user_id", authData.user.id).maybeSingle(),
     supabase.from("squad_members")
       .select("role_squad")
@@ -64,7 +64,7 @@ export default async function MissionResultPage({ params }: Props) {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
-      <Navbar displayName={profile.nama_lengkap} activeItem="my-squad" />
+      <Navbar displayName={profile.nama_lengkap} avatarPath={profile.foto_profil_path} activeItem="my-squad" />
       <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
         <Link href={squad.status_squad === "MISSION_COMPLETED" ? "/my-squad" : `/squads/${squadId}`}
           className="text-sm font-bold text-indigo-600">

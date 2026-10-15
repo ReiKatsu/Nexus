@@ -8,10 +8,10 @@ import { RESULT_OPTIONS } from "../result/types";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-function LoadError({ displayName }: { displayName: string }) {
+function LoadError({ displayName, avatarPath }: { displayName: string; avatarPath?: string | null }) {
   return (
     <div className="nexus-app-page min-h-screen bg-slate-50 text-slate-900">
-      <Navbar displayName={displayName} activeItem="my-squad" />
+      <Navbar displayName={displayName} avatarPath={avatarPath} activeItem="my-squad" />
       <main className="mx-auto max-w-3xl px-4 py-8">
         <Link href="/my-squad" prefetch={false} className="font-bold text-indigo-700">← My Squad</Link>
         <p role="alert" className="mt-6">Detail Squad belum dapat dimuat. Muat ulang untuk mencoba lagi.</p>
@@ -30,7 +30,7 @@ export default async function SquadEndorsementsPage({ params }: {
   if (authError || !auth.user) redirect("/login");
 
   const [profile, membership, squad] = await Promise.all([
-    supabase.from("profiles").select("nama_lengkap,role_app,status_akun,primary_class_id")
+    supabase.from("profiles").select("nama_lengkap,role_app,status_akun,primary_class_id, foto_profil_path")
       .eq("user_id", auth.user.id).maybeSingle(),
     supabase.from("squad_members").select("squad_id")
       .eq("squad_id", squadId).eq("user_id", auth.user.id).limit(1).maybeSingle(),
@@ -40,7 +40,7 @@ export default async function SquadEndorsementsPage({ params }: {
   if (profile.error) return <LoadError displayName="NEXUS" />;
   if (!profile.data || profile.data.role_app !== "STUDENT" || profile.data.status_akun !== "ACTIVE") notFound();
   if (profile.data.primary_class_id === null) redirect("/onboarding");
-  if (membership.error || squad.error) return <LoadError displayName={profile.data.nama_lengkap} />;
+  if (membership.error || squad.error) return <LoadError displayName={profile.data.nama_lengkap} avatarPath={profile.data.foto_profil_path} />;
   if (!membership.data || !squad.data || squad.data.status_squad !== "MISSION_COMPLETED") notFound();
 
   const [members, ratings, resultQuery] = await Promise.all([
@@ -51,14 +51,14 @@ export default async function SquadEndorsementsPage({ params }: {
       .select("status_validation,hasil_kompetisi,approved_hasil_kompetisi,xp_transactions(xp_amount)")
       .eq("squad_id", squadId).eq("xp_transactions.user_id", auth.user.id).maybeSingle(),
   ]);
-  if (members.error || ratings.error) return <LoadError displayName={profile.data.nama_lengkap} />;
+  if (members.error || ratings.error) return <LoadError displayName={profile.data.nama_lengkap} avatarPath={profile.data.foto_profil_path} />;
   const memberIds = [...new Set((members.data ?? []).map(member => member.user_id))];
   const peerIds = memberIds.filter(id => id !== auth.user.id);
   const canRate = memberIds.includes(auth.user.id);
   const peers = peerIds.length > 0
     ? await supabase.from("public_profiles").select("user_id,nama_lengkap").in("user_id", peerIds)
     : { data: [], error: null };
-  if (peers.error) return <LoadError displayName={profile.data.nama_lengkap} />;
+  if (peers.error) return <LoadError displayName={profile.data.nama_lengkap} avatarPath={profile.data.foto_profil_path} />;
   const names = new Map((peers.data ?? []).map(peer => [peer.user_id, peer.nama_lengkap]));
   names.set(auth.user.id, `${profile.data.nama_lengkap} (Kamu)`);
   const rated = new Set((ratings.data ?? []).map(rating => rating.to_user_id));
@@ -77,7 +77,7 @@ export default async function SquadEndorsementsPage({ params }: {
 
   return (
     <div className="nexus-app-page min-h-screen bg-slate-50 text-slate-900">
-      <Navbar displayName={profile.data.nama_lengkap} activeItem="my-squad" />
+      <Navbar displayName={profile.data.nama_lengkap} avatarPath={profile.data.foto_profil_path} activeItem="my-squad" />
       <main className="nexus-page-shell mx-auto max-w-3xl px-4 py-8 sm:px-6">
         <Link href="/my-squad" prefetch={false} className="text-sm font-bold text-indigo-700">← My Squad</Link>
         <section className="glass-card mt-6 rounded-2xl border border-slate-200 bg-white p-6">

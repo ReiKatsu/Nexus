@@ -20,7 +20,7 @@ export default async function BadgeChestPage() {
   if (authError || !auth.user) redirect("/login");
 
   const { data: profile, error: profileError } = await supabase.from("profiles")
-    .select("nama_lengkap, role_app, status_akun, primary_class_id")
+    .select("nama_lengkap, role_app, status_akun, primary_class_id, foto_profil_path")
     .eq("user_id", auth.user.id).maybeSingle();
   if (!profileError && profile?.role_app === "STUDENT" && profile.primary_class_id === null) {
     redirect("/onboarding");
@@ -40,7 +40,7 @@ export default async function BadgeChestPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
-      {profile && <Navbar displayName={profile.nama_lengkap} activeItem="profile" />}
+      {profile && <Navbar displayName={profile.nama_lengkap} avatarPath={profile.foto_profil_path} activeItem="profile" />}
       <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
         <Link href="/profile" className="text-sm font-semibold text-indigo-700 hover:underline">
           ← Profil Saya
