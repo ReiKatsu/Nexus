@@ -36,12 +36,12 @@ begin
   aid:=public.submit_squad_application(sid);
   perform set_config('request.jwt.claim.sub',u[1]::text,true);
   perform public.decide_squad_application(aid,'ACCEPTED');
+  perform public.finalize_squad(sid);
   perform set_config('role',owner_role,true);
   old_flag:=current_setting('nexus.internal',true);
   perform set_config('nexus.internal','1',true);
   -- Fixture completion only: no approved result, XP, badge or approval notification.
-  update public.squads set status_squad='MISSION_COMPLETED',finalized_at=clock_timestamp()-interval '2 hours',
-    completed_at=clock_timestamp()-interval '1 hour'
+  update public.squads set status_squad='MISSION_COMPLETED',completed_at=clock_timestamp()
     where squad_id=sid;
   perform set_config('nexus.internal',coalesce(old_flag,''),true);
   perform set_config('role','authenticated',true);

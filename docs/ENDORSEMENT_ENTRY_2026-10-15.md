@@ -3,6 +3,8 @@
 Owner meminta akses rekan tanpa harus mencari lewat Leaderboard. Entry utama kini
 My Squad → Riwayat Squad selesai → Detail Squad → pilih nama rekan → Nilai rekan.
 Leaderboard/profil umum tetap dapat digunakan; ranking bukan syarat eligibility.
+Koreksi berikutnya memakai anggota saat finalisasi, bukan semua riwayat anggota;
+lihat [roster final](FINALIZED_SQUAD_ROSTER_2026-10-15.md).
 
 ## Perilaku dan akses
 
@@ -16,22 +18,25 @@ Leaderboard/profil umum tetap dapat digunakan; ranking bukan syarat eligibility.
 - Tautan pengajuan hasil hanya untuk membership ACTIVE sesuai guard halaman existing.
   URL Room completed milik anggota ACTIVE diarahkan ke detail sebelum query chat/RPC.
 - Nama rekan dibaca sekaligus dari public_profiles; tidak memakai email/NIM,
-  mengabaikan duplikasi membership dan mengecualikan user sendiri.
+  mengabaikan duplikasi membership; user sendiri berlabel (Kamu) tanpa tombol menilai.
 - Daftar menampilkan sudah/belum dinilai atau penilaian ditutup, beserta batas WIB.
 - Profil menerima `?squad=UUID` yang cocok dengan shared Squad eligible existing.
   Form terbatas pada konteks yang dipilih; tautan kembali menuju daftar rekan.
   Parameter invalid/asing tidak memberi eligibility atau membuat redirect eksternal.
-- Jendela 14 hari, anti-self/duplicate dan historical-member policy tetap.
+- Jendela 14 hari dan anti-self/duplicate tetap. Eligibility pasangan mengikuti
+  anggota saat finalisasi; mantan anggota sebelum finalisasi hanya membaca history.
 - Setelah penilaian berhasil, route daftar rekan ikut direvalidasi agar status saat
   kembali mencerminkan penilaian yang baru dikirim.
-- Tidak membuka kembali Room/chat, mengubah schema/RLS atau memberi XP.
+- Tidak membuka kembali Room/chat atau memberi XP. View roster baru memakai RLS
+  tabel asal; tidak menambah tabel salinan anggota.
 
 ## Efisiensi dan bukti
 
 - MySquadPage tidak berubah; tidak ada query baru pada daftar kartu.
 - Prefetch link baru dimatikan. Detail mengambil membership/rating dan nama secara
   batch saat dibuka, tanpa request per rekan, polling atau pengambilan avatar.
-- 59 tes aplikasi, lint dan production build/TypeScript PASS pada kandidat.
+- Bukti kandidat Detail Squad sebelum koreksi roster: 59 tes aplikasi, lint dan
+  production build/TypeScript PASS. Bukti koreksi roster ada di laporan terpisah.
   Tes mencakup route guard, nama publik terfilter, deduplikasi, expiry/rated,
   empty/error, prefetch dan validasi konteks/back link.
 - Regresi tambahan: dua akses ringkas pada kartu, hasil admin approved, XP caller,
@@ -39,7 +44,8 @@ Leaderboard/profil umum tetap dapat digunakan; ranking bukan syarat eligibility.
   tanpa mengakses chat. Snapshot SELECT dengan role authenticated membaca Participant
   dan satu transaksi 230 XP milik owner.
 - Pembacaan SQL dengan role authenticated pada Squad owner mengembalikan tiga
-  profil rekan yang dapat dibaca. Tidak ada perubahan data atau migration.
+  profil rekan yang dapat dibaca pada perilaku lama. Koreksi terbaru mengecualikan
+  Radhif yang keluar sebelum finalisasi; baca laporan roster final.
 - Review React: Server Components untuk data/navigation, query independen paralel,
   plain-text escaping, stable keys, link native, empty/error terpisah, tanpa hook baru.
 

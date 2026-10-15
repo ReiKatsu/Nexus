@@ -4,6 +4,13 @@ Target backend siap integrasi **18 Oktober**; 19–20 Oktober cadangan. Rilis le
 
 Baseline backend main: cd0fe898e2fbfcf0f2cd3cc63eabfb042c5ae95f. Kandidat memakai frontend PR #29 pada 5313bb925cb433a9f75210fd18be17ff71fcdf0d serta badge PR #32 pada e001d0c002ebd385b891b293c3368f6d445a0256. Konflik PRD mempertahankan keputusan G05/G06 terbaru. Branch teman tidak ditulis ulang; CI kandidat menjadi syarat merge.
 
+**Koreksi roster 15 Oktober:** owner melaporkan Radhif (LEFT sebelum finalisasi)
+masih muncul di Detail Squad. Daftar tim dan kedua pihak Endorsement sekarang
+memakai anggota pada waktu finalisasi. View read-only security_invoker dan guard
+INSERT/anchor finalisasi diterapkan; history dan XP tidak diubah. Suite 62 tes,
+lint/build PASS; SQL prospektif serta verifikasi live terarah PASS. Browser owner
+sesudah pull masih perlu dicek. [Bukti dan batas](FINALIZED_SQUAD_ROSTER_2026-10-15.md).
+
 ## Sudah dikerjakan dan batas buktinya
 
 | Area | Status 13 Oktober |

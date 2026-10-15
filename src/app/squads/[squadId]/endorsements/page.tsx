@@ -44,7 +44,7 @@ export default async function SquadEndorsementsPage({ params }: {
   if (!membership.data || !squad.data || squad.data.status_squad !== "MISSION_COMPLETED") notFound();
 
   const [members, ratings, resultQuery] = await Promise.all([
-    supabase.from("squad_members").select("user_id,status_member").eq("squad_id", squadId),
+    supabase.from("finalized_squad_members").select("user_id,status_member").eq("squad_id", squadId),
     supabase.from("endorsements").select("to_user_id")
       .eq("squad_id", squadId).eq("from_user_id", auth.user.id),
     supabase.from("mission_result_submissions")
@@ -52,13 +52,15 @@ export default async function SquadEndorsementsPage({ params }: {
       .eq("squad_id", squadId).eq("xp_transactions.user_id", auth.user.id).maybeSingle(),
   ]);
   if (members.error || ratings.error) return <LoadError displayName={profile.data.nama_lengkap} />;
-  const peerIds = [...new Set((members.data ?? []).map(member => member.user_id))]
-    .filter(id => id !== auth.user.id);
+  const memberIds = [...new Set((members.data ?? []).map(member => member.user_id))];
+  const peerIds = memberIds.filter(id => id !== auth.user.id);
+  const canRate = memberIds.includes(auth.user.id);
   const peers = peerIds.length > 0
     ? await supabase.from("public_profiles").select("user_id,nama_lengkap").in("user_id", peerIds)
     : { data: [], error: null };
   if (peers.error) return <LoadError displayName={profile.data.nama_lengkap} />;
   const names = new Map((peers.data ?? []).map(peer => [peer.user_id, peer.nama_lengkap]));
+  names.set(auth.user.id, `${profile.data.nama_lengkap} (Kamu)`);
   const rated = new Set((ratings.data ?? []).map(rating => rating.to_user_id));
   const window = endorsementWindow(squad.data.completed_at);
   const result = resultQuery.data as {
@@ -99,10 +101,11 @@ export default async function SquadEndorsementsPage({ params }: {
                 className="hover:underline">Lihat Mission</Link>
             </div>
           </section>
-          <h2 className="mt-6 text-lg font-bold">Rekan Squad dan penilaian</h2>
+          <h2 className="mt-6 text-lg font-bold">Anggota saat finalisasi</h2>
           <p className="mt-2 text-sm text-slate-600">
-            Pilih rekan dari riwayat tim ini. Penilaian tidak menambah XP.
+            Penilaian untuk anggota saat Squad difinalisasi, setelah hasil Mission disetujui admin. Penilaian tidak menambah XP.
           </p>
+          {!canRate && <p className="mt-2 text-sm text-slate-600">Kamu bukan anggota saat finalisasi, sehingga tidak dapat memberi penilaian untuk Squad ini.</p>}
           <p className="mt-2 text-sm text-slate-600">
             {window.windowOpen && window.closesAt
               ? `Batas penilaian: ${new Intl.DateTimeFormat("id-ID", {
@@ -110,20 +113,21 @@ export default async function SquadEndorsementsPage({ params }: {
                 }).format(new Date(window.closesAt))} WIB.`
               : "Penilaian sudah ditutup. Profil dan penilaian yang tersimpan tetap dapat dilihat."}
           </p>
-          {peerIds.length === 0 ? <p className="mt-6 text-sm">Belum ada rekan pada riwayat Squad ini.</p> : (
+          {memberIds.length === 0 ? <p className="mt-6 text-sm">Data anggota saat finalisasi belum tersedia.</p> : (
             <ul className="mt-6 space-y-3">
-              {peerIds.map(id => (
+              {memberIds.map(id => (
                 <li key={id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 p-4">
                   <div className="min-w-0">
                     <p className="break-words font-bold [overflow-wrap:anywhere]">{names.get(id) ?? "Profil rekan belum tersedia"}</p>
                     <p className="mt-1 text-sm text-slate-600">
-                      {rated.has(id) ? "Sudah dinilai" : window.windowOpen ? "Belum dinilai" : "Penilaian ditutup"}
+                      {id === auth.user.id ? "Anggota tim saat finalisasi" : rated.has(id) ? "Sudah dinilai"
+                        : !canRate ? "Penilaian tidak tersedia" : window.windowOpen ? "Belum dinilai" : "Penilaian ditutup"}
                     </p>
                   </div>
-                  {names.has(id) && (
+                  {id !== auth.user.id && names.has(id) && (
                     <Link href={`/profile/${id}?squad=${squadId}`} prefetch={false}
                       className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-bold text-white">
-                      {window.windowOpen && !rated.has(id) ? "Nilai rekan" : "Lihat profil"}
+                      {canRate && window.windowOpen && !rated.has(id) ? "Nilai rekan" : "Lihat profil"}
                     </Link>
                   )}
                 </li>

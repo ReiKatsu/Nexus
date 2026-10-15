@@ -41,13 +41,13 @@ export async function submitEndorsement(
   const [squadResult, membersResult] = await Promise.all([
     supabase.from("squads").select("squad_id,status_squad,completed_at")
       .eq("squad_id", squadId).maybeSingle(),
-    supabase.from("squad_members").select("user_id")
+    supabase.from("finalized_squad_members").select("user_id")
       .eq("squad_id", squadId).in("user_id", [auth.user.id, targetUserId]),
   ]);
   if (squadResult.error || membersResult.error ||
       squadResult.data?.status_squad !== "MISSION_COMPLETED" ||
       new Set((membersResult.data ?? []).map((row) => row.user_id)).size !== 2) {
-    return { success: false, message: "Penilaian hanya tersedia untuk rekan dari Mission yang selesai." };
+    return { success: false, message: "Penilaian hanya untuk sesama anggota saat finalisasi Squad dengan hasil Mission disetujui." };
   }
 
   if (!endorsementWindow(squadResult.data.completed_at).windowOpen) {

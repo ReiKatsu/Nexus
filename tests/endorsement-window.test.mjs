@@ -29,11 +29,11 @@ test('window opens at completion, closes exactly at 336 hours, and rejects missi
   for (const invalid of [null, '', 'bad']) assert.equal(window.endorsementWindow(invalid).windowOpen, false);
 });
 
-test('shared Squad loader adds deadlines to existing queries without dropping old ratings or historical members', async () => {
+test('shared Squad loader reads finalized participants without dropping expired ratings or post-finalization removals', async () => {
   const calls = [];
   const client = { from(table) {
     const call = { table, filters: [] }; calls.push(call);
-    const data = table === 'squad_members' ? [{ squad_id: id }]
+    const data = table === 'finalized_squad_members' ? [{ squad_id: id }]
       : table === 'squads' ? [{ squad_id: id, nama_squad: 'Old Squad', completed_at: '2026-09-01T00:00:00Z' }]
         : [{ squad_id: id }];
     const q = { select(fields) { call.fields = fields; return q; },
@@ -43,13 +43,14 @@ test('shared Squad loader adds deadlines to existing queries without dropping ol
   } };
   const result = await lib.loadSharedCompletedSquads(client, id, peer);
   assert.equal(calls.length, 4);
+  assert.equal(calls.filter(c => c.table === 'finalized_squad_members').length, 2);
   assert.ok(calls.find(c => c.table === 'squads').fields.includes('completed_at'));
   assert.ok(!calls.some(c => c.filters.some(([key]) => key === 'status_member')));
   assert.equal(result[0].alreadyRated, true); assert.equal(result[0].windowOpen, false);
   assert.equal(result[0].closesAt, '2026-09-15T00:00:00.000Z');
 });
 
-function setup(completedAt, insertError = null) {
+function setup(completedAt, insertError = null, members = [{ user_id: id }, { user_id: peer }]) {
   const calls = [], refreshed = [];
   const client = {
     auth: { getUser: async () => ({ data: { user: { id } }, error: null }) },
@@ -58,7 +59,7 @@ function setup(completedAt, insertError = null) {
         maybeSingle: async () => ({ data: table === 'profiles'
           ? { role_app: 'STUDENT', status_akun: 'ACTIVE', primary_class_id: 1 }
           : { status_squad: 'MISSION_COMPLETED', completed_at: completedAt }, error: null }),
-        then: resolve => Promise.resolve({ data: [{ user_id: id }, { user_id: peer }], error: null }).then(resolve),
+        then: resolve => Promise.resolve({ data: table === 'finalized_squad_members' ? members : [], error: null }).then(resolve),
         insert: async row => { calls.push(row); return { error: insertError }; } };
       return q;
     },
@@ -70,6 +71,29 @@ function setup(completedAt, insertError = null) {
   }).submitEndorsement;
   return { action, calls, refreshed };
 }
+test('action rejects a nonparticipant sender or recipient before INSERT', async () => {
+  for (const members of [[], [{ user_id: id }], [{ user_id: peer }]]) {
+    const s = setup('2026-10-01T12:00:00Z', null, members);
+    const result = await s.action(peer, id, scores);
+    assert.equal(result.success, false); assert.match(result.message, /saat finalisasi/);
+    assert.equal(s.calls.length, 0); assert.equal(s.refreshed.length, 0);
+  }
+});
+test('shared Squad loader excludes a pair when either user was absent at finalization', async () => {
+  for (const absent of [id, peer]) {
+    const calls = [];
+    const client = { from(table) {
+      const call = { table }; calls.push(call);
+      const q = { select() { return q; }, eq(key, value) { call[key] = value; return q; }, in() { return q; },
+        then(resolve) { return Promise.resolve({ data: table === 'finalized_squad_members'
+          ? call.user_id === absent ? [] : [{ squad_id: id }]
+          : table === 'squads' ? [{ squad_id: id, nama_squad: 'QA', completed_at: new Date(start).toISOString() }] : [],
+          error: null }).then(resolve); } }; return q;
+    } };
+    assert.equal((await lib.loadSharedCompletedSquads(client, id, peer)).length, 0);
+    assert.equal(calls.length, absent === id ? 1 : 4);
+  }
+});
 test('expired/missing/future completion is rejected before INSERT and cannot report success', async () => {
   for (const at of ['2026-09-01T00:00:00Z', null, '2026-10-02T00:00:00Z']) {
     const s = setup(at), result = await s.action(peer, id, scores);
