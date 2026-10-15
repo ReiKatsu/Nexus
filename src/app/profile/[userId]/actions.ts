@@ -74,5 +74,6 @@ export async function submitEndorsement(
 
   revalidatePath(`/profile/${targetUserId}`);
   revalidatePath("/profile");
+  revalidatePath(`/squads/${squadId}/endorsements`);
   return { success: true };
 }

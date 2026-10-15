@@ -4,6 +4,12 @@ Baseline: `main` commit `2245ac5bde38f45921019e369c7fe65df4a946de`, diperiksa 11
 
 ## Addendum 15 Oktober 2026 — Endorsement
 
+- Entry utama: `/my-squad` → kartu Riwayat MISSION_COMPLETED →
+  `/squads/[squadId]/endorsements` → `/profile/[userId]?squad=[squadId]`.
+  Route daftar rekan memerlukan STUDENT ACTIVE/onboarded dengan riwayat membership;
+  parameter profil hanya memilih konteks shared yang sudah eligible. Link baru
+  memakai `prefetch={false}`; nama rekan dibaca sekaligus lewat public_profiles.
+
 Pengajuan baru dibatasi 14 x 24 jam sejak `squads.completed_at` (approval hasil),
 akhir eksklusif. Gunakan types/helper repository: `SharedSquad` menambahkan
 `closesAt: string | null` dan `windowOpen: boolean`; sudah dinilai tetap ditampilkan.

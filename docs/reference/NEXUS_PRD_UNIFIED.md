@@ -294,7 +294,7 @@ Semua badge yang pernah diberikan tetap di Chest; hanya satu equipped, termasuk 
 
 ### END-01 Endorsement
 
-Alur Leaderboard → profile rekan → widget rating jika keduanya pernah menjadi member Squad sama yang MISSION_COMPLETED. Keputusan pengguna 15 Oktober 2026: pengajuan baru hanya selama 14 x 24 jam sejak hasil disetujui admin, memakai `squads.completed_at` yang ditulis approval. Awal inklusif, akhir eksklusif; timestamp kosong/future ditolak. Form menampilkan batas dalam WIB dan menutup pilihan kedaluwarsa; database memeriksa waktu sebenarnya pada INSERT. Penilaian existing tetap terlihat sesudah jendela tutup. Empat nilai integer 1–5: communication, contribution, teamwork, responsibility. Tidak self-endorse; satu per pasangan arah pemberi-penerima per Squad; tanpa ulasan teks panjang. Ringkasan rata-rata/bintang ditampilkan, tidak mengubah XP/Rank.
+Alur utama My Squad → Riwayat Squad completed → Nilai rekan → profile rekan dengan konteks Squad terpilih. Leaderboard → profile tetap jalur tambahan; posisi/perolehan XP bukan syarat Endorsement. Keduanya harus pernah menjadi member Squad sama yang MISSION_COMPLETED. Keputusan pengguna 15 Oktober 2026: pengajuan baru hanya selama 14 x 24 jam sejak hasil disetujui admin, memakai `squads.completed_at` yang ditulis approval. Awal inklusif, akhir eksklusif; timestamp kosong/future ditolak. Form menampilkan batas dalam WIB dan menutup pilihan kedaluwarsa; database memeriksa waktu sebenarnya pada INSERT. Penilaian existing tetap terlihat sesudah jendela tutup. Empat nilai integer 1–5: communication, contribution, teamwork, responsibility. Tidak self-endorse; satu per pasangan arah pemberi-penerima per Squad; tanpa ulasan teks panjang. Ringkasan rata-rata/bintang ditampilkan, tidak mengubah XP/Rank.
 
 Snapshot guard memeriksa pernah menjadi member, bukan hanya ACTIVE. Jangan otomatis melarang LEFT/KICKED/ADMIN_REMOVED menerima/memberi karena itu pengetatan produk baru; konfirmasi jika akan diubah.
 
@@ -1170,6 +1170,7 @@ Semua data contoh, nama pengguna, XP, tahun, hitungan, tanggal, dan isi chat C1 
 - Kartu aktif: nama Squad/Mission, Tier, cakupan/biaya/mode, anggota ACTIVE/kapasitas, status, peran user, avatar yang berhak ditampilkan, akses Squad Room.
 - History: nama Squad/Mission, Tier, cakupan, peran historis user; hasil tervalidasi, XP yang benar-benar diterima user, dan tanggal jika tersedia. LEFT/KICKED tidak otomatis dianggap meraih hasil/XP tim.
 - Tombol Squad Room membuka Squad terkait; history tidak menghidupkan kembali chat yang sudah dihapus.
+- Pada history MISSION_COMPLETED, Nilai rekan membuka daftar rekan historis dari Squad tersebut. User sendiri dikecualikan, nama diambil dari proyeksi profil publik. Tampilkan status sudah dinilai/ditutup; tautan profil membawa konteks Squad dan akses kembali ke daftar rekan. LEFT/KICKED tetap mengikuti eligibility END-01. Jalur ini tidak memerlukan pencarian di Leaderboard.
 - “Waktu Tersisa 30/60 Hari”, “11/50 Hari” tidak disalin tanpa definisi awal/akhir; UI-G05. Simbol tambah tanpa fungsi yang terbukti mengikuti UI-G11.
 - Empty active/history masing-masing jelas. Jangan menampilkan “5/5 Open” hanya karena contoh Canva; status mengikuti SQ-01 dan actual data.
 - **Data/tes:** memberships termasuk riwayat, squads, missions, hasil, xp_transactions; T16–T18, U07.
@@ -1365,7 +1366,7 @@ Status baris dapat berupa RESOLVED, DEFERRED, NEEDS DECISION, atau NOT VERIFIED 
 | UI-G04 | DEFERRED 8 Oktober 2026: laporan masalah Squad ditunda | Jangan membangun dropdown/enum; jika fitur diaktifkan lagi, tentukan jenis masalah dan alur admin |
 | UI-G05 | Countdown x/y hari, persentase 47%, awal periode belum didefinisikan | Deadline riil dapat tampil; jangan membuat progress pekerjaan atau rumus durasi baru |
 | UI-G06 | RESOLVED 8 Oktober 2026: hanya Fakultas/Prodi sendiri, Universitas seluruh UNESA | UI menampilkan tiga scope tersebut; jangan membuka pilihan unit lain |
-| UI-G07 | Endorsement jika memiliki beberapa Squad completed bersama | Tentukan selector konteks; jangan pilih satu Squad diam-diam |
+| UI-G07 | RESOLVED 15 Oktober: konteks Endorsement | Jalur My Squad membawa satu Squad shared yang divalidasi; jalur profil umum mempertahankan selector existing. Parameter URL tidak memberi eligibility baru. |
 | UI-G08 | Share profile anon, domain, slug dan route | Verifikasi/putuskan akses publik dan data aman; jangan membuka seluruh profiles atau menjanjikan domain aktif |
 | UI-G09 | Tujuan klik notifikasi dan badge unread | notifications tidak mencantumkan target ID/URL dalam kamus data; jangan parsing teks nama sebagai identitas objek atau mengarang schema |
 | UI-G10 | Jumlah ringkasan, pagination, lokasi detail history/pengajuan | Ikuti komponen/route existing bila ada; angka contoh bukan batas produk |

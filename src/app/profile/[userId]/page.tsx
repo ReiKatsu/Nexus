@@ -10,8 +10,11 @@ import EndorsementForm from "./EndorsementForm";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-export default async function PeerProfilePage({ params }: { params: Promise<{ userId: string }> }) {
-  const { userId } = await params;
+export default async function PeerProfilePage({ params, searchParams }: {
+  params: Promise<{ userId: string }>;
+  searchParams: Promise<{ squad?: string | string[] }>;
+}) {
+  const [{ userId }, query] = await Promise.all([params, searchParams]);
   if (!UUID.test(userId)) notFound();
 
   const supabase = await createClient();
@@ -51,14 +54,18 @@ export default async function PeerProfilePage({ params }: { params: Promise<{ us
   const avatar = peer.foto_profil_path
     ? supabase.storage.from("avatars").getPublicUrl(peer.foto_profil_path).data.publicUrl
     : null;
+  const context = typeof query.squad === "string" && UUID.test(query.squad)
+    ? sharedSquads?.find(squad => squad.squadId === query.squad)
+    : undefined;
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
-      <Navbar displayName={viewerResult.data.nama_lengkap} activeItem="leaderboard"
+      <Navbar displayName={viewerResult.data.nama_lengkap} activeItem={context ? "my-squad" : "leaderboard"}
         isAdmin={viewerResult.data.role_app === "ADMIN"} />
       <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
-        <Link href="/leaderboard" className="text-sm font-semibold text-indigo-700 hover:underline">
-          ← Leaderboard
+        <Link href={context ? `/squads/${context.squadId}/endorsements` : "/leaderboard"}
+          prefetch={false} className="text-sm font-semibold text-indigo-700 hover:underline">
+          {context ? `← Rekan ${context.name}` : "← Leaderboard"}
         </Link>
         <section className="mt-5 rounded-2xl border border-slate-200 bg-white p-6">
           <div className="flex items-center gap-4">
@@ -88,7 +95,8 @@ export default async function PeerProfilePage({ params }: { params: Promise<{ us
             Ketersediaan penilaian belum dapat diperiksa. Coba muat ulang.
           </p>
         ) : sharedSquads.length > 0 ? (
-          <EndorsementForm targetUserId={userId} squads={sharedSquads} />
+          <EndorsementForm key={context?.squadId ?? "all-squads"} targetUserId={userId}
+            squads={context ? [context] : sharedSquads} />
         ) : null}
       </main>
     </div>

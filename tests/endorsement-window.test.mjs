@@ -81,7 +81,8 @@ test('open window sends caller-owned rating; expiry during INSERT returns a safe
   const s = setup('2026-10-01T12:00:00Z');
   assert.equal((await s.action(peer, id, scores)).success, true);
   assert.equal(s.calls.length, 1); assert.equal(s.calls[0].from_user_id, id);
-  assert.equal(s.refreshed.length, 2);
+  assert.equal(s.refreshed.length, 3);
+  assert.ok(s.refreshed.includes(`/squads/${id}/endorsements`));
   const raced = setup('2026-10-01T12:00:00Z', { code: 'P0001', message: 'Endorsement window is closed' });
   const result = await raced.action(peer, id, scores);
   assert.equal(result.success, false); assert.equal(result.windowClosed, true);
