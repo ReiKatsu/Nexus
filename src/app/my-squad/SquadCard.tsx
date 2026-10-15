@@ -122,6 +122,12 @@ export default function SquadCard({
       ) : null}
 
       <div className="mt-auto pt-5">
+        {isHistory && item.squadStatus === "MISSION_COMPLETED" && (
+          <Link href={`/squads/${item.squadId}/endorsements`} prefetch={false}
+            className="mb-3 inline-flex w-full justify-center rounded-xl border border-indigo-200 px-4 py-2.5 text-sm font-bold text-indigo-700">
+            Nilai rekan
+          </Link>
+        )}
         {isHistory && item.membershipStatus === "ACTIVE" &&
           item.squadStatus === "MISSION_COMPLETED" && (
             <Link href={`/squads/${item.squadId}/result`}

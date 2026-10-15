@@ -58,6 +58,14 @@ Server Action dan form tanpa query tambahan/polling. SQL terisolasi dan hosted
 rollback PASS, counts/ACL tetap; 51 tes aplikasi, lint/build PASS. Deadline browser
 owner sesudah pull belum diuji. [Rincian dan batas bukti](ENDORSEMENT_WINDOW_2026-10-15.md).
 
+**Entry Endorsement 15 Oktober:** owner melaporkan pembaruan sebelumnya done,
+lalu meminta akses rekan melalui riwayat tim. My Squad history kini membuka daftar
+rekan dari Squad completed; profil membawa konteks Squad dan link kembali.
+Tidak ada query baru pada daftar My Squad, migration atau perubahan eligibility.
+56 tes, lint/build PASS; SQL read dengan role authenticated dapat membaca nama
+rekan melalui proyeksi publik. Browser entry baru masih perlu dicek owner.
+[Detail](ENDORSEMENT_ENTRY_2026-10-15.md).
+
 | Tanggal WIB | Pemilik | Hasil yang dituju |
 |---|---|---|
 | 13–14 Okt | Backend + frontend | Merge kandidat setelah CI, perbaiki bug integrasi, siapkan regresi dan staging. Remediasi awal dependency/akses sudah dilakukan. |
