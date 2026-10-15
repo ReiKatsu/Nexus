@@ -2,9 +2,10 @@ import { randomUUID } from "node:crypto";
 
 import { revalidatePath } from "next/cache";
 
-import { validateEvidence } from "@/app/squads/[squadId]/result/file-validation";
+import { MAX_FILE_BYTES, validateEvidence } from "@/app/squads/[squadId]/result/file-validation";
 import { RESULT_OPTIONS } from "@/app/squads/[squadId]/result/types";
 import { createClient } from "@/lib/supabase/server";
+import { readUpload } from "@/lib/uploads/read-upload";
 
 export const runtime = "nodejs";
 
@@ -60,7 +61,7 @@ export async function POST(request: Request) {
     return fail("Isian tidak dapat dibaca.");
   }
   const fields = ["claim_id", "nama_kompetisi", "penyelenggara", "achievement_date",
-    "submitted_tier_id", "hasil_kompetisi", "sertifikat"];
+    "submitted_tier_id", "hasil_kompetisi", "sertifikat", "upload_id"];
   if (fields.some((name) => form.getAll(name).length > 1)) return fail("Isian tidak valid.");
 
   const claimInput = form.get("claim_id");
@@ -69,7 +70,14 @@ export async function POST(request: Request) {
   const date = form.get("achievement_date");
   const tier = form.get("submitted_tier_id");
   const result = form.get("hasil_kompetisi");
-  const file = form.get("sertifikat");
+  const uploadId = form.get("upload_id");
+  if (uploadId !== null && (typeof uploadId !== "string" || !UUID.test(uploadId) ||
+      (claimInput !== null && claimInput !== uploadId))) return fail("Berkas tidak valid.");
+  const claimId = String(claimInput ?? uploadId ?? randomUUID());
+  const storage = supabase.storage.from(BUCKET);
+  const uploaded = await readUpload(form.get("sertifikat"), storage,
+    `${userId}/${claimId}/`, MAX_FILE_BYTES);
+  const file = uploaded?.file;
   if ((claimInput !== null && (typeof claimInput !== "string" || !UUID.test(claimInput))) ||
       typeof name !== "string" || !name.trim() || name.length > 200 ||
       typeof organizer !== "string" || !organizer.trim() || organizer.length > 200 ||
@@ -99,12 +107,12 @@ export async function POST(request: Request) {
     return fail("Hanya klaim yang ditolak dapat dikirim ulang.", 409);
   }
 
-  const claimId = old?.achievement_claim_id ?? randomUUID();
-  const path = `${userId}/${claimId}/${randomUUID()}.${kind.extension}`;
-  const storage = supabase.storage.from(BUCKET);
-  const { error: uploadError } = await storage.upload(path, file, {
-    contentType: kind.contentType, upsert: false,
-  });
+  if (uploaded?.path && uploaded.path === old?.sertifikat_path) {
+    return fail("Gunakan sertifikat baru untuk pengajuan ulang.", 409);
+  }
+  const path = uploaded?.path ?? `${userId}/${claimId}/${randomUUID()}.${kind.extension}`;
+  const { error: uploadError } = uploaded?.path ? { error: null }
+    : await storage.upload(path, file, { contentType: kind.contentType, upsert: false });
   if (uploadError) return fail("Sertifikat belum berhasil diunggah. Coba lagi.", 503);
 
   const changes = {
@@ -132,7 +140,7 @@ export async function POST(request: Request) {
 
   if (old?.sertifikat_path?.startsWith(`${userId}/${claimId}/`)) {
     // The previous file is no longer referenced; deletion is best effort.
-    await storage.remove([old.sertifikat_path]);
+    try { await storage.remove([old.sertifikat_path]); } catch { /* Already saved. */ }
   }
   revalidatePath("/profile/claims");
   revalidatePath("/admin/achievements");

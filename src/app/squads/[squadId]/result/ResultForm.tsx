@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 
+import { submitWithUploads } from "@/lib/uploads/submit-with-uploads";
+
 import {
   RESULT_OPTIONS,
   type CompetitionResult,
@@ -70,10 +72,8 @@ export default function ResultForm({
     setPending(true);
     setError("");
     try {
-      const response = await fetch(`/api/squads/${squadId}/result`, {
-        method: "POST",
-        body: data,
-      });
+      const response = await submitWithUploads(`/api/squads/${squadId}/result`, data,
+        "mission-result-certificates", ["sertifikat", "dokumen_pendukung"], squadId);
       const payload: { success?: boolean; message?: string } = await response.json();
       if (!response.ok || !payload.success) {
         setError(payload.message ?? "Hasil belum terkirim. Coba lagi.");

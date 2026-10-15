@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 
+import { submitWithUploads } from "@/lib/uploads/submit-with-uploads";
+
 import { RESULT_OPTIONS, type CompetitionResult } from "@/app/squads/[squadId]/result/types";
 import type { ClaimRecord, ClaimRule, TierOption } from "./types";
 
@@ -31,7 +33,8 @@ export default function ClaimForm({ initial, tiers, rules }: Props) {
     setPending(true);
     setError("");
     try {
-      const response = await fetch("/api/achievement-claims", { method: "POST", body: form });
+      const response = await submitWithUploads("/api/achievement-claims", form,
+        "achievement-certificates", ["sertifikat"], initial?.achievement_claim_id);
       const payload: { success?: boolean; message?: string } = await response.json();
       if (!response.ok || !payload.success) {
         setError(payload.message ?? "Klaim belum terkirim. Coba lagi.");

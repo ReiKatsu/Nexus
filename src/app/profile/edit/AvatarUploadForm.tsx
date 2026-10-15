@@ -4,6 +4,8 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { type FormEvent, useRef, useState } from "react";
 
+import { submitWithUploads } from "@/lib/uploads/submit-with-uploads";
+
 const MAX_AVATAR_BYTES = 5_242_880;
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
@@ -36,7 +38,7 @@ export default function AvatarUploadForm({ name, avatarUrl }: {
     try {
       const body = new FormData();
       body.set("avatar", file);
-      const response = await fetch("/api/profile/avatar", { method: "POST", body });
+      const response = await submitWithUploads("/api/profile/avatar", body, "avatars", ["avatar"]);
       const result: { success?: boolean; message?: string } = await response.json();
       if (!response.ok || !result.success) {
         setError(result.message ?? "Foto belum berhasil diunggah. Coba lagi.");

@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 
+import { submitWithUploads } from "@/lib/uploads/submit-with-uploads";
+
 import { CATEGORIES, COSTS, MODES, ORGANIZERS, SCOPES,
   type MissionSubmission } from "./options";
 import { MAX_DOCUMENT_BYTES, validateDocument, validateFields,
@@ -94,7 +96,8 @@ export default function MissionForm({ initial }: { initial: MissionSubmission | 
     setPending(true);
     setError("");
     try {
-      const response = await fetch("/api/missions/submissions", { method: "POST", body: form });
+      const response = await submitWithUploads("/api/missions/submissions", form,
+        "mission-documents", ["dokumen"], initial?.mission_submission_id);
       const result: { success?: boolean; message?: string;
         fieldErrors?: MissionFieldErrors } = await response.json();
       if (!response.ok || !result.success) {

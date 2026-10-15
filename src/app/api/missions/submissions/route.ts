@@ -2,10 +2,11 @@ import { randomUUID } from "node:crypto";
 
 import { revalidatePath } from "next/cache";
 
-import { validSubmissionId, validateDocument, validateFields,
+import { MAX_DOCUMENT_BYTES, validSubmissionId, validateDocument, validateFields,
   type MissionFieldErrors } from
   "@/app/missions/add/validation";
 import { createClient } from "@/lib/supabase/server";
+import { readUpload } from "@/lib/uploads/read-upload";
 
 export const runtime = "nodejs";
 
@@ -48,13 +49,21 @@ export async function POST(request: Request) {
   let form: FormData;
   try { form = await request.formData(); } catch { return fail("Isian tidak dapat dibaca."); }
   const { fields, errors } = validateFields(form);
-  const file = form.get("dokumen");
-  const fileIsPresent = file instanceof File;
+  const uploadId = form.get("upload_id");
   const oldId = form.get("submission_id");
   if (form.getAll("submission_id").length > 1 ||
       (oldId !== null && (typeof oldId !== "string" || !validSubmissionId(oldId)))) {
     return fail("Pengajuan tidak valid. Muat ulang halaman.", 400);
   }
+  if (form.getAll("upload_id").length > 1 || (uploadId !== null &&
+      (typeof uploadId !== "string" || !validSubmissionId(uploadId) ||
+       (oldId !== null && oldId !== uploadId)))) return fail("Berkas tidak valid.");
+  const submissionId = String(oldId ?? uploadId ?? randomUUID());
+  const storage = supabase.storage.from(BUCKET);
+  const uploaded = await readUpload(form.get("dokumen"), storage,
+    `${userId}/${submissionId}/`, MAX_DOCUMENT_BYTES);
+  const file = uploaded?.file;
+  const fileIsPresent = file instanceof File;
   if (!fileIsPresent) errors.dokumen = "Pilih poster atau dokumen lomba.";
   if (!fields || !fileIsPresent) {
     return fail("Periksa kolom yang ditandai.", 400, errors);
@@ -75,12 +84,12 @@ export async function POST(request: Request) {
     return fail("Hanya pengajuan yang ditolak dapat dikirim ulang.", 409);
   }
 
-  const submissionId = old?.mission_submission_id ?? randomUUID();
-  const path = `${userId}/${submissionId}/${randomUUID()}.${kind.extension}`;
-  const storage = supabase.storage.from(BUCKET);
-  const { error: uploadError } = await storage.upload(path, file, {
-    contentType: kind.contentType, upsert: false,
-  });
+  if (uploaded?.path && uploaded.path === old?.dokumen_path) {
+    return fail("Gunakan berkas baru untuk pengajuan ulang.", 409);
+  }
+  const path = uploaded?.path ?? `${userId}/${submissionId}/${randomUUID()}.${kind.extension}`;
+  const { error: uploadError } = uploaded?.path ? { error: null }
+    : await storage.upload(path, file, { contentType: kind.contentType, upsert: false });
   if (uploadError) return fail("Berkas belum berhasil diunggah. Coba lagi.", 503, {
     dokumen: "Berkas belum berhasil diunggah. Coba lagi.",
   });
@@ -122,7 +131,7 @@ export async function POST(request: Request) {
   }
 
   if (old?.dokumen_path?.startsWith(`${userId}/${submissionId}/`)) {
-    await storage.remove([old.dokumen_path]);
+    try { await storage.remove([old.dokumen_path]); } catch { /* Already saved. */ }
   }
   revalidatePath("/missions/submissions");
   revalidatePath("/admin/missions");
