@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 
 import { createClient } from "@/lib/supabase/server";
+import { readUpload } from "@/lib/uploads/read-upload";
 
 export const runtime = "nodejs";
 
@@ -65,19 +66,19 @@ export async function POST(request: Request) {
   } catch {
     return fail("Foto tidak dapat dibaca.");
   }
-  const file = fields.get("avatar");
+  const storage = supabase.storage.from("avatars");
+  const uploaded = await readUpload(fields.get("avatar"), storage, `${userId}/`, MAX_AVATAR_BYTES);
+  const file = uploaded?.file;
   if (fields.getAll("avatar").length !== 1 || !(file instanceof File)) {
     return fail("Pilih satu foto profil.");
   }
   const kind = await getImageType(file);
   if (!kind) return fail("Foto harus JPG, PNG, atau WebP asli dan maksimal 5 MiB.");
 
-  const path = `${userId}/${randomUUID()}.${kind.extension}`;
-  const storage = supabase.storage.from("avatars");
-  const { error: uploadError } = await storage.upload(path, file, {
-    contentType: file.type,
-    upsert: false,
-  });
+  if (uploaded?.path && uploaded.path === profile.foto_profil_path) return fail("Pilih foto baru.", 409);
+  const path = uploaded?.path ?? `${userId}/${randomUUID()}.${kind.extension}`;
+  const { error: uploadError } = uploaded?.path ? { error: null }
+    : await storage.upload(path, file, { contentType: file.type, upsert: false });
   if (uploadError) return fail("Foto belum berhasil diunggah. Coba lagi.", 503);
 
   let query = supabase.from("profiles").update({ foto_profil_path: path })

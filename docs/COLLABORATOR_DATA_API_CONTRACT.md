@@ -56,11 +56,11 @@ Semua POST upload sukses dengan HTTP 200. Bentuk error upload adalah `{ success:
 
 | Method dan endpoint | Input | Sukses | Akses dan syarat |
 |---|---|---|---|
-| POST `/api/profile/avatar` | FormData `avatar: File`, tepat satu | `{success:true}` | Pemilik profil ACTIVE; STUDENT harus selesai onboarding; origin wajib |
-| POST `/api/missions/submissions` | FormData field Mission di bawah, `dokumen: File`, opsional `submission_id: UUID` | `{success:true, submissionId:string}` | STUDENT siap; ID lama harus milik sendiri dan REJECTED |
+| POST `/api/profile/avatar` | FormData `avatar: File atau path`, tepat satu | `{success:true}` | Pemilik profil ACTIVE; STUDENT harus selesai onboarding; origin wajib |
+| POST `/api/missions/submissions` | FormData field Mission di bawah, `dokumen: File atau path`, opsional `submission_id: UUID`; direct upload baru memakai `upload_id:UUID` | `{success:true, submissionId:string}` | STUDENT siap; ID lama harus milik sendiri dan REJECTED |
 | GET `/api/missions/suggestions?name=...` | Nama di-trim, panjang 3–100 | `{matches: Array<{nama_lomba,penyelenggara,tahun_lomba}>}` | Authenticated, hasil dibatasi RLS; gabungan maksimal 5 Mission dan 5 pengajuan sendiri |
-| POST `/api/achievement-claims` | FormData `nama_kompetisi`, `penyelenggara`, `achievement_date`, `submitted_tier_id`, `hasil_kompetisi`, `sertifikat:File`; opsional `claim_id:UUID` | `{success:true, claimId:string}` | STUDENT siap; kirim ulang hanya klaim sendiri REJECTED |
-| POST `/api/squads/[squadId]/result` | FormData `hasil_kompetisi`, `submitted_tier_id`, `sertifikat:File`; opsional `dokumen_pendukung:File` | `{success:true}` | STUDENT siap, Ketua dan membership ACTIVE, Squad FINALIZED; hasil lama hanya REJECTED |
+| POST `/api/achievement-claims` | FormData `nama_kompetisi`, `penyelenggara`, `achievement_date`, `submitted_tier_id`, `hasil_kompetisi`, `sertifikat:File atau path`; opsional `claim_id:UUID`; direct upload baru memakai `upload_id:UUID` | `{success:true, claimId:string}` | STUDENT siap; kirim ulang hanya klaim sendiri REJECTED |
+| POST `/api/squads/[squadId]/result` | FormData `hasil_kompetisi`, `submitted_tier_id`, `sertifikat:File atau path`; opsional `dokumen_pendukung:File atau path` | `{success:true}` | STUDENT siap, Ketua dan membership ACTIVE, Squad FINALIZED; hasil lama hanya REJECTED |
 | POST `/api/squad-applications/submit` | JSON `{squadId:string}` | HTTP 201 `{success:true, applicationId:string}` | Sesi eligible menurut action/RPC, onboarding selesai, recruitment terbuka; origin wajib |
 
 Suggestions: nama di luar panjang valid menghasilkan HTTP 200 `{matches:[]}` sebelum pemeriksaan sesi. Untuk nama valid: 401 bila sesi gagal, 503 bila query gagal, keduanya `{matches:[]}`. Hasil bukan bukti bahwa nama boleh dipakai; unique constraint masih berlaku.
@@ -76,6 +76,18 @@ Join memakai `SubmitSquadApplicationResult` dari `src/app/missions/[missionId]/a
 | 409 | `SQUAD_LOCKED`, `MISSION_REGISTRATION_CLOSED`, `ACTIVE_MEMBERSHIP`, `DUPLICATE_PENDING`, `PENDING_LIMIT_REACHED` |
 | 415 | Content-Type bukan JSON, code `INVALID_INPUT` |
 | 500 | `DATABASE_ERROR`, termasuk JSON malformed yang tertangkap handler |
+
+### Upload untuk hosting Vercel (15 Oktober)
+
+Form frontend memakai `submitWithUploads` dari `src/lib/uploads/submit-with-uploads.ts`.
+Helper mengunggah File langsung ke Supabase memakai sesi caller dan mengganti field
+file menjadi path sebelum POST. Pemilik folder diverifikasi server; path bukan URL
+atau signed URL. Untuk Mission/klaim baru, helper membuat `upload_id` yang menjadi ID
+record baru. Untuk resubmit, kirim ID lama dan pakai ID yang sama sebagai argumen
+folder helper. Hasil Squad memakai `squadId`; avatar hanya folder user.
+Server membaca ulang isi file dan menjalankan validator existing. Bentuk respons,
+role dan ukuran produk tetap. Multipart File tetap didukung backend untuk
+kompatibilitas, tetapi melampaui batas payload 4,5 MB Vercel akan ditolak host.
 
 ### Field Mission
 
@@ -99,10 +111,12 @@ Klaim: nama/penyelenggara nonkosong maksimal 200 karakter; `achievement_date` ta
 Contoh memakai variabel ID/File dari UI dan data master yang sudah dimuat. Jangan menjalankannya massal di produksi.
 
 ```ts
+import { submitWithUploads } from "@/lib/uploads/submit-with-uploads";
+
 // Avatar → 200 { success: true }
 const avatarForm = new FormData();
 avatarForm.set("avatar", avatarFile);
-await fetch("/api/profile/avatar", { method: "POST", body: avatarForm });
+await submitWithUploads("/api/profile/avatar", avatarForm, "avatars", ["avatar"]);
 
 // Suggestions → 200 { matches: [{ nama_lomba: "Lomba Demo",
 //   penyelenggara: "Kampus Demo", tahun_lomba: 2027 }] }
@@ -131,7 +145,8 @@ const mission = {
 };
 for (const [key, value] of Object.entries(mission)) missionForm.set(key, value);
 missionForm.set("dokumen", posterFile);
-await fetch("/api/missions/submissions", { method: "POST", body: missionForm });
+await submitWithUploads("/api/missions/submissions", missionForm, "mission-documents", ["dokumen"]);
+// Resubmit: set submission_id dan berikan ID itu sebagai argumen folder terakhir.
 // Contoh 400: { success:false, message:"Periksa kolom yang ditandai.",
 //   fieldErrors:{ dokumen:"Berkas harus PDF/JPG/PNG asli, maksimal 10 MiB." } }
 
@@ -143,7 +158,8 @@ claimForm.set("achievement_date", "2026-09-01");
 claimForm.set("submitted_tier_id", String(selectedTierId));
 claimForm.set("hasil_kompetisi", "PARTICIPANT");
 claimForm.set("sertifikat", certificateFile);
-await fetch("/api/achievement-claims", { method:"POST", body:claimForm });
+await submitWithUploads("/api/achievement-claims", claimForm, "achievement-certificates", ["sertifikat"]);
+// Resubmit: set claim_id dan berikan ID itu sebagai argumen folder terakhir.
 
 // Hasil Squad → 200 { success:true }
 const resultForm = new FormData();
@@ -151,7 +167,8 @@ resultForm.set("submitted_tier_id", String(selectedTierId));
 resultForm.set("hasil_kompetisi", "PARTICIPANT");
 resultForm.set("sertifikat", certificateFile);
 if (supportingFile) resultForm.set("dokumen_pendukung", supportingFile);
-await fetch(`/api/squads/${squadId}/result`, { method:"POST", body:resultForm });
+await submitWithUploads(`/api/squads/${squadId}/result`, resultForm,
+  "mission-result-certificates", ["sertifikat", "dokumen_pendukung"], squadId);
 // Contoh error upload umum: 401 { success:false, message:"Silakan login kembali." }
 ```
 
@@ -236,7 +253,7 @@ Untuk return type action yang tidak diekspor, gunakan `Awaited<ReturnType<typeof
 
 Validasi server memeriksa MIME dan signature file. Tidak ada batas dimensi pixel tambahan pada validator yang diperiksa. Jangan menerima SVG/GIF berdasarkan ekstensi saja. Simpan path object, bukan signed URL yang kedaluwarsa. Bucket public avatar tidak berarti semua orang boleh upload/ubah avatar.
 
-Path dibentuk server: avatar `<userId>/<randomUUID>.<ext>`; Mission/klaim `<userId>/<submissionId atau claimId>/<randomUUID>.<ext>`; hasil `<userId>/<squadId>/<randomUUID>-certificate.<ext>` atau `-supporting.<ext>`. Gunakan API upload existing, jangan menentukan owner/path/status review dari UI. Tidak ada bucket poster public terpisah yang ditemukan; jika desain meminta poster public, itu perubahan kontrak yang perlu dibahas.
+Path dibentuk helper browser (atau server untuk multipart File lama) dan diverifikasi server: avatar `<userId>/<randomUUID>.<ext>`; Mission/klaim `<userId>/<submissionId atau claimId>/<randomUUID>.<ext>`; hasil `<userId>/<squadId>/<randomUUID>-certificate.<ext>` atau `-supporting.<ext>`. Gunakan helper upload existing; owner berasal dari sesi, status review tetap ditetapkan backend. Tidak ada bucket poster public terpisah yang ditemukan; jika desain meminta poster public, itu perubahan kontrak yang perlu dibahas.
 
 ## Seed/demo data dan izin testing
 
@@ -249,4 +266,4 @@ Path dibentuk server: avatar `<userId>/<randomUUID>.<ext>`; Mission/klaim `<user
 
 Owner memberikan satu fitur kecil beserta halaman yang dikerjakan, acceptance criteria, environment dan akun uji. Collaborator menggunakan kontrak/types existing, membuat branch dan PR sesuai CONTRIBUTING. Perubahan input, respons, enum, hak akses, atau Storage harus menyertakan pembaruan dokumen ini. Jangan mengubah schema/RLS hanya untuk menyelesaikan layout.
 
-Verifikasi dokumen: sumber handler/action/types dan metadata bucket diperiksa; tidak ada kode runtime, data pengguna, schema, atau permission yang diubah untuk menulis handoff ini. Alur browser dan semua kombinasi role belum diuji ulang dalam tugas dokumentasi ini.
+Baseline handoff 11 Oktober memeriksa handler/action/types dan metadata bucket tanpa mengubah runtime. Pembaruan 15 Oktober mengikuti implementasi direct upload pada PR yang sama; bukti sintetis dan batas verifikasi hosted tercatat di [runbook Vercel](VERCEL_HOBBY_DEPLOY_2026-10-15.md). Tidak ada perubahan data pengguna, schema atau permission pada pembaruan ini.

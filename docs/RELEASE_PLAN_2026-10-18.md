@@ -2,6 +2,12 @@
 
 Target backend siap integrasi **18 Oktober**; 19–20 Oktober cadangan. Rilis lengkap bergantung pada pengujian browser dan deployment. Frontend tanggal 15 belum dijanjikan tim frontend. Tidak ada pekerjaan otomatis di luar sesi aktif.
 
+**Hosting dipilih 15 Oktober:** Vercel Hobby gratis memakai Supabase existing.
+Empat form disiapkan untuk direct upload agar batas file produk tidak terhalang
+payload Vercel; suite 72 tes, lint/build dan audit produksi PASS secara lokal.
+Deployment belum dibuat: workspace owner menolak akses koneksi dengan HTTP 403.
+[Konfigurasi, kontrak, bukti dan langkah owner](VERCEL_HOBBY_DEPLOY_2026-10-15.md).
+
 Baseline backend main: cd0fe898e2fbfcf0f2cd3cc63eabfb042c5ae95f. Kandidat memakai frontend PR #29 pada 5313bb925cb433a9f75210fd18be17ff71fcdf0d serta badge PR #32 pada e001d0c002ebd385b891b293c3368f6d445a0256. Konflik PRD mempertahankan keputusan G05/G06 terbaru. Branch teman tidak ditulis ulang; CI kandidat menjadi syarat merge.
 
 **Koreksi roster 15 Oktober:** owner melaporkan Radhif (LEFT sebelum finalisasi)

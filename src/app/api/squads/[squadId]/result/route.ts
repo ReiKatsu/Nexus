@@ -3,7 +3,8 @@ import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 
 import { createClient } from "@/lib/supabase/server";
-import { RESULT_BUCKET, validateEvidence } from "@/app/squads/[squadId]/result/file-validation";
+import { readUpload } from "@/lib/uploads/read-upload";
+import { MAX_FILE_BYTES, RESULT_BUCKET, validateEvidence } from "@/app/squads/[squadId]/result/file-validation";
 import { RESULT_OPTIONS } from "@/app/squads/[squadId]/result/types";
 
 export const runtime = "nodejs";
@@ -89,14 +90,21 @@ export async function POST(request: Request, { params }: Context) {
 
   const result = fields.get("hasil_kompetisi");
   const tierInput = fields.get("submitted_tier_id");
-  const certificate = fields.get("sertifikat");
-  const optional = fields.get("dokumen_pendukung");
+  const storage = supabase.storage.from(RESULT_BUCKET);
+  const prefix = `${userId}/${squadId}/`;
+  const [certificateUpload, supportingUpload] = await Promise.all([
+    readUpload(fields.get("sertifikat"), storage, prefix, MAX_FILE_BYTES),
+    readUpload(fields.get("dokumen_pendukung"), storage, prefix, MAX_FILE_BYTES),
+  ]);
+  const certificate = certificateUpload?.file;
+  const optionalInput = fields.get("dokumen_pendukung");
+  const optional = supportingUpload?.file ?? null;
   if (typeof result !== "string" ||
       !RESULT_OPTIONS.some((option) => option.value === result) ||
       typeof tierInput !== "string" || !/^[1-9][0-9]*$/.test(tierInput) ||
       !Number.isSafeInteger(Number(tierInput)) ||
       !(certificate instanceof File) ||
-      (optional !== null && !(optional instanceof File))) {
+      (optionalInput !== null && !(optionalInput instanceof File && !optionalInput.size) && !optional)) {
     return fail("Pencapaian, tier, atau sertifikat tidak valid.");
   }
   const tierId = Number(tierInput);
@@ -114,9 +122,13 @@ export async function POST(request: Request, { params }: Context) {
     return fail("Aturan XP untuk tier dan hasil tersebut tidak tersedia.");
   }
 
-  const storage = supabase.storage.from(RESULT_BUCKET);
+  const oldPaths = [existing?.sertifikat_path, existing?.dokumen_pendukung_path];
+  if ([certificateUpload?.path, supportingUpload?.path].some((path) => path && oldPaths.includes(path))) {
+    return fail("Gunakan berkas baru untuk pengajuan ulang.", 409);
+  }
   const newPaths: string[] = [];
-  async function upload(file: File, kind: NonNullable<typeof certificateKind>, label: string) {
+  async function upload(file: File, kind: NonNullable<typeof certificateKind>, label: string, direct?: string | null) {
+    if (direct) { newPaths.push(direct); return direct; }
     const path = `${userId}/${squadId}/${randomUUID()}-${label}.${kind.extension}`;
     const { error } = await storage.upload(path, file, {
       contentType: kind.contentType,
@@ -130,10 +142,10 @@ export async function POST(request: Request, { params }: Context) {
     if (newPaths.length) await storage.remove(newPaths);
   }
 
-  const certificatePath = await upload(certificate, certificateKind, "certificate");
+  const certificatePath = await upload(certificate, certificateKind, "certificate", certificateUpload?.path);
   if (!certificatePath) return fail("Sertifikat belum berhasil diunggah. Coba lagi.", 503);
   const supportingPath = supporting && supportingKind
-    ? await upload(supporting, supportingKind, "supporting")
+    ? await upload(supporting, supportingKind, "supporting", supportingUpload?.path)
     : null;
   if (supporting && !supportingPath) {
     await cleanup();
