@@ -16,6 +16,8 @@ Leaderboard/profil umum tetap dapat digunakan; ranking bukan syarat eligibility.
   Form terbatas pada konteks yang dipilih; tautan kembali menuju daftar rekan.
   Parameter invalid/asing tidak memberi eligibility atau membuat redirect eksternal.
 - Jendela 14 hari, anti-self/duplicate dan historical-member policy tetap.
+- Setelah penilaian berhasil, route daftar rekan ikut direvalidasi agar status saat
+  kembali mencerminkan penilaian yang baru dikirim.
 - Tidak membuka kembali Room/chat, mengubah schema/RLS atau memberi XP.
 
 ## Efisiensi dan bukti
