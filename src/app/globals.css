@@ -4,7 +4,7 @@
   color-scheme: dark;
   --background: #080b0e;
   --foreground: #f8fafc;
-  --glass: linear-gradient(135deg, rgba(116, 119, 117, .46), rgba(36, 48, 55, .72));
+  --glass: linear-gradient(135deg, rgba(76, 82, 85, .94), rgba(30, 44, 53, .97));
   --glass-border: rgba(215, 222, 226, .42);
 }
 
@@ -44,7 +44,7 @@
 body {
   margin: 0;
   min-width: 320px;
-  background: #080b0e url('/nexus-background.svg') center/cover fixed no-repeat;
+  background: #080b0e url('/nexus-background.svg') center/cover scroll no-repeat;
   color: var(--foreground);
   font-family: var(--font-poppins), sans-serif;
 }
@@ -58,16 +58,16 @@ body {
   ::selection { background: #f6bf52; color: #14232d; }
 }
 
-/* Existing utility surfaces share the same glass tokens, including nested forms. */
+/* Static gradients preserve the glass theme without per-surface backdrop sampling. */
 @layer utilities {
-  .bg-white, .bg-white\/90, .bg-white\/70 { background: var(--glass); border-color: var(--glass-border); backdrop-filter: blur(26px) saturate(125%); box-shadow: inset 0 1px 0 #ffffff26, 0 18px 48px #0000002e; }
+  .bg-white, .bg-white\/90, .bg-white\/70 { background: var(--glass); border-color: var(--glass-border); box-shadow: inset 0 1px 0 #ffffff26, 0 18px 48px #0000002e; }
   .min-h-screen.bg-slate-50 { background: transparent; }
   .shadow-slate-200\/60 { --tw-shadow-color: #00000033; }
   .blur-3xl { display: none; }
 }
 
-.glass-card { background: var(--glass); border: 2px solid var(--glass-border); border-radius: 36px; backdrop-filter: blur(26px) saturate(125%); box-shadow: inset 0 1px 0 #ffffff20, 0 18px 48px #00000026; }
-.nexus-navbar { position: sticky; top: 0; z-index: 50; border: 2px solid #d4dbe34d; border-top: 0; border-radius: 0 0 58px 58px; background: linear-gradient(110deg,#514336b8,#1b303ac9); backdrop-filter: blur(30px); }
+.glass-card { background: var(--glass); border: 2px solid var(--glass-border); border-radius: 36px; box-shadow: inset 0 1px 0 #ffffff20, 0 18px 48px #00000026; }
+.nexus-navbar { position: sticky; top: 0; z-index: 50; border: 2px solid #d4dbe34d; border-top: 0; border-radius: 0 0 58px 58px; background: linear-gradient(110deg,#514336f5,#1b303afa); }
 .nexus-nav-inner { max-width: 1300px; margin: auto; display: flex; align-items: center; gap: 36px; padding: 14px 28px; min-height: 76px; }
 .nexus-brand { width: 46px; height: 46px; display: grid; place-items: center; border: 1px solid #ffffff4d; border-radius: 50%; background: #ffffff10; flex-shrink: 0; }
 .nexus-nav-links { display: flex; align-items: center; gap: 34px; flex: 1; }
@@ -150,7 +150,7 @@ body {
 .nexus-eyebrow { color: #ffd37c; font-size: 11px; font-weight: 700; letter-spacing: .2em; margin-bottom: 10px; }
 .nexus-page-shell input,
 .nexus-page-shell select,
-.nexus-page-shell textarea { background: rgba(229,239,245,.12); border-color: rgba(220,229,235,.42); color: white; backdrop-filter: blur(16px); }
+.nexus-page-shell textarea { background: rgba(229,239,245,.12); border-color: rgba(220,229,235,.42); color: white; }
 .nexus-page-shell input::placeholder,
 .nexus-page-shell textarea::placeholder { color: #b6c3cc; }
 .nexus-page-shell button.bg-indigo-600,
@@ -164,7 +164,7 @@ body {
 .nexus-page-shell article { scroll-margin-top: 110px; }
 
 /* Segmented controls and leaderboard, adapted from the approved prototype. */
-.nexus-segmented { display: inline-flex !important; padding: 5px; border: 1px solid #dbe5eb42; border-radius: 999px; background: #a9c0d523; backdrop-filter: blur(20px); }
+.nexus-segmented { display: inline-flex !important; padding: 5px; border: 1px solid #dbe5eb42; border-radius: 999px; background: #a9c0d523; }
 .nexus-segmented a { border: 0 !important; border-radius: 999px !important; background: transparent !important; color: #e6edf2 !important; }
 .nexus-segmented a[aria-current="page"] { background: linear-gradient(110deg,#346b8a,#73ccef) !important; color: white !important; box-shadow: inset 0 1px 0 #ffffff4d; }
 .leaderboard-page { max-width: 1180px; }
@@ -205,7 +205,7 @@ body {
 .profile-hero img,
 .profile-hero [aria-label="Foto profil belum tersedia"] { width: 90px; height: 90px; border: 2px solid #ffffff80; box-shadow: 0 14px 34px #0000004a; }
 .profile-hero h2 { font-size: 28px; letter-spacing: -.035em; }
-.profile-section { min-width: 0; padding: 24px; border: 1px solid var(--glass-border); border-radius: 28px; background: var(--glass); backdrop-filter: blur(26px) saturate(125%); box-shadow: inset 0 1px 0 #ffffff20,0 18px 48px #00000026; }
+.profile-section { min-width: 0; padding: 24px; border: 1px solid var(--glass-border); border-radius: 28px; background: var(--glass); box-shadow: inset 0 1px 0 #ffffff20,0 18px 48px #00000026; }
 .profile-section > h2 { font-size: 20px; margin-bottom: 10px; }
 .profile-page > section:last-child { margin-bottom: 0; }
 
@@ -227,7 +227,7 @@ body {
 .min-h-screen.bg-slate-50 main > ul > li:hover { transform: translateY(-2px); border-color: #dce7ed80; }
 .min-h-screen.bg-slate-50 main > ul > li > * { position: relative; z-index: 1; }
 .min-h-screen.bg-slate-50 main > ul > li a.bg-indigo-600 { border-radius: 999px; }
-.min-h-screen.bg-slate-50 main > nav[aria-label] { width: fit-content; padding: 7px 14px; border: 1px solid var(--glass-border); border-radius: 999px; background: #1f343f9c; backdrop-filter: blur(18px); }
+.min-h-screen.bg-slate-50 main > nav[aria-label] { width: fit-content; padding: 7px 14px; border: 1px solid var(--glass-border); border-radius: 999px; background: #1f343f9c; }
 .min-h-screen.bg-slate-50 main > a:first-child { display: inline-flex; align-items: center; min-height: 38px; padding: 0 15px; border: 1px solid #dbe5eb3d; border-radius: 999px; background: #dce7ef12; text-decoration: none; }
 .min-h-screen.bg-slate-50 main > form,
 .min-h-screen.bg-slate-50 main > section,
@@ -235,7 +235,7 @@ body {
 .min-h-screen.bg-slate-50 main label { color: #edf4f7; }
 .min-h-screen.bg-slate-50 main input,
 .min-h-screen.bg-slate-50 main select,
-.min-h-screen.bg-slate-50 main textarea { background: rgba(229,239,245,.12); border-color: rgba(220,229,235,.42); color: white; backdrop-filter: blur(16px); }
+.min-h-screen.bg-slate-50 main textarea { background: rgba(229,239,245,.12); border-color: rgba(220,229,235,.42); color: white; }
 .min-h-screen.bg-slate-50 main input::placeholder,
 .min-h-screen.bg-slate-50 main textarea::placeholder { color: #aebcc5; }
 .min-h-screen.bg-slate-50 main button.bg-indigo-600,
@@ -245,7 +245,7 @@ body {
 .nexus-auth-flow > div.relative > header,
 .nexus-auth-flow > section > div:first-child { margin-bottom: 34px; }
 .nexus-auth-flow > section,
-.nexus-auth-flow > div.relative > section { border: 2px solid var(--glass-border) !important; background: linear-gradient(135deg,rgba(103,105,103,.54),rgba(31,47,56,.82)) !important; border-radius: 36px !important; box-shadow: inset 0 1px 0 #ffffff24,0 28px 70px #00000042 !important; backdrop-filter: blur(30px) saturate(130%) !important; }
+.nexus-auth-flow > div.relative > section { border: 2px solid var(--glass-border) !important; background: linear-gradient(135deg,rgba(76,82,85,.94),rgba(31,47,56,.97)) !important; border-radius: 36px !important; box-shadow: inset 0 1px 0 #ffffff24,0 28px 70px #00000042 !important; }
 .nexus-auth-flow h1 { letter-spacing: -.045em; }
 .nexus-auth-flow .nexus-brand { display: inline-grid; }
 .nexus-auth-flow input,
@@ -263,7 +263,6 @@ body:has(.nexus-nav-link[href="/admin/results"][aria-current="page"]) main::befo
 
 @media (max-width: 1024px) { .nexus-nav-inner { gap: 22px; } .nexus-nav-links { gap: 22px; } .mission-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } }
 @media (max-width: 760px) {
-  body { background-attachment: scroll; }
   .nexus-nav-inner { flex-wrap: wrap; gap: 10px; padding: 12px 20px; }
   .nexus-nav-links { order: 3; flex-basis: 100%; justify-content: space-between; gap: 6px; }
   .nexus-nav-link { font-size: 12px; }

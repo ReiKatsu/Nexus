@@ -1,7 +1,7 @@
 export default function Loading() {
   return (
     <main className="nexus-dashboard" aria-busy="true" aria-label="Memuat halaman NEXUS">
-      <p role="status" className="mb-7 text-center text-sm text-slate-600">Memuat halaman…</p>
+      <p role="status" className="sr-only">Memuat halaman…</p>
       <div className="grid gap-5 sm:grid-cols-2">
         {[0, 1, 2, 3].map((key) => <div key={key} className="glass-card p-7" aria-hidden="true">
           <div className="h-5 w-2/3 rounded-full bg-white/20" />
