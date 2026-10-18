@@ -29,9 +29,10 @@ export default async function OnboardingPage() {
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("user_id, primary_class_id")
+    .select("user_id, role_app, primary_class_id")
     .eq("user_id", authData.user.id)
     .maybeSingle();
+  if (!profileError && profile?.role_app === "ADMIN") redirect("/admin");
 
   if (profileError || !profile) return <OnboardingError />;
   if (profile.primary_class_id !== null) redirect("/");

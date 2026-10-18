@@ -16,6 +16,7 @@ export default async function ClaimsPage({ searchParams }: Props) {
   const { data: profile, error: profileError } = await supabase.from("profiles")
     .select("nama_lengkap, role_app, status_akun, primary_class_id, foto_profil_path")
     .eq("user_id", auth.user.id).maybeSingle();
+  if (!profileError && profile?.role_app === "ADMIN") redirect("/admin");
   if (profileError || profile?.role_app !== "STUDENT" || profile.status_akun !== "ACTIVE") {
     notFound();
   }

@@ -38,11 +38,14 @@ export async function completeOnboarding(
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("user_id, primary_class_id")
+    .select("user_id, role_app, status_akun, primary_class_id")
     .eq("user_id", authData.user.id)
     .maybeSingle();
 
   if (profileError || !profile) return { success: false, message: SAFE_ERROR };
+  if (profile.role_app !== "STUDENT" || profile.status_akun !== "ACTIVE") {
+    return { success: false, message: "Onboarding hanya tersedia untuk mahasiswa aktif." };
+  }
   if (profile.primary_class_id !== null) return { success: true, alreadyCompleted: true };
 
   const { data: primaryClass, error: classError } = await supabase

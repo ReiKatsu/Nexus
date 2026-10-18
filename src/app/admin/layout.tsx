@@ -17,10 +17,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <span>NEXUS<small>Panel Admin</small></span>
       </Link>
       <div className="nexus-admin-account">
-        <Link href="/profile" className="nexus-admin-identity" aria-label={`Buka profil ${admin.nama_lengkap}`}>
+        <div className="nexus-admin-identity">
           {avatarUrl && <Image src={avatarUrl} alt="" width={36} height={36} unoptimized />}
           <span>{admin.nama_lengkap}<small>Administrator</small></span>
-        </Link>
+        </div>
         <LogoutButton />
       </div>
     </header>
@@ -30,7 +30,6 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <AdminNavigation />
         <div className="nexus-admin-sidebar-footer">
           <p>Kelola pengajuan dan verifikasi pencapaian mahasiswa.</p>
-          <Link href="/missions">Lihat daftar Mission ↗</Link>
         </div>
       </aside>
       <div id="admin-content" className="nexus-admin-content" tabIndex={-1}>{children}</div>

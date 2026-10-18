@@ -13,17 +13,16 @@ export default function Navbar({ displayName, avatarPath, activeItem, isAdmin = 
   const avatarUrl = avatarPath
     ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/avatars/${avatarPath.split("/").map(encodeURIComponent).join("/")}`
     : null;
-  const items = [
+  const items = isAdmin ? [{ href: "/admin", key: "admin", label: "Panel Admin" }] : [
     { href: "/", key: "home", label: "Home" },
     { href: "/missions", key: "missions", label: "Missions" },
     { href: "/leaderboard", key: "leaderboard", label: "Leaderboard" },
     { href: "/my-squad", key: "my-squad", label: "My Squad" },
-    ...(isAdmin ? [{ href: "/admin", key: "admin", label: "Panel Admin" }] : []),
   ];
   return (
     <header className="nexus-navbar">
       <div className="nexus-nav-inner">
-        <Link href="/" className="nexus-brand" aria-label="NEXUS Home">
+        <Link href={isAdmin ? "/admin" : "/"} className="nexus-brand" aria-label={isAdmin ? "NEXUS Panel Admin" : "NEXUS Home"}>
           <Image src="/nexus-logo.svg" alt="" width={28} height={28} />
         </Link>
         <nav className="nexus-nav-links" aria-label="Navigasi utama">
@@ -31,6 +30,7 @@ export default function Navbar({ displayName, avatarPath, activeItem, isAdmin = 
             aria-current={activeItem === item.key ? "page" : undefined}>{item.label}</Link>)}
         </nav>
         <div className="nexus-nav-actions">
+          {!isAdmin && <>
           <Link href="/notifications" aria-label="Notifikasi" title="Notifikasi"
             aria-current={activeItem === "notifications" ? "page" : undefined} className="rounded-full p-2">
             <svg width="23" height="23" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -49,8 +49,7 @@ export default function Navbar({ displayName, avatarPath, activeItem, isAdmin = 
               </svg>
             )}
           </Link>
-          {isAdmin && <Link href="/admin/missions" className="nexus-admin-shortcut"
-            title="Review pengajuan Mission">Mission Review</Link>}
+          </>}
           <LogoutButton />
         </div>
       </div>

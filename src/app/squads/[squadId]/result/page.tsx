@@ -20,10 +20,16 @@ export default async function MissionResultPage({ params }: Props) {
   const { data: authData, error: authError } = await supabase.auth.getUser();
   if (authError || !authData.user) redirect("/login");
 
-  const [profileResult, memberResult, squadResult] = await Promise.all([
-    supabase.from("profiles")
-      .select("nama_lengkap, role_app, status_akun, primary_class_id, foto_profil_path")
-      .eq("user_id", authData.user.id).maybeSingle(),
+  const profileResult = await supabase.from("profiles")
+    .select("nama_lengkap, role_app, status_akun, primary_class_id, foto_profil_path")
+    .eq("user_id", authData.user.id).maybeSingle();
+  const profile = profileResult.data;
+  if (profileResult.error || !profile) notFound();
+  if (profile.role_app === "ADMIN") redirect("/admin");
+  if (profile.status_akun !== "ACTIVE" || profile.role_app !== "STUDENT") notFound();
+  if (profile.primary_class_id === null) redirect("/onboarding");
+
+  const [memberResult, squadResult] = await Promise.all([
     supabase.from("squad_members")
       .select("role_squad")
       .eq("squad_id", squadId).eq("user_id", authData.user.id)
@@ -33,10 +39,6 @@ export default async function MissionResultPage({ params }: Props) {
       .eq("squad_id", squadId).maybeSingle(),
   ]);
 
-  const profile = profileResult.data;
-  if (profileResult.error || !profile) notFound();
-  if (profile.status_akun !== "ACTIVE" || profile.role_app !== "STUDENT") notFound();
-  if (profile.primary_class_id === null) redirect("/onboarding");
   if (memberResult.error || !memberResult.data ||
       squadResult.error || !squadResult.data) notFound();
 

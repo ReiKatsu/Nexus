@@ -93,7 +93,7 @@ test('roster route denies invalid IDs, anonymous/admin/suspended/nonmember and u
   const invalid = setup(); await assert.rejects(invalid.run('bad'), /404/); assert.equal(invalid.calls.length, 0);
   for (const options of [{ anonymous: true }, { admin: true }, { suspended: true }, { outsider: true },
     { status: 'FINALIZED' }, { status: 'DISBANDED' }]) {
-    const s = setup(options); await assert.rejects(s.run(), /404|redirect:\/login/);
+    const s = setup(options); await assert.rejects(s.run(), options.admin ? /redirect:\/admin/ : /404|redirect:\/login/);
     assert.ok(!s.calls.some(c => c.table === 'endorsements' || c.table === 'public_profiles'));
   }
   await assert.rejects(setup({ onboarding: true }).run(), /redirect:\/onboarding/);
