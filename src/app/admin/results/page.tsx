@@ -1,20 +1,9 @@
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
 
-import Navbar from "@/components/layout/Navbar";
-import { createClient } from "@/lib/supabase/server";
+import { requireAdmin } from "@/lib/auth/admin";
 
 export default async function AdminResultsPage() {
-  const supabase = await createClient();
-  const { data: auth } = await supabase.auth.getUser();
-  if (!auth.user) redirect("/login");
-
-  const { data: admin, error: adminError } = await supabase.from("profiles")
-    .select("nama_lengkap, role_app, status_akun, foto_profil_path")
-    .eq("user_id", auth.user.id).maybeSingle();
-  if (adminError || admin?.role_app !== "ADMIN" || admin.status_akun !== "ACTIVE") {
-    notFound();
-  }
+  const { supabase } = await requireAdmin();
 
   const { data: pending, error } = await supabase.from("mission_result_submissions")
     .select("result_submission_id, squad_id, hasil_kompetisi, submitted_at")
@@ -40,13 +29,8 @@ export default async function AdminResultsPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
-      <Navbar displayName={admin.nama_lengkap} avatarPath={admin.foto_profil_path} activeItem="admin" isAdmin />
       <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
         <h1 className="text-2xl font-bold">Review Hasil Mission</h1>
-        <Link href="/admin/achievements"
-          className="mt-3 inline-block text-sm font-semibold text-indigo-700 underline">
-          Review klaim prestasi
-        </Link>
         <p className="mt-2 text-sm text-slate-600">
           Pengajuan menunggu verifikasi. Daftar menampilkan maksimal 50 yang paling lama.
         </p>
@@ -84,3 +68,4 @@ export default async function AdminResultsPage() {
     </div>
   );
 }
+

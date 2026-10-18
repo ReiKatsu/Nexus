@@ -82,9 +82,11 @@ export async function reviewMission(
   if (error || !saved) {
     return { success: false, message: "Keputusan belum tersimpan. Muat ulang dan cek status pengajuan." };
   }
+  revalidatePath("/admin");
   revalidatePath("/admin/missions");
   revalidatePath(`/admin/missions/${submissionId}`);
   revalidatePath("/missions");
   revalidatePath("/missions/submissions");
   return { success: true };
 }
+

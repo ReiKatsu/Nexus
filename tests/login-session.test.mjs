@@ -38,7 +38,7 @@ test('profile errors, missing or suspended profiles never keep a successful logi
   }
 });
 test('valid roles route to the correct page without signing out', async () => {
-  for (const [role, primaryClass, destination] of [['ADMIN', null, '/admin/results'],
+  for (const [role, primaryClass, destination] of [['ADMIN', null, '/admin'],
     ['STUDENT', null, '/onboarding'], ['STUDENT', 1, '/']]) {
     const s = setup({ profile: { status_akun: 'ACTIVE', role_app: role, primary_class_id: primaryClass } });
     const result = await s.run(); assert.equal(result.success, true);

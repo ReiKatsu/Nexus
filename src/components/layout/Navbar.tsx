@@ -18,7 +18,7 @@ export default function Navbar({ displayName, avatarPath, activeItem, isAdmin = 
     { href: "/missions", key: "missions", label: "Missions" },
     { href: "/leaderboard", key: "leaderboard", label: "Leaderboard" },
     { href: "/my-squad", key: "my-squad", label: "My Squad" },
-    ...(isAdmin ? [{ href: "/admin/results", key: "admin", label: "Review" }] : []),
+    ...(isAdmin ? [{ href: "/admin", key: "admin", label: "Panel Admin" }] : []),
   ];
   return (
     <header className="nexus-navbar">
@@ -57,3 +57,4 @@ export default function Navbar({ displayName, avatarPath, activeItem, isAdmin = 
     </header>
   );
 }
+

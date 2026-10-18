@@ -36,8 +36,9 @@ export async function loginWithProfile(
       return rejectSession("Peran akun tidak tersedia. Hubungi administrator.");
     }
     return { success: true, destination: profile.role_app === "ADMIN"
-      ? "/admin/results" : profile.primary_class_id === null ? "/onboarding" : "/" };
+      ? "/admin" : profile.primary_class_id === null ? "/onboarding" : "/" };
   } catch {
     return rejectSession("Profil akun belum dapat dimuat. Silakan coba lagi.");
   }
 }
+

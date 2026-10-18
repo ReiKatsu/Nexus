@@ -1,8 +1,7 @@
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 
-import Navbar from "@/components/layout/Navbar";
-import { createClient } from "@/lib/supabase/server";
+import { requireAdmin } from "@/lib/auth/admin";
 import { RESULT_BUCKET } from "@/app/squads/[squadId]/result/file-validation";
 import { RESULT_OPTIONS, type CompetitionResult, type TierOption, type XpRule }
   from "@/app/squads/[squadId]/result/types";
@@ -18,15 +17,7 @@ export default async function AdminResultDetailPage({ params }: Props) {
   const { resultId } = await params;
   if (!UUID_PATTERN.test(resultId)) notFound();
 
-  const supabase = await createClient();
-  const { data: auth } = await supabase.auth.getUser();
-  if (!auth.user) redirect("/login");
-  const { data: admin, error: adminError } = await supabase.from("profiles")
-    .select("nama_lengkap, role_app, status_akun, foto_profil_path")
-    .eq("user_id", auth.user.id).maybeSingle();
-  if (adminError || admin?.role_app !== "ADMIN" || admin.status_akun !== "ACTIVE") {
-    notFound();
-  }
+  const { supabase } = await requireAdmin();
 
   const { data: result, error: resultError } = await supabase
     .from("mission_result_submissions")
@@ -64,7 +55,6 @@ export default async function AdminResultDetailPage({ params }: Props) {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
-      <Navbar displayName={admin.nama_lengkap} avatarPath={admin.foto_profil_path} activeItem="admin" isAdmin />
       <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
         <Link href="/admin/results" className="text-sm font-bold text-indigo-600">
           ← Daftar review
@@ -122,3 +112,4 @@ export default async function AdminResultDetailPage({ params }: Props) {
     </div>
   );
 }
+

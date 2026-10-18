@@ -1,10 +1,9 @@
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 
-import Navbar from "@/components/layout/Navbar";
 import type { ClaimRule, TierOption } from "@/app/profile/claims/types";
 import { RESULT_OPTIONS, type CompetitionResult } from "@/app/squads/[squadId]/result/types";
-import { createClient } from "@/lib/supabase/server";
+import { requireAdmin } from "@/lib/auth/admin";
 import ReviewForm from "./ReviewForm";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -13,15 +12,7 @@ type Props = { params: Promise<{ claimId: string }> };
 export default async function AchievementDetailPage({ params }: Props) {
   const { claimId } = await params;
   if (!UUID.test(claimId)) notFound();
-  const supabase = await createClient();
-  const { data: auth } = await supabase.auth.getUser();
-  if (!auth.user) redirect("/login");
-  const { data: admin, error: adminError } = await supabase.from("profiles")
-    .select("nama_lengkap, role_app, status_akun, foto_profil_path")
-    .eq("user_id", auth.user.id).maybeSingle();
-  if (adminError || admin?.role_app !== "ADMIN" || admin.status_akun !== "ACTIVE") {
-    notFound();
-  }
+  const { supabase } = await requireAdmin();
 
   const { data: claim, error: claimError } = await supabase.from("achievement_claims")
     .select("achievement_claim_id, user_id, nama_kompetisi, penyelenggara, achievement_date, submitted_tier_id, approved_tier_id, hasil_kompetisi, preview_xp, approved_xp, status_validation, sertifikat_path, rejection_reason, submitted_at")
@@ -42,7 +33,6 @@ export default async function AchievementDetailPage({ params }: Props) {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
-      <Navbar displayName={admin.nama_lengkap} avatarPath={admin.foto_profil_path} activeItem="admin" isAdmin />
       <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
         <Link href="/admin/achievements" className="text-sm font-semibold text-indigo-700">
           ← Daftar klaim
@@ -97,3 +87,4 @@ export default async function AchievementDetailPage({ params }: Props) {
     </div>
   );
 }
+

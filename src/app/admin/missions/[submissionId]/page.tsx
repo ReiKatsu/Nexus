@@ -1,8 +1,7 @@
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 
-import Navbar from "@/components/layout/Navbar";
-import { createClient } from "@/lib/supabase/server";
+import { requireAdmin } from "@/lib/auth/admin";
 
 import ReviewForm from "./ReviewForm";
 
@@ -13,13 +12,7 @@ export default async function AdminMissionDetailPage({ params }: {
 }) {
   const { submissionId } = await params;
   if (!UUID.test(submissionId)) notFound();
-  const supabase = await createClient();
-  const { data: auth } = await supabase.auth.getUser();
-  if (!auth.user) redirect("/login");
-  const { data: admin, error: adminError } = await supabase.from("profiles")
-    .select("nama_lengkap,role_app,status_akun, foto_profil_path")
-    .eq("user_id", auth.user.id).maybeSingle();
-  if (adminError || admin?.role_app !== "ADMIN" || admin.status_akun !== "ACTIVE") notFound();
+  const { supabase } = await requireAdmin();
   const { data: submission, error } = await supabase.from("mission_submissions")
     .select("mission_submission_id,submitted_by,nama_lomba,penyelenggara,kategori_penyelenggara,link_resmi,deadline_pendaftaran,deadline_lomba,tahun_lomba,kategori_lomba,cakupan_peserta,mode_lomba,biaya_pendaftaran,min_anggota_tim,max_anggota_tim,deskripsi_singkat,dokumen_path,status_review,alasan_penolakan,final_tier_id,submitted_at")
     .eq("mission_submission_id", submissionId).maybeSingle();
@@ -54,7 +47,6 @@ export default async function AdminMissionDetailPage({ params }: {
   ];
 
   return <div className="min-h-screen bg-slate-50 text-slate-900">
-    <Navbar displayName={admin.nama_lengkap} avatarPath={admin.foto_profil_path} activeItem="admin" isAdmin />
     <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
       <Link href="/admin/missions" className="text-sm font-semibold text-indigo-700">
         ← Daftar pengajuan
@@ -99,3 +91,4 @@ export default async function AdminMissionDetailPage({ params }: {
     </main>
   </div>;
 }
+

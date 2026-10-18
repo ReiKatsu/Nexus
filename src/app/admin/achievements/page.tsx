@@ -1,19 +1,9 @@
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
 
-import Navbar from "@/components/layout/Navbar";
-import { createClient } from "@/lib/supabase/server";
+import { requireAdmin } from "@/lib/auth/admin";
 
 export default async function AdminAchievementsPage() {
-  const supabase = await createClient();
-  const { data: auth } = await supabase.auth.getUser();
-  if (!auth.user) redirect("/login");
-  const { data: admin, error: adminError } = await supabase.from("profiles")
-    .select("nama_lengkap, role_app, status_akun, foto_profil_path")
-    .eq("user_id", auth.user.id).maybeSingle();
-  if (adminError || admin?.role_app !== "ADMIN" || admin.status_akun !== "ACTIVE") {
-    notFound();
-  }
+  const { supabase } = await requireAdmin();
 
   const { data: pending, error } = await supabase.from("achievement_claims")
     .select("achievement_claim_id, nama_kompetisi, user_id, submitted_at")
@@ -28,12 +18,9 @@ export default async function AdminAchievementsPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
-      <Navbar displayName={admin.nama_lengkap} avatarPath={admin.foto_profil_path} activeItem="admin" isAdmin />
       <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
-        <Link href="/admin/results" className="text-sm font-semibold text-indigo-700">
-          ← Review hasil Mission
-        </Link>
-        <h1 className="mt-5 text-2xl font-bold">Review Klaim Prestasi</h1>
+        <h1 className="text-2xl font-bold">Review Klaim Prestasi</h1>
+        <p className="mt-2 text-sm text-slate-600">Menampilkan maksimal 50 klaim tertua yang menunggu review.</p>
         {error || profilesQuery.error ? (
           <p role="alert" className="mt-5 text-red-700">Daftar klaim belum dapat dimuat.</p>
         ) : pending?.length ? (
@@ -55,3 +42,4 @@ export default async function AdminAchievementsPage() {
     </div>
   );
 }
+
