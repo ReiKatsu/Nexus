@@ -1,4 +1,13 @@
-# NEXUS — rencana rilis, diperbarui 15 Oktober 2026
+# NEXUS — rencana rilis dan arsip pemeriksaan
+
+**Pembaruan 18 Oktober:** aplikasi sudah tayang di https://nexus-unesa.vercel.app.
+Catatan terkini ada di [catatan rilis](RELEASE_NOTES_2026-10-18.md), termasuk panel
+admin, hasil tes owner, dan batas verifikasi backup. Bagian di bawah adalah
+**arsip keadaan 13–15 Oktober**, bukan status deployment atau daftar tes tersisa
+yang berlaku saat ini. Pernyataan “deployment belum dibuat” dan “mobile/chat belum
+diuji” di arsip telah digantikan oleh pembaruan tersebut.
+
+## Arsip rencana yang diperbarui 15 Oktober 2026
 
 Target backend siap integrasi **18 Oktober**; 19–20 Oktober cadangan. Rilis lengkap bergantung pada pengujian browser dan deployment. Frontend tanggal 15 belum dijanjikan tim frontend. Tidak ada pekerjaan otomatis di luar sesi aktif.
 
@@ -126,3 +135,4 @@ Kemajuan kode mendukung jadwal. Rilis sebelum 20 Oktober belum dapat dijamin sel
 - npm run qa:environment: bentuk URL/key; tambahkan -- --testing untuk memeriksa deklarasi environment QA. Tidak melakukan request atau menampilkan key.
 - scripts/qa/auth-avatar.mjs dan documents.mjs: hasil API owner dicatat di atas; tidak perlu diulang tanpa alasan.
 - supabase/tests/operations_readiness_readonly.sql dan dashboard_reads_runtime_readonly.sql: metadata/SQL/RLS, bukan Auth/REST/browser.
+

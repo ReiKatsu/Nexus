@@ -62,6 +62,7 @@ export async function reviewMissionResult(
     return { success: false, message: "Penilaian belum tersimpan. Muat ulang dan periksa statusnya." };
   }
 
+  revalidatePath("/admin");
   revalidatePath("/admin/results");
   revalidatePath(`/admin/results/${resultId}`);
   revalidatePath(`/squads/${pending.squad_id}/result`);
@@ -69,3 +70,4 @@ export async function reviewMissionResult(
   revalidatePath("/my-squad");
   return { success: true };
 }
+

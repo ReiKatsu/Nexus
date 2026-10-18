@@ -61,7 +61,7 @@ async function home({ user = { id: "qa-user" }, profile = {}, errors = {}, seaso
 
 test("Home guards unauthenticated, admin and incomplete student sessions", async () => {
   await assert.rejects(home({ user: null }), /redirect:\/login/);
-  await assert.rejects(home({ profile: { role_app: "ADMIN" } }), /redirect:\/admin\/results/);
+  await assert.rejects(home({ profile: { role_app: "ADMIN" } }), /redirect:\/admin$/);
   await assert.rejects(home({ profile: { primary_class_id: null } }), /redirect:\/onboarding/);
 });
 

@@ -20,7 +20,7 @@ export default async function HomePage() {
     .select("nama_lengkap, primary_class_id, role_app, status_akun, foto_profil_path").eq("user_id", userId).maybeSingle();
   if (profileError || !profile) return <PageError message="Data profil sedang tidak tersedia. Coba muat ulang." />;
   if (profile.status_akun !== "ACTIVE") return <PageError message="Akunmu sedang tidak aktif. Hubungi administrator." />;
-  if (profile.role_app === "ADMIN") redirect("/admin/results");
+  if (profile.role_app === "ADMIN") redirect("/admin");
   if (profile.primary_class_id === null) redirect("/onboarding");
 
   const [career, season, ranks, memberships] = await Promise.all([
@@ -75,3 +75,4 @@ export default async function HomePage() {
       leaders={leaderboard} leadersError={Boolean(leaders.error || season.error)} />
   </div>;
 }
+

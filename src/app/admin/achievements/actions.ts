@@ -55,6 +55,7 @@ export async function reviewAchievement(
   if (error || !saved) {
     return { success: false, message: "Keputusan belum tersimpan. Muat ulang dan cek status klaim." };
   }
+  revalidatePath("/admin");
   revalidatePath("/admin/achievements");
   revalidatePath(`/admin/achievements/${claimId}`);
   revalidatePath("/profile/claims");
@@ -62,3 +63,4 @@ export async function reviewAchievement(
   revalidatePath("/leaderboard");
   return { success: true };
 }
+

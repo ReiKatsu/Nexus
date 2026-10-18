@@ -1,28 +1,17 @@
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
 
-import Navbar from "@/components/layout/Navbar";
-import { createClient } from "@/lib/supabase/server";
+import { requireAdmin } from "@/lib/auth/admin";
 
 export default async function AdminMissionsPage() {
-  const supabase = await createClient();
-  const { data: auth } = await supabase.auth.getUser();
-  if (!auth.user) redirect("/login");
-  const { data: admin, error: adminError } = await supabase.from("profiles")
-    .select("nama_lengkap,role_app,status_akun, foto_profil_path")
-    .eq("user_id", auth.user.id).maybeSingle();
-  if (adminError || admin?.role_app !== "ADMIN" || admin.status_akun !== "ACTIVE") notFound();
+  const { supabase } = await requireAdmin();
   const { data: pending, error } = await supabase.from("mission_submissions")
     .select("mission_submission_id,nama_lomba,penyelenggara,submitted_at")
     .eq("status_review", "PENDING")
     .order("submitted_at", { ascending: true }).limit(50);
 
   return <div className="min-h-screen bg-slate-50 text-slate-900">
-    <Navbar displayName={admin.nama_lengkap} avatarPath={admin.foto_profil_path} activeItem="admin" isAdmin />
     <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
-      <Link href="/admin/results" className="text-sm font-semibold text-indigo-700">
-        ← Review Hasil</Link>
-      <h1 className="mt-5 text-2xl font-bold">Review Pengajuan Mission</h1>
+      <h1 className="text-2xl font-bold">Review Pengajuan Mission</h1>
       <p className="mt-2 text-sm text-slate-600">
         Menampilkan maksimal 50 pengajuan tertua yang menunggu review.
       </p>
@@ -46,3 +35,4 @@ export default async function AdminMissionsPage() {
     </main>
   </div>;
 }
+
