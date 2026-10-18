@@ -21,7 +21,7 @@ export async function updateProfileBasics(name: string, bio: string): Promise<Ed
     .select("status_akun, role_app, primary_class_id")
     .eq("user_id", auth.user.id).maybeSingle();
   if (profileError || !profile || profile.status_akun !== "ACTIVE" ||
-      (profile.role_app === "STUDENT" && profile.primary_class_id === null)) {
+      (profile.role_app !== "STUDENT" || profile.primary_class_id === null)) {
     return { success: false, message: "Profil belum dapat diubah dari akun ini." };
   }
 

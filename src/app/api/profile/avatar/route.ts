@@ -56,7 +56,7 @@ export async function POST(request: Request) {
     .eq("user_id", userId).maybeSingle();
   if (profileError) return fail("Data profil belum dapat diperiksa. Coba lagi.", 503);
   if (!profile || profile.status_akun !== "ACTIVE" ||
-      (profile.role_app === "STUDENT" && profile.primary_class_id === null)) {
+      (profile.role_app !== "STUDENT" || profile.primary_class_id === null)) {
     return fail("Profil belum dapat diubah dari akun ini.", 403);
   }
 
@@ -101,3 +101,4 @@ export async function POST(request: Request) {
   revalidatePath("/", "layout");
   return Response.json({ success: true });
 }
+

@@ -13,6 +13,7 @@ export default async function NotificationsPage() {
   const { data: profile, error: profileError } = await supabase.from("profiles")
     .select("nama_lengkap, status_akun, role_app, primary_class_id, foto_profil_path")
     .eq("user_id", auth.user.id).maybeSingle();
+  if (!profileError && profile?.role_app === "ADMIN") redirect("/admin");
   if (!profileError && profile?.role_app === "STUDENT" && profile.primary_class_id === null) {
     redirect("/onboarding");
   }
@@ -29,7 +30,7 @@ export default async function NotificationsPage() {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
       <Navbar displayName={profile?.nama_lengkap ?? "NEXUS"} avatarPath={profile?.foto_profil_path}
-        activeItem="notifications" isAdmin={profile?.role_app === "ADMIN"} />
+        activeItem="notifications" />
       <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
         <h1 className="text-2xl font-bold">Notifikasi</h1>
         <p className="mt-2 text-sm text-slate-600">50 notifikasi terbaru untuk akunmu.</p>

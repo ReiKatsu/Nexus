@@ -35,6 +35,7 @@ export default async function ProfilePage() {
   const { data: profile, error: profileError } = await supabase.from("profiles")
     .select("nama_lengkap, bio, tahun_masuk, foto_profil_path, primary_class_id, program_studi_id, role_app, status_akun")
     .eq("user_id", auth.user.id).maybeSingle();
+  if (!profileError && profile?.role_app === "ADMIN") redirect("/admin");
   if (!profileError && profile?.role_app === "STUDENT" && profile.primary_class_id === null) {
     redirect("/onboarding");
   }
@@ -101,8 +102,7 @@ export default async function ProfilePage() {
 
   return (
     <div className="nexus-app-page min-h-screen bg-slate-50 text-slate-900">
-      <Navbar displayName={profile.nama_lengkap} avatarPath={profile.foto_profil_path} activeItem="profile"
-        isAdmin={profile.role_app === "ADMIN"} />
+      <Navbar displayName={profile.nama_lengkap} avatarPath={profile.foto_profil_path} activeItem="profile" />
       <main className="nexus-page-shell profile-page mx-auto max-w-6xl px-4 py-8 sm:px-6">
         <div className="nexus-page-heading flex flex-wrap items-center justify-between gap-3">
           <h1 className="text-2xl font-bold">Profil Saya</h1>

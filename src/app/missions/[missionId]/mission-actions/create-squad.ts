@@ -231,7 +231,7 @@ export async function createSquad(
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("primary_class_id, status_akun")
+    .select("primary_class_id, status_akun, role_app")
     .eq("user_id", authData.user.id)
     .maybeSingle();
 
@@ -239,7 +239,7 @@ export async function createSquad(
     return failure("DATABASE_ERROR", SAFE_MESSAGES.databaseError);
   }
 
-  if (!profile || profile.status_akun !== "ACTIVE") {
+  if (!profile || profile.role_app !== "STUDENT" || profile.status_akun !== "ACTIVE") {
     return failure("ACCOUNT_NOT_ELIGIBLE", SAFE_MESSAGES.accountNotEligible);
   }
 

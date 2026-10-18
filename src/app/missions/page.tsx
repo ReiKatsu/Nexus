@@ -56,9 +56,10 @@ export default async function MissionsPage({ searchParams }: MissionsPageProps) 
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("nama_lengkap, primary_class_id, foto_profil_path")
+    .select("nama_lengkap, role_app, primary_class_id, foto_profil_path")
     .eq("user_id", authData.user.id)
     .maybeSingle();
+  if (!profileError && profile?.role_app === "ADMIN") redirect("/admin");
 
   if (profileError || !profile) {
     return (

@@ -61,8 +61,13 @@ test('both STUDENT and ADMIN navbar render an accessible logout button', () => {
       require('react').createElement(Navbar, { displayName: 'QA', activeItem: 'profile', isAdmin }));
     assert.match(html, /<button[^>]*type="button"[^>]*aria-label="Keluar dari akun"/);
     assert.match(html, />Keluar<\/button>/);
-    assert.equal(html.includes('Mission Review'), isAdmin);
-    assert.match(html, /href="\/profile"/);
+    if (isAdmin) {
+      assert.match(html, /href="\/admin"/);
+      assert.doesNotMatch(html, /href="\/(?:profile|notifications|missions|leaderboard|my-squad)(?:\/|"|\?)/);
+    } else {
+      assert.match(html, /href="\/profile"/);
+      assert.match(html, /href="\/missions"/);
+    }
   }
 });
 

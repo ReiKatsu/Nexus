@@ -29,17 +29,20 @@ export default async function SquadEndorsementsPage({ params }: {
   const { data: auth, error: authError } = await supabase.auth.getUser();
   if (authError || !auth.user) redirect("/login");
 
-  const [profile, membership, squad] = await Promise.all([
-    supabase.from("profiles").select("nama_lengkap,role_app,status_akun,primary_class_id, foto_profil_path")
-      .eq("user_id", auth.user.id).maybeSingle(),
+  const profile = await supabase.from("profiles")
+    .select("nama_lengkap,role_app,status_akun,primary_class_id, foto_profil_path")
+    .eq("user_id", auth.user.id).maybeSingle();
+  if (profile.error) return <LoadError displayName="NEXUS" />;
+  if (profile.data?.role_app === "ADMIN") redirect("/admin");
+  if (!profile.data || profile.data.role_app !== "STUDENT" || profile.data.status_akun !== "ACTIVE") notFound();
+  if (profile.data.primary_class_id === null) redirect("/onboarding");
+
+  const [membership, squad] = await Promise.all([
     supabase.from("squad_members").select("squad_id")
       .eq("squad_id", squadId).eq("user_id", auth.user.id).limit(1).maybeSingle(),
     supabase.from("squads").select("nama_squad,status_squad,completed_at,mission_id")
       .eq("squad_id", squadId).maybeSingle(),
   ]);
-  if (profile.error) return <LoadError displayName="NEXUS" />;
-  if (!profile.data || profile.data.role_app !== "STUDENT" || profile.data.status_akun !== "ACTIVE") notFound();
-  if (profile.data.primary_class_id === null) redirect("/onboarding");
   if (membership.error || squad.error) return <LoadError displayName={profile.data.nama_lengkap} avatarPath={profile.data.foto_profil_path} />;
   if (!membership.data || !squad.data || squad.data.status_squad !== "MISSION_COMPLETED") notFound();
 

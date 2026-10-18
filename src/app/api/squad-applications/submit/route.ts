@@ -22,6 +22,7 @@ function statusFor(result: SubmitSquadApplicationResult) {
       return 400;
     case "AUTH_REQUIRED":
       return 401;
+    case "STUDENT_REQUIRED":
     case "ACCOUNT_INACTIVE":
     case "ONBOARDING_REQUIRED":
     case "OWN_SQUAD":

@@ -35,6 +35,7 @@ export type CreateSquadResult =
 
 export type SubmitSquadApplicationErrorCode =
   | "AUTH_REQUIRED"
+  | "STUDENT_REQUIRED"
   | "ACCOUNT_INACTIVE"
   | "ONBOARDING_REQUIRED"
   | "INVALID_INPUT"

@@ -35,6 +35,7 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
   const { data: profile, error: profileError } = await supabase.from("profiles")
     .select("nama_lengkap, program_studi_id, primary_class_id, role_app, status_akun, foto_profil_path")
     .eq("user_id", auth.user.id).maybeSingle();
+  if (!profileError && profile?.role_app === "ADMIN") redirect("/admin");
   if (!profileError && profile?.role_app === "STUDENT" && profile.primary_class_id === null) {
     redirect("/onboarding");
   }
@@ -84,8 +85,7 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
 
   return (
     <div className="nexus-app-page min-h-screen bg-slate-50 text-slate-900">
-      {profile && <Navbar displayName={profile.nama_lengkap} avatarPath={profile.foto_profil_path} activeItem="leaderboard"
-        isAdmin={profile.role_app === "ADMIN"} />}
+      {profile && <Navbar displayName={profile.nama_lengkap} avatarPath={profile.foto_profil_path} activeItem="leaderboard" />}
       <main className="nexus-page-shell leaderboard-page mx-auto max-w-6xl px-4 py-8 sm:px-6">
         <header className="nexus-page-heading">
           <p className="nexus-eyebrow">SEASON AKTIF</p>

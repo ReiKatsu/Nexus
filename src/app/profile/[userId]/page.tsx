@@ -22,16 +22,16 @@ export default async function PeerProfilePage({ params, searchParams }: {
   if (authError || !auth.user) redirect("/login");
   if (auth.user.id === userId) redirect("/profile");
 
-  const [viewerResult, peerResult] = await Promise.all([
-    supabase.from("profiles").select("nama_lengkap, role_app, status_akun, foto_profil_path")
-      .eq("user_id", auth.user.id).maybeSingle(),
-    supabase.from("public_profiles")
-      .select("nama_lengkap, bio, tahun_masuk, foto_profil_path, primary_class_id, program_studi_id")
-      .eq("user_id", userId).maybeSingle(),
-  ]);
+  const viewerResult = await supabase.from("profiles")
+    .select("nama_lengkap, role_app, status_akun, foto_profil_path")
+    .eq("user_id", auth.user.id).maybeSingle();
+  if (!viewerResult.error && viewerResult.data?.role_app === "ADMIN") redirect("/admin");
   if (viewerResult.error || !viewerResult.data || viewerResult.data.status_akun !== "ACTIVE") {
     notFound();
   }
+  const peerResult = await supabase.from("public_profiles")
+    .select("nama_lengkap, bio, tahun_masuk, foto_profil_path, primary_class_id, program_studi_id")
+    .eq("user_id", userId).maybeSingle();
   if (peerResult.error || !peerResult.data) notFound();
 
   const peer = peerResult.data;
@@ -60,8 +60,7 @@ export default async function PeerProfilePage({ params, searchParams }: {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
-      <Navbar displayName={viewerResult.data.nama_lengkap} avatarPath={viewerResult.data.foto_profil_path} activeItem={context ? "my-squad" : "leaderboard"}
-        isAdmin={viewerResult.data.role_app === "ADMIN"} />
+      <Navbar displayName={viewerResult.data.nama_lengkap} avatarPath={viewerResult.data.foto_profil_path} activeItem={context ? "my-squad" : "leaderboard"} />
       <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
         <Link href={context ? `/squads/${context.squadId}/endorsements` : "/leaderboard"}
           prefetch={false} className="text-sm font-semibold text-indigo-700 hover:underline">

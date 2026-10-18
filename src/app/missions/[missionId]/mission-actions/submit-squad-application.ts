@@ -11,6 +11,7 @@ import type {
 const APPLICATION_MESSAGES = {
   authRequired: "Sesi Anda telah berakhir. Silakan login kembali.",
   accountInactive: "Akun Anda tidak dapat mengajukan permintaan Join.",
+  studentRequired: "Join Squad hanya tersedia untuk mahasiswa aktif.",
   onboardingRequired: "Lengkapi onboarding sebelum mengajukan Join Squad.",
   invalidInput: "Squad yang dipilih tidak valid.",
   squadNotFound: "Squad tidak ditemukan.",
@@ -148,6 +149,24 @@ export async function submitSquadApplication(
 
   if (authError || !authData.user) {
     return applicationFailure("AUTH_REQUIRED", APPLICATION_MESSAGES.authRequired);
+  }
+
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("role_app, status_akun, primary_class_id")
+    .eq("user_id", authData.user.id)
+    .maybeSingle();
+  if (profileError) {
+    return applicationFailure("DATABASE_ERROR", APPLICATION_MESSAGES.databaseError);
+  }
+  if (!profile || profile.role_app !== "STUDENT") {
+    return applicationFailure("STUDENT_REQUIRED", APPLICATION_MESSAGES.studentRequired);
+  }
+  if (profile.status_akun !== "ACTIVE") {
+    return applicationFailure("ACCOUNT_INACTIVE", APPLICATION_MESSAGES.accountInactive);
+  }
+  if (profile.primary_class_id === null) {
+    return applicationFailure("ONBOARDING_REQUIRED", APPLICATION_MESSAGES.onboardingRequired);
   }
 
   const { data: squad, error: squadError } = await supabase
