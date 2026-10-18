@@ -1,8 +1,10 @@
 # NEXUS — backup dan pemulihan
 
-Status 18 Oktober 2026: **pemulihan backup lengkap belum diverifikasi**.
-Tidak ada restore, perubahan paket, atau perubahan data produksi pada pekerjaan
-panel admin ini. Akun aplikasi ADMIN berbeda dari akses operator Supabase.
+Status 18 Oktober 2026: **backup file Storage dan pemeriksaan integritas lokal
+selesai; backup/pemulihan database lengkap belum diverifikasi**. Project memakai
+paket Free, dikonfirmasi lewat metadata organisasi. Akun aplikasi ADMIN berbeda
+dari akses operator Supabase. Tidak ada perubahan data produksi, restore hosted,
+atau perubahan paket. [Bukti dan batas pemeriksaan](BACKUP_CHECK_2026-10-18.md).
 
 ## Data yang perlu dicadangkan
 
@@ -38,11 +40,36 @@ panel admin ini. Akun aplikasi ADMIN berbeda dari akses operator Supabase.
 
 | Pemeriksaan | Status |
 | --- | --- |
-| Metode dan cakupan backup project dikonfirmasi | Belum |
-| Salinan database tersedia dan dapat dibaca | Belum diverifikasi |
-| Salinan isi Storage sesuai path referensi | Belum diverifikasi |
-| Pemulihan ke lingkungan terpisah | Belum |
-| Pemeriksaan data, file, dan akses setelah pemulihan | Belum |
+| Paket dan metode database | Free terkonfirmasi; export manual CLI diperlukan |
+| Salinan database tersedia dan dapat dibaca | Belum; akses export tidak tersedia di sesi ini |
+| Salinan file Storage | 6/6 avatar terunduh, metadata sumber tetap, ukuran/SHA-256 cocok |
+| Integritas arsip dan ekstraksi lokal | PASS: CRC ZIP dan SHA-256 semua file setelah ekstraksi |
+| Restore ke Supabase/aplikasi terpisah | Belum |
+| Login, role/RLS, dan data database setelah restore | Belum |
 
 Rujukan operator: [Supabase Backups](https://supabase.com/docs/guides/platform/backups),
 [Supabase CLI db dump](https://supabase.com/docs/reference/cli/supabase-db-dump).
+
+
+## Langkah yang memerlukan operator
+
+Lingkungan sesi pemeriksaan tidak memiliki CLI Supabase/Postgres/Docker,
+connection string database atau kredensial operator, dan belum ada branch uji.
+Koneksi SQL yang tersedia bukan antarmuka untuk mengunduh backup penuh. Karena
+itu, tidak ada klaim bahwa backup database sudah dibuat. Tidak perlu membeli
+paket atau membuat branch berbayar hanya untuk menutup laporan ini.
+
+Operator dapat memakai laptop dengan Supabase CLI dan Docker Desktop sesuai
+[panduan export resmi](https://supabase.com/docs/guides/platform/migrating-within-supabase/backup-restore).
+Masukkan kredensial melalui lingkungan lokal yang aman; jangan kirim password,
+PAT, connection string lengkap, atau dump Auth lewat chat atau commit GitHub.
+Export roles, schema dan data, lalu periksa customisasi Auth/Storage dari
+migration/schema aktual. Default dump schema saja tidak mencukupi untuk seluruh
+policy/trigger custom pada schema yang dikelola Supabase.
+
+Sebelum restore, siapkan lingkungan Supabase lokal/uji dengan job dan email
+terkendali. Jalankan [inventaris read-only](../supabase/queries/backup_inventory_readonly.sql)
+pada sumber dan hasil restore memakai akses operator yang setara. Bandingkan
+snapshot dari waktu backup; database_bytes hanya informasi, bukan ukuran yang
+harus identik setelah restore. Verifikasi definisi policy/trigger/RPC serta
+akses nyata, bukan jumlah objek saja.
