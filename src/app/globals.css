@@ -123,12 +123,24 @@
   --color-amber-50: #483d2b;
 }
 
+html { background: #080b0e; }
+
 body {
   margin: 0;
   min-width: 320px;
-  background: #080b0e url('/nexus-background.svg') center/cover scroll no-repeat;
+  background: transparent;
   color: var(--foreground);
   font-family: var(--font-poppins), sans-serif;
+}
+
+/* Background tetap di viewport saat scroll; tidak ikut bergerak dan tidak berulang/terpotong. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: #080b0e url('/nexus-background.svg') center/cover no-repeat;
+  pointer-events: none;
 }
 
 @layer base {
