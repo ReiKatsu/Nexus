@@ -174,7 +174,11 @@ export default async function ProfilePage() {
         )}
 
         {profile.role_app === "STUDENT" && (
-          <section className="profile-section mt-8">
+          <EndorsementSummary summary={endorsementSummary} />
+        )}
+
+        {profile.role_app === "STUDENT" && (
+          <section className="profile-section profile-xp mt-8">
             <h2 className="text-lg font-bold">XP dan Rank</h2>
             <Link href="/profile/claims"
               className="mt-2 inline-block text-sm font-semibold text-indigo-700 underline">
@@ -192,9 +196,6 @@ export default async function ProfilePage() {
               )}
             </div>
           </section>
-        )}
-        {profile.role_app === "STUDENT" && (
-          <EndorsementSummary summary={endorsementSummary} />
         )}
         {profile.role_app === "STUDENT" && (
           <section className="profile-section mt-8">
