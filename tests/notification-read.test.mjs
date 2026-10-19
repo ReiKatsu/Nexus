@@ -70,17 +70,30 @@ test('foreign/missing notification and write/read failures cannot report success
     assert.equal(result.success, false); assert.doesNotMatch(result.message, /private detail/);
   }
 });
-test('notification renders an accessible unread dot and native disclosure without manual mark button', () => {
+test('notification renders an unread dot and links to its destination by type', () => {
   const Item = load('../src/app/notifications/NotificationItem.tsx', {
     './actions': { markNotificationRead: async () => ({ success: true }) },
+    'next/navigation': { useRouter: () => ({ push() {}, refresh() {} }) },
+    'next/link': { default: ({ href, children, ...p }) => require('react').createElement('a', { href, ...p }, children) },
+    '@/lib/notifications': load('../src/lib/notifications.ts'),
   }).default;
+  const render = (item) => require('react-dom/server').renderToStaticMarkup(require('react').createElement(Item, { item }));
+  const base = { notification_id: id, title: 'Pengajuan Squad diterima', body: 'Kamu diterima', created_at: '2026-10-14T00:00:00Z' };
   for (const read of [false, true]) {
-    const html = require('react-dom/server').renderToStaticMarkup(require('react').createElement(Item, {
-      item: { notification_id: id, title: 'Mission ditolak', body: 'Lengkapi informasi',
-        created_at: '2026-10-14T00:00:00Z', is_read: read },
-    }));
-    assert.match(html, /<details/); assert.match(html, /<summary/);
+    const html = render({ ...base, notification_type: 'SQUAD_APPLICATION_ACCEPTED', is_read: read });
+    assert.match(html, /href="\/my-squad"/);
     assert.equal(html.includes('Belum dibaca'), !read);
-    assert.doesNotMatch(html, /Tandai dibaca|<button/);
   }
+  const unknown = render({ ...base, notification_type: 'SOMETHING_NEW', is_read: false });
+  assert.doesNotMatch(unknown, /href=/); assert.match(unknown, /<button/);
+});
+test('notification type mapping covers every type the database emits and rejects prototype keys', () => {
+  const { notificationHref, notificationNavSection } = load('../src/lib/notifications.ts');
+  assert.equal(notificationHref('MISSION_SUBMISSION_REJECTED'), '/missions/submissions');
+  assert.equal(notificationHref('ACHIEVEMENT_APPROVED'), '/profile/claims');
+  assert.equal(notificationHref('toString'), null);
+  assert.equal(notificationHref(null), null);
+  assert.equal(notificationNavSection('SQUAD_DISBANDED'), 'my-squad');
+  assert.equal(notificationNavSection('MISSION_SUBMISSION_APPROVED'), 'missions');
+  assert.equal(notificationNavSection('ACHIEVEMENT_APPROVED'), null);
 });
