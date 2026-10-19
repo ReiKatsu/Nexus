@@ -21,7 +21,7 @@ export default async function NotificationsPage() {
   const eligible = !profileError && profile?.status_akun === "ACTIVE";
   const { data: notifications, error } = eligible
     ? await supabase.from("notifications")
-        .select("notification_id, title, body, is_read, created_at")
+        .select("notification_id, notification_type, title, body, is_read, created_at")
         .eq("user_id", auth.user.id)
         .order("created_at", { ascending: false })
         .limit(50)
@@ -34,7 +34,7 @@ export default async function NotificationsPage() {
       <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
         <h1 className="text-2xl font-bold">Notifikasi</h1>
         <p className="mt-2 text-sm text-slate-600">50 notifikasi terbaru untuk akunmu.</p>
-        <p className="mt-1 text-xs text-slate-500">Buka notifikasi untuk membaca isinya. Titik biru berarti belum dibaca.</p>
+        <p className="mt-1 text-xs text-slate-500">Klik notifikasi untuk membuka halaman terkait. Titik merah berarti belum dibaca.</p>
         {!eligible ? (
           <p role="alert" className="mt-6 rounded-xl bg-white p-5 text-red-700">
             Notifikasi belum dapat dibuka. Periksa status akun atau coba lagi.
