@@ -1,6 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/server";
+import { notificationNavSection, type NavSection } from "@/lib/notifications";
 import LogoutButton from "./LogoutButton";
+import NotificationBell from "./NotificationBell";
 
 type NavbarProps = {
   displayName: string;
@@ -9,7 +12,28 @@ type NavbarProps = {
   isAdmin?: boolean;
 };
 
-export default function Navbar({ displayName, avatarPath, activeItem, isAdmin = false }: NavbarProps) {
+async function loadUnread(): Promise<{ count: number; sections: Set<NavSection> }> {
+  const empty = { count: 0, sections: new Set<NavSection>() };
+  try {
+    const supabase = await createClient();
+    const { data: auth } = await supabase.auth.getUser();
+    if (!auth.user) return empty;
+    const { data, error } = await supabase.from("notifications").select("notification_type")
+      .eq("user_id", auth.user.id).eq("is_read", false).limit(100);
+    if (error || !data) return empty;
+    const sections = new Set<NavSection>();
+    for (const row of data) {
+      const section = notificationNavSection(row.notification_type);
+      if (section) sections.add(section);
+    }
+    return { count: data.length, sections };
+  } catch {
+    return empty; // The navbar must never break a page because of the badge.
+  }
+}
+
+export default async function Navbar({ displayName, avatarPath, activeItem, isAdmin = false }: NavbarProps) {
+  const unread = isAdmin ? { count: 0, sections: new Set<NavSection>() } : await loadUnread();
   const avatarUrl = avatarPath
     ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/avatars/${avatarPath.split("/").map(encodeURIComponent).join("/")}`
     : null;
@@ -27,16 +51,15 @@ export default function Navbar({ displayName, avatarPath, activeItem, isAdmin = 
         </Link>
         <nav className="nexus-nav-links" aria-label="Navigasi utama">
           {items.map((item) => <Link key={item.key} href={item.href} className="nexus-nav-link"
-            aria-current={activeItem === item.key ? "page" : undefined}>{item.label}</Link>)}
+            aria-current={activeItem === item.key ? "page" : undefined}>
+            {item.label}
+            {(item.key === "missions" || item.key === "my-squad") && unread.sections.has(item.key) &&
+              <span className="nexus-dot" role="img" aria-label="Ada notifikasi baru" />}
+          </Link>)}
         </nav>
         <div className="nexus-nav-actions">
           {!isAdmin && <>
-          <Link href="/notifications" aria-label="Notifikasi" title="Notifikasi"
-            aria-current={activeItem === "notifications" ? "page" : undefined} className="rounded-full p-2">
-            <svg width="23" height="23" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-              <path d="M12 3a1 1 0 0 1 1 1v.1a6 6 0 0 1 5 5.9v4l2 3H4l2-3v-4a6 6 0 0 1 5-5.9V4a1 1 0 0 1 1-1Zm-2 16h4a2 2 0 0 1-4 0Z" />
-            </svg>
-          </Link>
+          <NotificationBell count={unread.count} current={activeItem === "notifications"} />
           <Link href="/profile" className="nexus-avatar" title={displayName}
             aria-label={`Buka profil ${displayName || "saya"}`}
             aria-current={activeItem === "profile" ? "page" : undefined}>
@@ -56,4 +79,3 @@ export default function Navbar({ displayName, avatarPath, activeItem, isAdmin = 
     </header>
   );
 }
-
