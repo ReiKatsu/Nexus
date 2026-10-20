@@ -3,20 +3,36 @@ import Image from "next/image";
 import { formatDate, formatEnumLabel } from "./formatters";
 import type { MissionDetail, MissionTier } from "./types";
 
-export default function MissionOverview({ mission, relatedTier, tierLabel, posterUrl }: {
-  mission: MissionDetail; relatedTier: MissionTier | null; tierLabel: string; posterUrl?: string | null;
+export default function MissionOverview({ mission, relatedTier, tierLabel, posterUrl, bannerUrl }: {
+  mission: MissionDetail; relatedTier: MissionTier | null; tierLabel: string;
+  posterUrl?: string | null; bannerUrl?: string | null;
 }) {
+  // Banner = crop buatan pengaju. Tanpa banner, poster ditampilkan utuh di samping
+  // dan hanya dipakai sebagai latar blur, supaya teks poster tidak menabrak teks Mission.
+  const showPosterCard = !bannerUrl && Boolean(posterUrl);
   const teamSize = mission.min_anggota_tim === null || mission.max_anggota_tim === null ? "Belum tersedia"
     : mission.min_anggota_tim === mission.max_anggota_tim ? `${mission.min_anggota_tim} anggota`
     : `${mission.min_anggota_tim}–${mission.max_anggota_tim} anggota`;
   return (
     <>
-      <section className="mission-banner" aria-labelledby="mission-title">
-        {posterUrl && (
-          <Image src={posterUrl} alt="" fill unoptimized sizes="(max-width: 1308px) 100vw, 1244px"
+      <section className={`mission-banner${bannerUrl ? " has-banner" : ""}${showPosterCard ? " has-poster" : ""}`}
+        aria-labelledby="mission-title">
+        {bannerUrl && (
+          <Image src={bannerUrl} alt="" fill unoptimized sizes="(max-width: 1308px) 100vw, 1244px"
             className="mission-banner-image" priority />
         )}
+        {showPosterCard && posterUrl && (
+          <Image src={posterUrl} alt="" fill unoptimized sizes="(max-width: 1308px) 100vw, 1244px"
+            className="mission-banner-image mission-banner-image-blur" priority />
+        )}
         <div className="mission-banner-shade" aria-hidden="true" />
+        {showPosterCard && posterUrl && (
+          <a href={posterUrl} target="_blank" rel="noopener noreferrer" className="mission-banner-poster"
+            aria-label={`Buka poster ${mission.nama_lomba}`}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={posterUrl} alt={`Poster ${mission.nama_lomba}`} />
+          </a>
+        )}
         {mission.link_resmi && (
           <a href={mission.link_resmi} target="_blank" rel="noopener noreferrer" className="mission-banner-link">
             Halaman Resmi ↗
