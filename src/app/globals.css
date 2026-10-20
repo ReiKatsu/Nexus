@@ -86,8 +86,11 @@
   color-scheme: dark;
   --background: #080b0e;
   --foreground: #f8fafc;
-  --glass: linear-gradient(135deg, rgba(76, 82, 85, .94), rgba(30, 44, 53, .97));
-  --glass-border: rgba(215, 222, 226, .42);
+  /* Glass putih transparan: background di belakang kotak ikut terlihat dan di-blur seperti kaca. */
+  --glass: linear-gradient(135deg, rgba(255, 255, 255, .17), rgba(255, 255, 255, .06));
+  --glass-border: rgba(255, 255, 255, .30);
+  --glass-blur: blur(18px) saturate(140%);
+  --glass-shadow: inset 0 1px 0 rgba(255, 255, 255, .30), 0 18px 48px rgba(0, 0, 0, .28);
 }
 
 @theme inline {
@@ -152,15 +155,19 @@ body::before {
   ::selection { background: #f6bf52; color: #14232d; }
 }
 
-/* Static gradients preserve the glass theme without per-surface backdrop sampling. */
+/* Semua kotak putih/abu bawaan diubah menjadi kaca transparan + blur. */
 @layer utilities {
-  .bg-white, .bg-white\/90, .bg-white\/70 { background: var(--glass); border-color: var(--glass-border); box-shadow: inset 0 1px 0 #ffffff26, 0 18px 48px #0000002e; }
+  .bg-white, .bg-white\/90, .bg-white\/70 { background: var(--glass); border-color: var(--glass-border); box-shadow: var(--glass-shadow); }
+  /* Blur hanya di kotak terluar; kotak di dalam kotak cukup transparan (blur bertumpuk tidak berpengaruh dan berat). */
+  :where(section, article, form, header, aside, nav, li, div).bg-white:not(.bg-white *),
+  :where(section, article, form, header, aside, nav, li, div).bg-white\/90:not(.bg-white *),
+  :where(section, article, form, header, aside, nav, li, div).bg-white\/70:not(.bg-white *) { -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); }
   .min-h-screen.bg-slate-50 { background: transparent; }
   .shadow-slate-200\/60 { --tw-shadow-color: #00000033; }
   .blur-3xl { display: none; }
 }
 
-.glass-card { background: var(--glass); border: 2px solid var(--glass-border); border-radius: 36px; box-shadow: inset 0 1px 0 #ffffff20, 0 18px 48px #00000026; }
+.glass-card { background: var(--glass); border: 2px solid var(--glass-border); border-radius: 36px; box-shadow: var(--glass-shadow); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); }
 .nexus-navbar { position: sticky; top: 0; z-index: 50; border: 2px solid #d4dbe34d; border-top: 0; border-radius: 0 0 58px 58px; background: linear-gradient(110deg,#514336f5,#1b303afa); }
 .nexus-nav-inner { max-width: 1300px; margin: auto; display: flex; align-items: center; gap: 36px; padding: 14px 28px; min-height: 76px; }
 .nexus-brand { width: 46px; height: 46px; display: grid; place-items: center; border: 1px solid #ffffff4d; border-radius: 50%; background: #ffffff10; flex-shrink: 0; }
@@ -229,7 +236,7 @@ body::before {
 .mission-tile { border-radius: 36px; padding: 25px; display: flex; flex-direction: column; }
 .mission-tile h3 { font-size: 20px; }
 .mission-tile > a:last-child { margin-top: auto; align-self: flex-start; }
-.mission-hero { padding: 38px; border-radius: 40px; margin-top: 22px; background: linear-gradient(105deg,#6b5137a6,#2c4c5abb), var(--glass); }
+.mission-hero { padding: 38px; border-radius: 40px; margin-top: 22px; background: linear-gradient(105deg,rgba(255,176,80,.16),rgba(90,175,225,.10)), var(--glass); }
 .mission-hero h1 { max-width: 900px; font-size: clamp(28px,3vw,42px); font-weight: 600; letter-spacing: -.035em; line-height: 1.2; }
 .mission-facts { display: flex; gap: 32px; flex-wrap: wrap; margin-top: 25px; }
 .mission-facts dt { font-size: 11px; color: #d0d9e1; }
@@ -290,7 +297,7 @@ body::before {
 .squad-workspace-card::before { content: ""; position: absolute; inset: 0; background: radial-gradient(circle at 100% 0,#58c5ed1c,transparent 44%); pointer-events: none; }
 .squad-workspace-card:hover { transform: translateY(-3px); border-color: #dfe9ef99; }
 .squad-workspace-card > * { position: relative; }
-.squad-room-hero { background: linear-gradient(110deg,rgba(112,73,36,.64),rgba(31,70,88,.72)); }
+.squad-room-hero { background: linear-gradient(110deg,rgba(255,176,80,.16),rgba(90,175,225,.10)), var(--glass); }
 .squad-room-hero h1 { font-size: clamp(30px,4vw,48px); letter-spacing: -.045em; }
 .squad-room-grid > section,
 .squad-room-grid > aside > section { border-radius: 28px; }
@@ -344,7 +351,7 @@ a.badge-pill--empty:hover { border-color: #ffd37c; color: #ffe1a1; filter: none;
 .pc-season { grid-area: season; } .pc-career { grid-area: career; } .pc-missions { grid-area: missions; }
 .pc-skills { grid-area: skills; } .pc-rank { grid-area: rank; } .pc-endorse { grid-area: endorse; }
 .pc-seasons { grid-area: seasons; }
-.profile-card { min-width: 0; padding: 24px 30px; border: 2.5px solid #ffffff3d; border-radius: 40px; background: linear-gradient(135deg,rgba(78,84,88,.58),rgba(26,38,47,.66)); box-shadow: inset 0 1px 0 #ffffff26, 0 18px 48px #00000033; }
+.profile-card { min-width: 0; padding: 24px 30px; border: 2.5px solid var(--glass-border); border-radius: 40px; background: var(--glass); box-shadow: var(--glass-shadow); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); }
 .profile-card > h2 { margin-bottom: 12px; font-size: 18px; font-weight: 600; }
 .profile-card a:not(.badge-pill):hover { text-decoration: underline; }
 
@@ -365,12 +372,12 @@ a.badge-pill--empty:hover { border-color: #ffd37c; color: #ffe1a1; filter: none;
 .xp2-meta { display: flex; justify-content: space-between; gap: 8px; margin-top: 4px; color: #e3e9ee; font-size: 9px; }
 
 /* Career Rank */
-.rank2 { position: relative; }
+.rank2 { position: relative; z-index: 6; }
 .rank2-head { position: relative; margin-bottom: 8px; }
 .rank2-head h2, .rank2-switch { font-size: 17px; font-weight: 600; color: #fff; }
 .rank2-switch { display: inline-flex; align-items: center; gap: 6px; padding: 0; border: 0; background: none; }
 .rank2-switch:hover { color: #ffe1a1; }
-.rank2-menu { position: absolute; z-index: 5; top: 100%; left: 0; min-width: 160px; margin-top: 6px; padding: 6px; border: 1px solid #ffffff3d; border-radius: 14px; background: #19262fef; box-shadow: 0 14px 30px #00000066; }
+.rank2-menu { position: absolute; z-index: 5; top: 100%; left: 0; min-width: 160px; margin-top: 6px; padding: 6px; border: 1px solid var(--glass-border); border-radius: 14px; background: rgba(20,30,38,.55); box-shadow: 0 14px 30px #00000066; -webkit-backdrop-filter: blur(20px) saturate(140%); backdrop-filter: blur(20px) saturate(140%); }
 .rank2-menu button { width: 100%; padding: 8px 12px; border: 0; border-radius: 9px; background: none; color: #f1f4f6; font-size: 13px; text-align: left; }
 .rank2-menu button:hover { background: #ffffff1c; }
 .rank2-menu [aria-selected="true"] button { color: #ffe1a1; }
@@ -451,7 +458,7 @@ a.badge-pill--empty:hover { border-color: #ffd37c; color: #ffe1a1; filter: none;
 .chest-group { margin-top: 30px; }
 .chest-group > h2 { margin-bottom: 12px; font-size: 18px; font-weight: 600; }
 .chest-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 18px; }
-.chest-card { display: flex; flex-direction: column; gap: 12px; padding: 20px 22px; border: 2px solid #ffffff3d; border-radius: 28px; background: linear-gradient(135deg,rgba(78,84,88,.58),rgba(26,38,47,.66)); }
+.chest-card { display: flex; flex-direction: column; gap: 12px; padding: 20px 22px; border: 2px solid var(--glass-border); border-radius: 28px; background: var(--glass); box-shadow: var(--glass-shadow); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); }
 .chest-card--equipped { border-color: #ffd37cb3; }
 .chest-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
 .chest-tier { display: flex; align-items: center; gap: 12px; }
@@ -496,7 +503,7 @@ a.badge-pill--empty:hover { border-color: #ffd37c; color: #ffe1a1; filter: none;
 .min-h-screen.bg-slate-50 main > ul > li:hover { transform: translateY(-2px); border-color: #dce7ed80; }
 .min-h-screen.bg-slate-50 main > ul > li > * { position: relative; z-index: 1; }
 .min-h-screen.bg-slate-50 main > ul > li a.bg-indigo-600 { border-radius: 999px; }
-.min-h-screen.bg-slate-50 main > nav[aria-label] { width: fit-content; padding: 7px 14px; border: 1px solid var(--glass-border); border-radius: 999px; background: #1f343f9c; }
+.min-h-screen.bg-slate-50 main > nav[aria-label] { width: fit-content; padding: 7px 14px; border: 1px solid var(--glass-border); border-radius: 999px; background: rgba(255,255,255,.10); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); }
 .min-h-screen.bg-slate-50 main > a:first-child { display: inline-flex; align-items: center; min-height: 38px; padding: 0 15px; border: 1px solid #dbe5eb3d; border-radius: 999px; background: #dce7ef12; text-decoration: none; }
 .min-h-screen.bg-slate-50 main > form,
 .min-h-screen.bg-slate-50 main > section,
@@ -514,7 +521,7 @@ a.badge-pill--empty:hover { border-color: #ffd37c; color: #ffe1a1; filter: none;
 .nexus-auth-flow > div.relative > header,
 .nexus-auth-flow > section > div:first-child { margin-bottom: 34px; }
 .nexus-auth-flow > section,
-.nexus-auth-flow > div.relative > section { border: 2px solid var(--glass-border) !important; background: linear-gradient(135deg,rgba(76,82,85,.94),rgba(31,47,56,.97)) !important; border-radius: 36px !important; box-shadow: inset 0 1px 0 #ffffff24,0 28px 70px #00000042 !important; }
+.nexus-auth-flow > div.relative > section { border: 2px solid var(--glass-border) !important; background: var(--glass) !important; border-radius: 36px !important; box-shadow: var(--glass-shadow) !important; -webkit-backdrop-filter: var(--glass-blur) !important; backdrop-filter: var(--glass-blur) !important; }
 .nexus-auth-flow h1 { letter-spacing: -.045em; }
 .nexus-auth-flow .nexus-brand { display: inline-grid; }
 .nexus-auth-flow input,
@@ -575,3 +582,12 @@ body:has(.nexus-nav-link[href="/admin/results"][aria-current="page"]) main::befo
 @media (max-width: 760px) {
   .profile-grid--peer { grid-template-areas: "career" "rank" "skills" "missions" "endorse"; }
 }
+
+/* Kotak abu di dalam kartu (chip, daftar anggota, area chat, dsb) -> putih transparan seperti kaca. */
+.bg-slate-50, .hover\:bg-slate-50:hover { background-color: rgba(255,255,255,.08); }
+.bg-slate-100, .disabled\:bg-slate-100:disabled { background-color: rgba(255,255,255,.12); }
+.border-slate-100 { border-color: rgba(255,255,255,.16); }
+.border-slate-200 { border-color: rgba(255,255,255,.26); }
+.border-slate-300 { border-color: rgba(255,255,255,.34); }
+/* Pembungkus halaman tetap polos agar background Nexus terlihat. */
+.min-h-screen.bg-slate-50, .nexus-auth-flow, .nexus-app-page { background: transparent !important; }
