@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 type Bucket = ReturnType<SupabaseClient["storage"]["from"]>;
-const FILE_NAME = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}(?:-(?:certificate|supporting))?\.(pdf|jpg|png|webp)$/i;
+const FILE_NAME = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}(?:-(?:certificate|supporting|banner))?\.(pdf|jpg|png|webp)$/i;
 const EXTENSIONS: Record<string, string> = {
   "application/pdf": "pdf", "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp",
 };
