@@ -1,10 +1,13 @@
+
+
+Page · TSX
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-
+ 
 import Navbar from "@/components/layout/Navbar";
 import { createClient } from "@/lib/supabase/server";
 import { loadPendingApplicantIds } from "@/lib/squad-applicant-profiles";
-
+ 
 import CreateSquadForm from "./CreateSquadForm";
 import type { SquadApplicationDecisionItem } from "./SquadApplicationDecisionList";
 import { formatApplicationDate, getRelatedTier } from "./mission-detail/formatters";
@@ -17,14 +20,15 @@ import type {
   MissionSquadLeader,
   SquadRequirement,
 } from "./mission-detail/types";
-
+import BackLink from "@/components/layout/BackLink";
+ 
 type MissionDetailPageProps = {
   params: Promise<{
     missionId: string;
   }>;
   searchParams: Promise<{ status?: string | string[] }>;
 };
-
+ 
 function ProfileLoadError() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-slate-50 px-4 text-slate-900">
@@ -42,7 +46,7 @@ function ProfileLoadError() {
     </main>
   );
 }
-
+ 
 function MissionLoadError({ displayName, avatarPath }: { displayName: string; avatarPath?: string | null }) {
   return (
     <div className="flex min-h-screen flex-col bg-slate-50">
@@ -63,26 +67,26 @@ function MissionLoadError({ displayName, avatarPath }: { displayName: string; av
     </div>
   );
 }
-
+ 
 export default async function MissionDetailPage({
   params,
   searchParams,
 }: MissionDetailPageProps) {
   const supabase = await createClient();
   const { data: authData, error: authError } = await supabase.auth.getUser();
-
+ 
   if (authError || !authData.user) redirect("/login");
-
+ 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select("nama_lengkap, role_app, primary_class_id, status_akun, foto_profil_path")
     .eq("user_id", authData.user.id)
     .maybeSingle();
   if (!profileError && profile?.role_app === "ADMIN") redirect("/admin");
-
+ 
   if (profileError || !profile) return <ProfileLoadError />;
   if (profile.primary_class_id === null) redirect("/onboarding");
-
+ 
   const { missionId } = await params;
   const requestedStatus = (await searchParams).status;
   const squadFilter = requestedStatus === "open" || requestedStatus === "locked" ? requestedStatus : "all";
@@ -115,12 +119,12 @@ export default async function MissionDetailPage({
     )
     .eq("mission_id", missionId)
     .maybeSingle();
-
+ 
   if (missionError) {
     return <MissionLoadError displayName={profile.nama_lengkap} avatarPath={profile.foto_profil_path} />;
   }
   if (!mission) notFound();
-
+ 
   const relatedTier = getRelatedTier(mission.mission_tiers);
   const tierCode = relatedTier?.kode_tier?.trim();
   const tierLabel = tierCode
@@ -134,7 +138,7 @@ export default async function MissionDetailPage({
   const registrationOpen =
     Number.isFinite(registrationDeadline) &&
     registrationDeadline > requestTimestamp;
-
+ 
   // Bucket privat, jadi poster dan banner dibuat signed URL 1 jam. Banner adalah hasil
   // crop pengaju untuk latar atas halaman. Tanpa banner, poster tampil utuh di samping
   // latar gradien. PDF atau gambar yang gagal dimuat dilewati (latar gradien saja).
@@ -148,7 +152,7 @@ export default async function MissionDetailPage({
   const [posterUrl, bannerUrl] = await Promise.all([
     signImage(missionFiles.dokumen_path), signImage(missionFiles.banner_path),
   ]);
-
+ 
   const [
     squadsResult,
     squadLeadersResult,
@@ -198,7 +202,7 @@ export default async function MissionDetailPage({
       p_mission_id: missionId,
     }),
   ]);
-
+ 
   const applicationStatusLoadFailed = Boolean(
     activeMembershipResult.error || pendingApplicationsResult.error,
   );
@@ -219,7 +223,7 @@ export default async function MissionDetailPage({
   const applicantIds = await loadPendingApplicantIds(
     supabase, missionId, leaderApplications.map((application) => application.application_id),
   );
-
+ 
   for (const application of leaderApplications) {
     const applications =
       leaderApplicationsBySquad.get(application.squad_id) ?? [];
@@ -232,7 +236,7 @@ export default async function MissionDetailPage({
     });
     leaderApplicationsBySquad.set(application.squad_id, applications);
   }
-
+ 
   // Kebutuhan recruitment untuk modal Detail Squad. Hasilnya informasi bagi calon pelamar;
   // bila RLS menolak atau query gagal, modal hanya tidak menampilkan bagian ini.
   const requirementsBySquad = new Map<string, SquadRequirement[]>();
@@ -255,14 +259,14 @@ export default async function MissionDetailPage({
       }
     }
   }
-
+ 
   const squadLeaderNames = new Map<string, string | null>(
     ((squadLeadersResult.data ?? []) as MissionSquadLeader[]).map((leader) => [
       leader.squad_id,
       leader.nama_ketua,
     ]),
   );
-
+ 
   return (
     <div className="flex min-h-screen w-full min-w-0 flex-col overflow-x-clip bg-slate-50">
       <Navbar displayName={profile.nama_lengkap} avatarPath={profile.foto_profil_path} activeItem="missions" />
@@ -275,15 +279,10 @@ export default async function MissionDetailPage({
           aria-hidden="true"
           className="absolute -bottom-40 -right-32 h-96 w-96 rounded-full bg-violet-200/50 blur-3xl"
         />
-
+ 
         <article className="relative w-full min-w-0">
-          <Link
-            href="/missions"
-            className="inline-flex rounded-lg text-sm font-bold text-indigo-600 transition hover:text-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-200"
-          >
-            ← Kembali ke Missions
-          </Link>
-
+          <BackLink href="/missions">Kembali ke Missions</BackLink>
+ 
           <MissionOverview
             mission={mission as MissionDetail}
             relatedTier={relatedTier}
@@ -291,7 +290,7 @@ export default async function MissionDetailPage({
             posterUrl={posterUrl}
             bannerUrl={bannerUrl}
           />
-
+ 
           <div className="squad-filter">
             <h2 className="squad-filter-title">Squad Tersedia <span>{squadsResult.error ? "—" : squadsResult.data?.length ?? 0}</span></h2>
             <nav aria-label="Filter status squad">
@@ -311,7 +310,7 @@ export default async function MissionDetailPage({
             minimumTeamSize={mission.min_anggota_tim}
             maximumTeamSize={mission.max_anggota_tim}
           />
-
+ 
           <SquadList
             missionId={missionId}
             missionName={mission.nama_lomba}
@@ -339,3 +338,4 @@ export default async function MissionDetailPage({
     </div>
   );
 }
+ 
