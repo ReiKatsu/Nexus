@@ -6,6 +6,7 @@ import type {
 } from "./types";
 
 type SquadListProps = {
+  missionId: string;
   squads: MissionSquad[] | null;
   squadsLoadFailed: boolean;
   squadLeadersLoadFailed: boolean;
@@ -28,6 +29,7 @@ function getSquadStatusLabel(status: string | null): "Open" | "Locked" | null {
 }
 
 export default function SquadList({
+  missionId,
   squads,
   squadsLoadFailed,
   squadLeadersLoadFailed,
@@ -170,7 +172,8 @@ export default function SquadList({
                     </div>
                   ) : (
                     <SquadApplicationDecisionList
-                      key={`${squad.squad_id}:${leaderApplications.map((application) => application.applicationId).join(",")}:${acceptDisabledReason ?? "open"}`}
+                      missionId={missionId}
+                      key={`${squad.squad_id}:${leaderApplications.map((application) => `${application.applicationId}:${application.applicantUserId ?? "unavailable"}`).join(",")}:${acceptDisabledReason ?? "open"}`}
                       applications={leaderApplications}
                       acceptDisabledReason={acceptDisabledReason}
                     />

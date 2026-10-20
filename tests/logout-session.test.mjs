@@ -49,16 +49,21 @@ test('logout is idempotent for an empty session without requiring a profile or r
   assert.deepEqual(paths, [['/', 'layout']]);
 });
 
-test('both STUDENT and ADMIN navbar render an accessible logout button', () => {
+test('both STUDENT and ADMIN navbar render an accessible logout button', async () => {
   const Button = load('../src/components/layout/LogoutButton.tsx', {
     '@/lib/auth/logout-actions': { logout: async () => ({ success: true }) },
   }).default;
   const Navbar = load('../src/components/layout/Navbar.tsx', {
     './LogoutButton': { default: Button }, 'next/link': { default: 'a' }, 'next/image': { default: 'img' },
+    './NotificationBell': { default: () => null },
+    '@/lib/notifications': { notificationNavSection: () => null },
+    '@/lib/supabase/server': { createClient: async () => ({
+      auth: { getUser: async () => ({ data: { user: null } }) },
+    }) },
   }).default;
   for (const isAdmin of [false, true]) {
     const html = require('react-dom/server').renderToStaticMarkup(
-      require('react').createElement(Navbar, { displayName: 'QA', activeItem: 'profile', isAdmin }));
+      await Navbar({ displayName: 'QA', activeItem: 'profile', isAdmin }));
     assert.match(html, /<button[^>]*type="button"[^>]*aria-label="Keluar dari akun"/);
     assert.match(html, />Keluar<\/button>/);
     if (isAdmin) {
