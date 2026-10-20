@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 
 import Navbar from "@/components/layout/Navbar";
 import { createClient } from "@/lib/supabase/server";
+import { loadPendingApplicantIds } from "@/lib/squad-applicant-profiles";
 
 import CreateSquadForm from "./CreateSquadForm";
 import type { SquadApplicationDecisionItem } from "./SquadApplicationDecisionList";
@@ -195,13 +196,19 @@ export default async function MissionDetailPage({
     string,
     SquadApplicationDecisionItem[]
   >();
+  const leaderApplications = leaderApplicationsResult.error
+    ? []
+    : (leaderApplicationsResult.data ?? []) as LeaderPendingSquadApplication[];
+  const applicantIds = await loadPendingApplicantIds(
+    supabase, missionId, leaderApplications.map((application) => application.application_id),
+  );
 
-  for (const application of
-    (leaderApplicationsResult.data ?? []) as LeaderPendingSquadApplication[]) {
+  for (const application of leaderApplications) {
     const applications =
       leaderApplicationsBySquad.get(application.squad_id) ?? [];
     applications.push({
       applicationId: application.application_id,
+      applicantUserId: applicantIds?.get(application.application_id) ?? null,
       applicantName: application.applicant_name,
       primaryClassName: application.primary_class_name,
       submittedAtLabel: formatApplicationDate(application.created_at),
@@ -264,6 +271,7 @@ export default async function MissionDetailPage({
           />
 
           <SquadList
+            missionId={missionId}
             squads={((squadsResult.data as MissionSquad[] | null) ?? []).filter((squad) =>
               squadFilter === "all" || (squadFilter === "open" ? squad.status_squad === "OPEN_RECRUITMENT"
                 : squad.status_squad === "FULL" || squad.status_squad === "FINALIZED"))}

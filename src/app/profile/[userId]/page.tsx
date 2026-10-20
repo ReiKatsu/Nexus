@@ -12,7 +12,7 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export default async function PeerProfilePage({ params, searchParams }: {
   params: Promise<{ userId: string }>;
-  searchParams: Promise<{ squad?: string | string[] }>;
+  searchParams: Promise<{ squad?: string | string[]; mission?: string | string[] }>;
 }) {
   const [{ userId }, query] = await Promise.all([params, searchParams]);
   if (!UUID.test(userId)) notFound();
@@ -35,7 +35,7 @@ export default async function PeerProfilePage({ params, searchParams }: {
   if (peerResult.error || !peerResult.data) notFound();
 
   const peer = peerResult.data;
-  const [classResult, programResult, summary, sharedSquads] = await Promise.all([
+  const [classResult, programResult, summary, sharedSquads, skillsResult] = await Promise.all([
     peer.primary_class_id === null
       ? Promise.resolve({ data: null, error: null })
       : supabase.from("primary_classes").select("nama_class")
@@ -46,6 +46,7 @@ export default async function PeerProfilePage({ params, searchParams }: {
     viewerResult.data.role_app === "STUDENT"
       ? loadSharedCompletedSquads(supabase, auth.user.id, userId)
       : Promise.resolve([]),
+    supabase.from("user_skills").select("skills(nama_skill)").eq("user_id", userId),
   ]);
   const facultyResult = programResult.data
     ? await supabase.from("fakultas").select("nama_fakultas")
@@ -57,16 +58,21 @@ export default async function PeerProfilePage({ params, searchParams }: {
   const context = typeof query.squad === "string" && UUID.test(query.squad)
     ? sharedSquads?.find(squad => squad.squadId === query.squad)
     : undefined;
+  // This parameter only selects an internal return link, never access or eligibility.
+  const missionId = typeof query.mission === "string" && UUID.test(query.mission)
+    ? query.mission : null;
+  const skills = (skillsResult.data ?? []).flatMap((row) => row.skills ?? [])
+    .map((skill) => skill.nama_skill).sort((a, b) => a.localeCompare(b));
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
-      <Navbar displayName={viewerResult.data.nama_lengkap} avatarPath={viewerResult.data.foto_profil_path} activeItem={context ? "my-squad" : "leaderboard"} />
-      <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
-        <Link href={context ? `/squads/${context.squadId}/endorsements` : "/leaderboard"}
+    <div className="nexus-app-page min-h-screen bg-slate-50 text-slate-900">
+      <Navbar displayName={viewerResult.data.nama_lengkap} avatarPath={viewerResult.data.foto_profil_path} activeItem={missionId ? "missions" : context ? "my-squad" : "leaderboard"} />
+      <main className="nexus-page-shell mx-auto max-w-3xl px-4 py-8 sm:px-6">
+        <Link href={missionId ? `/missions/${missionId}` : context ? `/squads/${context.squadId}/endorsements` : "/leaderboard"}
           prefetch={false} className="text-sm font-semibold text-indigo-700 hover:underline">
-          {context ? `← Detail ${context.name}` : "← Leaderboard"}
+          {missionId ? "← Kembali ke Mission" : context ? `← Detail ${context.name}` : "← Leaderboard"}
         </Link>
-        <section className="mt-5 rounded-2xl border border-slate-200 bg-white p-6">
+        <section className="glass-card mt-5 rounded-2xl border border-slate-200 bg-white p-6">
           <div className="flex items-center gap-4">
             {avatar ? <Image src={avatar} alt={`Foto ${peer.nama_lengkap}`}
               width={72} height={72} unoptimized className="h-18 w-18 rounded-full object-cover" />
@@ -87,6 +93,17 @@ export default async function PeerProfilePage({ params, searchParams }: {
             <div><dt className="text-xs font-semibold text-slate-500">Tahun masuk</dt>
               <dd className="mt-1 font-semibold">{peer.tahun_masuk}</dd></div>
           </dl>
+          <div className="mt-6 border-t border-slate-100 pt-5">
+            <h2 className="text-lg font-bold">Skills</h2>
+            {skillsResult.error ? (
+              <p role="alert" className="mt-3 text-sm text-red-700">Skill belum dapat dimuat. Coba muat ulang halaman.</p>
+            ) : skills.length > 0 ? (
+              <ul className="mt-3 flex flex-wrap gap-2">
+                {skills.map((skill) => <li key={skill}
+                  className="rounded-full bg-indigo-50 px-3 py-1 text-sm text-indigo-700">{skill}</li>)}
+              </ul>
+            ) : <p className="mt-3 text-sm text-slate-600">Belum ada Skill yang dipilih.</p>}
+          </div>
         </section>
         <EndorsementSummary summary={summary} />
         {sharedSquads === null ? (

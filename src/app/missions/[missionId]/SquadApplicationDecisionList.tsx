@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 
@@ -10,17 +11,20 @@ import {
 
 export type SquadApplicationDecisionItem = {
   applicationId: string;
+  applicantUserId: string | null;
   applicantName: string;
   primaryClassName: string | null;
   submittedAtLabel: string;
 };
 
 type SquadApplicationDecisionListProps = {
+  missionId: string;
   applications: SquadApplicationDecisionItem[];
   acceptDisabledReason?: string;
 };
 
 export default function SquadApplicationDecisionList({
+  missionId,
   applications: initialApplications,
   acceptDisabledReason,
 }: SquadApplicationDecisionListProps) {
@@ -124,6 +128,21 @@ export default function SquadApplicationDecisionList({
                   {" · "}
                   {application.submittedAtLabel}
                 </p>
+
+                {application.applicantUserId ? (
+                  <Link
+                    href={`/profile/${application.applicantUserId}?mission=${missionId}`}
+                    prefetch={false}
+                    aria-label={`Lihat profil ${application.applicantName}`}
+                    className="mt-3 inline-flex min-h-9 items-center rounded-lg border border-slate-200 px-3 text-xs font-bold text-indigo-700 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
+                  >
+                    Lihat Profil
+                  </Link>
+                ) : (
+                  <p className="mt-3 text-xs text-slate-500">
+                    Profil pelamar belum dapat dimuat. Coba muat ulang halaman.
+                  </p>
+                )}
 
                 <div className="mt-3 grid grid-cols-2 gap-2">
                   <button
