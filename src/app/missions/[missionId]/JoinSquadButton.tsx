@@ -87,7 +87,7 @@ export default function JoinSquadButton({
 
   if (state === "member") {
     return (
-      <p className="mt-4 text-sm font-semibold text-slate-500">
+      <p className="squad-dialog-note">
         Anda sudah menjadi anggota atau Ketua Squad pada Mission ini.
       </p>
     );
@@ -164,7 +164,7 @@ export default function JoinSquadButton({
   }
 
   return (
-    <div className="mt-4 border-t border-slate-100 pt-4">
+    <div className="squad-join">
       <button
         type="button"
         onClick={handleAction}
@@ -175,7 +175,7 @@ export default function JoinSquadButton({
             ? `join-squad-reason-${squadId}`
             : undefined
         }
-        className={`inline-flex h-10 w-full items-center justify-center rounded-xl px-4 text-sm font-bold text-white transition focus:outline-none focus:ring-4 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-600 disabled:hover:bg-slate-200 ${isPending ? "bg-red-600 hover:bg-red-700 focus:ring-red-200" : "bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-200"}`}
+        className={`squad-join-btn${isPending ? " is-pending" : ""}`}
       >
         {isSubmitting
           ? isPending
@@ -185,7 +185,7 @@ export default function JoinSquadButton({
             ? "Batalkan aplikasi Pending"
             : isCancelled
               ? "Dibatalkan"
-              : "Join"}
+              : "Minta Gabung"}
       </button>
 
       {isPending && (
