@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 
 import { submitWithUploads } from "@/lib/uploads/submit-with-uploads";
 
@@ -60,6 +60,15 @@ export default function MissionForm({ initial }: { initial: MissionSubmission | 
   const [suggestions, setSuggestions] = useState<{
     nama_lomba: string; penyelenggara: string; tahun_lomba: number;
   }[]>([]);
+  const [posterPreview, setPosterPreview] = useState<string | null>(null);
+
+  // Pratinjau poster hanya ada di browser; URL sementara dilepas saat berganti/keluar halaman.
+  useEffect(() => () => { if (posterPreview) URL.revokeObjectURL(posterPreview); }, [posterPreview]);
+
+  function choosePoster(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.currentTarget.files?.[0];
+    setPosterPreview(file && file.type.startsWith("image/") ? URL.createObjectURL(file) : null);
+  }
 
   async function checkSimilar(name: string) {
     if (name.trim().length < 3) { setSuggestions([]); return; }
@@ -84,9 +93,14 @@ export default function MissionForm({ initial }: { initial: MissionSubmission | 
     const validation = validateFields(form);
     const errors = { ...validation.errors };
     if (!(file instanceof File) || !file.size) {
-      errors.dokumen = "Pilih poster atau dokumen lomba.";
-    } else if (file.size > MAX_DOCUMENT_BYTES || !(await validateDocument(file))) {
-      errors.dokumen = "Berkas harus PDF/JPG/PNG asli, maksimal 10 MiB.";
+      errors.dokumen = "Pilih poster lomba.";
+    } else if (file.size > MAX_DOCUMENT_BYTES) {
+      errors.dokumen = "Poster terlalu besar. Maksimal 10 MiB.";
+    } else {
+      const kind = await validateDocument(file);
+      if (!kind || kind.extension === "pdf") {
+        errors.dokumen = "Poster harus berupa gambar JPG atau PNG asli.";
+      }
     }
     if (Object.keys(errors).length) {
       showFieldErrors(errors, element);
@@ -221,14 +235,25 @@ export default function MissionForm({ initial }: { initial: MissionSubmission | 
         className="mt-1 block w-full rounded-lg border border-slate-300 p-2" />
       <FieldError name="deskripsi_singkat" errors={fieldErrors} />
     </label>
-    <label className="block text-sm font-semibold">Poster atau dokumen lomba baru
-      <input name="dokumen" type="file" required
-        accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
-        {...fieldAttributes("dokumen", fieldErrors)}
-        className="mt-1 block w-full text-sm" />
-      <FieldError name="dokumen" errors={fieldErrors} />
-    </label>
-    <p className="text-sm text-slate-600">PDF, JPG, atau PNG maksimal 10 MiB.
+    <div className="poster-upload">
+      <label className="block text-sm font-semibold">Poster lomba
+        <input name="dokumen" type="file" required onChange={choosePoster}
+          accept=".jpg,.jpeg,.png,image/jpeg,image/png"
+          {...fieldAttributes("dokumen", fieldErrors)}
+          className="mt-1 block w-full text-sm" />
+        <span className="mt-1 block text-xs font-normal text-slate-600">
+          JPG atau PNG, maksimal 10 MiB. Poster ini ditampilkan di kartu Mission setelah disetujui admin.
+        </span>
+        <FieldError name="dokumen" errors={fieldErrors} />
+      </label>
+      <div className="poster-upload-preview" aria-live="polite">
+        {posterPreview
+          // eslint-disable-next-line @next/next/no-img-element
+          ? <img src={posterPreview} alt="Pratinjau poster yang dipilih" />
+          : <span>Pratinjau poster</span>}
+      </div>
+    </div>
+    <p className="text-sm text-slate-600">
       Pengajuan yang menunggu review belum muncul di Discovery. Tier akhir ditetapkan admin.
       Periksa Mission yang sudah tersedia agar tidak mengajukan duplikat.</p>
     {error && <p role="alert" className="text-sm text-red-700">{error}</p>}
