@@ -1,22 +1,20 @@
-import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import Navbar from "@/components/layout/Navbar";
-import EndorsementSummary from "@/components/profile/EndorsementSummary";
-import MissionHistoryList from "@/components/profile/MissionHistoryList";
-import SeasonHistoryList from "@/components/profile/SeasonHistoryList";
+import BadgePill from "@/components/profile/BadgePill";
+import EndorsementPanel from "@/components/profile/EndorsementPanel";
+import MissionHistoryCard from "@/components/profile/MissionHistoryCard";
+import ProfileHero from "@/components/profile/ProfileHero";
+import RankSwitcherCard from "@/components/profile/RankSwitcherCard";
+import SeasonHistoryTiles from "@/components/profile/SeasonHistoryTiles";
 import ShareProfile from "@/components/profile/ShareProfile";
+import XpProgressCard from "@/components/profile/XpProgressCard";
+import { badgeTone, describeBadge, facultyAbbreviation, one } from "@/lib/badges";
 import { loadEndorsementSummary } from "@/lib/endorsements";
 import { loadMissionHistory } from "@/lib/mission-history";
 import { loadSeasonHistory } from "@/lib/season-history";
 import { createClient } from "@/lib/supabase/server";
-
-import RankCard from "./RankCard";
-
-function one<T>(value: T | T[] | null | undefined): T | null {
-  return Array.isArray(value) ? value[0] ?? null : value ?? null;
-}
 
 function PageError({ message }: { message: string }) {
   return (
@@ -45,6 +43,7 @@ export default async function ProfilePage() {
   }
 
   const userId = auth.user.id;
+  const isStudent = profile.role_app === "STUDENT";
   const [classResult, programResult, skillsResult, careerResult, seasonResult, rulesResult,
     endorsementSummary, seasonHistory, missionHistory, equippedResult] =
     await Promise.all([
@@ -63,12 +62,13 @@ export default async function ProfilePage() {
       supabase.from("rank_rules").select("rank_name, min_xp, max_xp")
         .order("min_xp", { ascending: true }),
       loadEndorsementSummary(supabase, userId),
-      profile.role_app === "STUDENT" ? loadSeasonHistory(supabase, userId, 1, 2)
+      isStudent ? loadSeasonHistory(supabase, userId, 1, 3)
         : Promise.resolve({ items: [], count: 0 }),
-      profile.role_app === "STUDENT" ? loadMissionHistory(supabase, userId, 1, 2)
+      isStudent ? loadMissionHistory(supabase, userId, 1, 5)
         : Promise.resolve({ items: [], count: 0 }),
       supabase.from("user_badges")
-        .select("reward_context, badge_definitions(badge_name)")
+        .select(`badge_definitions(badge_name), scope_type, rank_position, population_total,
+          program_studi(nama_program_studi), fakultas(nama_fakultas)`)
         .eq("user_id", userId).eq("is_equipped", true).maybeSingle(),
     ]);
 
@@ -98,135 +98,93 @@ export default async function ProfilePage() {
     ? supabase.storage.from("avatars").getPublicUrl(profile.foto_profil_path).data.publicUrl
     : null;
   const rules = rulesResult.data;
-  const equippedBadge = one(equippedResult.data?.badge_definitions);
+
+  // The equipped badge decides the pill and the colour of the avatar ring.
+  const equipped = equippedResult.data;
+  const badge = equipped ? describeBadge({
+    badgeName: one(equipped.badge_definitions)?.badge_name ?? null,
+    scopeType: equipped.scope_type ?? null,
+    scopeName: equipped.scope_type === "FAKULTAS"
+      ? one(equipped.fakultas)?.nama_fakultas ?? null
+      : equipped.scope_type === "PROGRAM_STUDI"
+        ? one(equipped.program_studi)?.nama_program_studi ?? null : null,
+    rankPosition: equipped.rank_position ?? null,
+    populationTotal: equipped.population_total ?? null,
+  }) : null;
+
+  const badgeNode = !isStudent ? null : equippedResult.error ? (
+    <span role="alert" className="badge-pill badge-pill--empty">Badge terpasang belum dapat dimuat.</span>
+  ) : badge ? (
+    <BadgePill scope={badge.scope} tier={badge.tier} href="/profile/badges"
+      detail={`${badge.detail} · Buka Badge Chest`}>{badge.label}</BadgePill>
+  ) : (
+    <Link href="/profile/badges" prefetch={false} title="Buka Badge Chest"
+      className="badge-pill badge-pill--empty">Belum ada Badge terpasang</Link>
+  );
+
+  const tags = [
+    classResult.data?.nama_class,
+    facultyAbbreviation(facultyResult.data.nama_fakultas),
+    programResult.data.nama_program_studi,
+    `UNESA ${profile.tahun_masuk}`,
+  ].filter((tag): tag is string => Boolean(tag));
+
+  const seasonXp = seasonResult.data && seasonalResult.data ? seasonalResult.data.seasonal_xp : null;
+  const rankOptions = [
+    { key: "career", label: "Career Rank", xp: careerResult.data.career_xp },
+    ...(seasonXp !== null ? [{ key: "season", label: "Season Rank", xp: seasonXp }] : []),
+  ];
 
   return (
     <div className="nexus-app-page min-h-screen bg-slate-50 text-slate-900">
       <Navbar displayName={profile.nama_lengkap} avatarPath={profile.foto_profil_path} activeItem="profile" />
-      <main className="nexus-page-shell profile-page mx-auto max-w-6xl px-4 py-8 sm:px-6">
-        <div className="nexus-page-heading flex flex-wrap items-center justify-between gap-3">
-          <h1 className="text-2xl font-bold">Profil Saya</h1>
-          <Link href="/profile/edit"
-            className="rounded-lg border border-indigo-200 px-4 py-2 text-sm font-semibold text-indigo-700 hover:bg-indigo-50">
-            Edit profil
-          </Link>
-        </div>
-        <section className="profile-hero glass-card mt-6 rounded-2xl border border-slate-200 bg-white p-6">
-          <div className="flex flex-wrap items-center gap-4">
-            {avatar ? (
-              <Image src={avatar} alt={`Foto ${profile.nama_lengkap}`}
-                width={72} height={72} unoptimized
-                className="h-18 w-18 rounded-full object-cover" />
+      <main className="nexus-page-shell profile-v2 mx-auto max-w-6xl px-4 py-8 sm:px-6">
+        <ProfileHero name={profile.nama_lengkap} avatarUrl={avatar} tone={badgeTone(badge)}
+          badge={badgeNode} tags={tags} bio={profile.bio?.trim() || "Belum ada bio."}
+          actions={
+            <>
+              <Link href="/profile/edit" className="profile-action">Edit Profil</Link>
+              {isStudent && <ShareProfile userId={userId} />}
+              {isStudent && <Link href="/profile/claims" className="profile-action">Klaim Achievement</Link>}
+            </>
+          } />
+
+        {isStudent && (
+          <div className="profile-grid">
+            {seasonResult.data && seasonXp !== null ? (
+              <XpProgressCard area="pc-season" tone="season" title="Season XP"
+                subtitle={`${seasonResult.data.nama_season} Aktif`} xp={seasonXp} rules={rules} />
             ) : (
-              <span aria-label="Foto profil belum tersedia"
-                className="flex h-18 w-18 items-center justify-center rounded-full bg-indigo-100 text-2xl font-bold text-indigo-700">
-                {profile.nama_lengkap.trim().charAt(0).toUpperCase() || "N"}
-              </span>
+              <section className="profile-card pc-season" aria-label="Season XP">
+                <h2>Season XP</h2>
+                <p className="history2-note">Belum ada Season aktif.</p>
+              </section>
             )}
-            <div>
-              <h2 className="text-xl font-bold">{profile.nama_lengkap}</h2>
-              <p className="mt-1 text-sm text-slate-600">
-                {programResult.data.nama_program_studi} · {facultyResult.data.nama_fakultas}
-              </p>
-            </div>
+            <XpProgressCard area="pc-career" tone="career" title="Career XP"
+              subtitle="XP Career Total" xp={careerResult.data.career_xp} rules={rules} />
+            <MissionHistoryCard area="pc-missions" items={missionHistory?.items ?? []}
+              count={missionHistory?.count ?? 0} failed={!missionHistory}
+              moreHref="/profile/missions"
+              emptyText="Belum ada hasil atau prestasi yang diverifikasi dan menghasilkan XP." />
+
+            <section className="profile-card pc-skills" aria-label="Skills">
+              <h2>Skills</h2>
+              {skills.length ? (
+                <ul className="skills2-list">
+                  {skills.map((skill) => <li key={skill}>{skill}</li>)}
+                </ul>
+              ) : <p className="history2-note">Belum ada Skill yang dipilih.</p>}
+            </section>
+            <RankSwitcherCard area="pc-rank" options={rankOptions} rules={rules} />
+            <EndorsementPanel area="pc-endorse" summary={endorsementSummary} />
+
+            <SeasonHistoryTiles area="pc-seasons" items={seasonHistory?.items ?? []}
+              count={seasonHistory?.count ?? 0} failed={!seasonHistory}
+              moreHref="/profile/seasons"
+              emptyText="Belum ada Season yang ditutup dan disimpan sebagai riwayat." />
           </div>
-          <p className="mt-5 whitespace-pre-line text-sm text-slate-700">
-            {profile.bio?.trim() || "Belum ada bio."}
-          </p>
-          <dl className="mt-5 grid gap-4 border-t border-slate-100 pt-5 sm:grid-cols-2">
-            <div><dt className="text-xs font-semibold text-slate-500">Primary Class</dt>
-              <dd className="mt-1 font-semibold">{classResult.data?.nama_class ?? "Belum dipilih"}</dd></div>
-            <div><dt className="text-xs font-semibold text-slate-500">Tahun masuk</dt>
-              <dd className="mt-1 font-semibold">{profile.tahun_masuk}</dd></div>
-          </dl>
-        </section>
-
-        {profile.role_app === "STUDENT" && <ShareProfile userId={userId} />}
-
-        <section className="profile-section mt-8">
-          <h2 className="text-lg font-bold">Skills</h2>
-          {skills.length ? (
-            <ul className="mt-3 flex flex-wrap gap-2">
-              {skills.map((skill) => <li key={skill}
-                className="rounded-full bg-indigo-50 px-3 py-1 text-sm text-indigo-700">{skill}</li>)}
-            </ul>
-          ) : <p className="mt-3 text-sm text-slate-600">Belum ada Skill yang dipilih.</p>}
-        </section>
-
-        {profile.role_app === "STUDENT" && (
-          <section className="profile-section mt-8 rounded-2xl border border-slate-200 bg-white p-5">
-            <h2 className="text-lg font-bold">Badge</h2>
-            {equippedResult.error ? (
-              <p role="alert" className="mt-2 text-sm text-red-700">
-                Badge terpasang belum dapat dimuat.
-              </p>
-            ) : (
-              <p className="mt-2 text-sm text-slate-700">
-                {equippedBadge?.badge_name ??
-                  "Belum ada Badge terpasang."}
-              </p>
-            )}
-            <Link href="/profile/badges"
-              className="mt-3 inline-block text-sm font-semibold text-indigo-700 hover:underline">
-              Buka Badge Chest
-            </Link>
-          </section>
-        )}
-
-        {profile.role_app === "STUDENT" && (
-          <EndorsementSummary summary={endorsementSummary} />
-        )}
-
-        {profile.role_app === "STUDENT" && (
-          <section className="profile-section profile-xp mt-8">
-            <h2 className="text-lg font-bold">XP dan Rank</h2>
-            <Link href="/profile/claims"
-              className="mt-2 inline-block text-sm font-semibold text-indigo-700 underline">
-              Klaim prestasi di luar Squad NEXUS
-            </Link>
-            <div className="mt-3 grid gap-4 sm:grid-cols-2">
-              <RankCard label="Career" xp={careerResult.data.career_xp} rules={rules} />
-              {seasonResult.data && seasonalResult.data ? (
-                <RankCard label={seasonResult.data.nama_season}
-                  xp={seasonalResult.data.seasonal_xp} rules={rules} />
-              ) : (
-                <div className="rounded-2xl border border-slate-200 bg-white p-5 text-sm text-slate-600">
-                  Belum ada Season aktif.
-                </div>
-              )}
-            </div>
-          </section>
-        )}
-        {profile.role_app === "STUDENT" && (
-          <section className="profile-section mt-8">
-            <h2 className="text-lg font-bold">Season History</h2>
-            {!seasonHistory ? <p role="alert" className="mt-3 text-sm text-red-700">
-              Riwayat Season belum dapat dimuat.
-            </p> : seasonHistory.count === 0 ? <p className="mt-3 text-sm text-slate-600">
-              Belum ada Season yang ditutup dan disimpan sebagai riwayat.
-            </p> : <SeasonHistoryList items={seasonHistory.items} />}
-            <Link href="/profile/seasons"
-              className="mt-4 inline-block text-sm font-semibold text-indigo-700 hover:underline">
-              Lihat semua Season →
-            </Link>
-          </section>
-        )}
-        {profile.role_app === "STUDENT" && (
-          <section className="profile-section mt-8">
-            <h2 className="text-lg font-bold">Mission History</h2>
-            {!missionHistory ? <p role="alert" className="mt-3 text-sm text-red-700">
-              Riwayat Mission belum dapat dimuat.
-            </p> : missionHistory.count === 0 ? <p className="mt-3 text-sm text-slate-600">
-              Belum ada hasil atau prestasi yang diverifikasi dan menghasilkan XP.
-            </p> : <MissionHistoryList items={missionHistory.items} />}
-            <Link href="/profile/missions"
-              className="mt-4 inline-block text-sm font-semibold text-indigo-700 hover:underline">
-              Lihat semua riwayat →
-            </Link>
-          </section>
         )}
       </main>
     </div>
   );
 }
-
