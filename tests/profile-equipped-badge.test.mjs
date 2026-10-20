@@ -14,6 +14,15 @@ const compiled = ts.transpileModule(source, { compilerOptions: {
   target: ts.ScriptTarget.ES2020, esModuleInterop: true,
 } }).outputText;
 
+function compile(path) {
+  const out = ts.transpileModule(readFileSync(new URL(path, import.meta.url), "utf8"), { compilerOptions: {
+    module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020, esModuleInterop: true } }).outputText;
+  const mod = {};
+  vm.runInNewContext(out, { exports: mod, require });
+  return mod;
+}
+const badges = compile("../src/lib/badges.ts");
+
 async function renderProfile(badgeData, badgeError = null) {
   const rows = {
     profiles: { nama_lengkap: "QA Student", role_app: "STUDENT", status_akun: "ACTIVE",
@@ -48,6 +57,7 @@ async function renderProfile(badgeData, badgeError = null) {
     if (id === "next/navigation") return { redirect: (to) => { throw Error(`Unexpected redirect ${to}`); } };
     if (id === "@/lib/supabase/server") return { createClient: async () => client };
     if (id === "@/lib/endorsements") return { loadEndorsementSummary: async () => ({}) };
+    if (id === "@/lib/badges") return badges;
     if (id === "@/lib/season-history") return { loadSeasonHistory: async () => ({ items: [], count: 0 }) };
     if (id === "@/lib/mission-history") return { loadMissionHistory: async () => ({ items: [], count: 0 }) };
     if (id.startsWith("@/components/") || ["next/image", "next/link", "./RankCard"].includes(id)) {
@@ -60,7 +70,10 @@ async function renderProfile(badgeData, badgeError = null) {
     if (node == null || typeof node === "boolean") return "";
     if (typeof node === "string" || typeof node === "number") return String(node);
     if (Array.isArray(node)) return node.map(text).join(" ");
-    return text(node.props?.children);
+    const slots = Object.entries(node.props ?? {})
+      .filter(([key, value]) => key !== "children" && value && typeof value === "object" && "props" in value)
+      .map(([, value]) => value);
+    return [text(node.props?.children), ...slots.map(text)].join(" ");
   }
   assert.deepEqual(queries.find((q) => q.table === "user_badges").filters,
     [["user_id", "qa-user"], ["is_equipped", true]]);
