@@ -152,7 +152,7 @@ test('profile context uses only an eligible shared Squad and keeps the return li
   const Form = () => null, Navbar = () => null;
   const shared = [{ squadId, name: 'Selected Squad' }, { squadId: otherId, name: 'Another Squad' }];
   const client = { auth: { getUser: async () => ({ data: { user: { id } }, error: null }) },
-    from(table) { const q = { select() { return q; }, eq() { return q; },
+    from(table) { const q = { select() { return q; }, eq() { return q; }, order() { return q; },
       then: resolve => Promise.resolve({ data: [], error: null }).then(resolve),
       maybeSingle: async () => ({ data: table === 'profiles'
         ? { nama_lengkap: 'QA', role_app: 'STUDENT', status_akun: 'ACTIVE' }
@@ -162,6 +162,9 @@ test('profile context uses only an eligible shared Squad and keeps the return li
     'next/link': { default: Link }, 'next/image': { default: () => null },
     'next/navigation': { redirect: to => { throw Error(to); }, notFound: () => { throw Error('404'); } },
     '@/components/layout/Navbar': { default: Navbar }, '@/components/profile/EndorsementSummary': { default: () => null },
+    '@/components/profile/BadgePill': { default: () => null }, '@/components/profile/ProfileHero': { default: () => null },
+    '@/components/profile/EndorsementPanel': { default: () => null }, '@/components/profile/XpProgressCard': { default: () => null },
+    '@/components/profile/RankSwitcherCard': { default: () => null }, '@/lib/badges': load('../src/lib/badges.ts'),
     '@/lib/supabase/server': { createClient: async () => client }, './EndorsementForm': { default: Form },
     '@/lib/endorsements': { loadEndorsementSummary: async () => ({}), loadSharedCompletedSquads: async () => shared },
   }).default;
