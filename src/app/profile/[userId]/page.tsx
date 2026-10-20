@@ -1,9 +1,13 @@
-import Image from "next/image";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
 import Navbar from "@/components/layout/Navbar";
-import EndorsementSummary from "@/components/profile/EndorsementSummary";
+import BadgePill from "@/components/profile/BadgePill";
+import EndorsementPanel from "@/components/profile/EndorsementPanel";
+import ProfileHero from "@/components/profile/ProfileHero";
+import RankSwitcherCard from "@/components/profile/RankSwitcherCard";
+import XpProgressCard from "@/components/profile/XpProgressCard";
+import { badgeTone, describeBadge, facultyAbbreviation } from "@/lib/badges";
 import { loadEndorsementSummary, loadSharedCompletedSquads } from "@/lib/endorsements";
 import { createClient } from "@/lib/supabase/server";
 import EndorsementForm from "./EndorsementForm";
@@ -35,7 +39,8 @@ export default async function PeerProfilePage({ params, searchParams }: {
   if (peerResult.error || !peerResult.data) notFound();
 
   const peer = peerResult.data;
-  const [classResult, programResult, summary, sharedSquads, skillsResult] = await Promise.all([
+  const [classResult, programResult, summary, sharedSquads, skillsResult, careerResult,
+    rulesResult, equippedResult] = await Promise.all([
     peer.primary_class_id === null
       ? Promise.resolve({ data: null, error: null })
       : supabase.from("primary_classes").select("nama_class")
@@ -47,6 +52,13 @@ export default async function PeerProfilePage({ params, searchParams }: {
       ? loadSharedCompletedSquads(supabase, auth.user.id, userId)
       : Promise.resolve([]),
     supabase.from("user_skills").select("skills(nama_skill)").eq("user_id", userId),
+    supabase.from("career_xp_totals").select("career_xp").eq("user_id", userId).maybeSingle(),
+    supabase.from("rank_rules").select("rank_name, min_xp, max_xp")
+      .order("min_xp", { ascending: true }),
+    // Sanitized read contract: only the single badge the student chose to display.
+    supabase.from("public_equipped_badges")
+      .select("badge_name, scope_type, rank_position, population_total, program_studi_name, fakultas_name")
+      .eq("user_id", userId).maybeSingle(),
   ]);
   const facultyResult = programResult.data
     ? await supabase.from("fakultas").select("nama_fakultas")
@@ -64,56 +76,80 @@ export default async function PeerProfilePage({ params, searchParams }: {
   const skills = (skillsResult.data ?? []).flatMap((row) => row.skills ?? [])
     .map((skill) => skill.nama_skill).sort((a, b) => a.localeCompare(b));
 
+  // A missing view or an unequipped badge simply shows no pill on someone else's profile.
+  const equipped = equippedResult.error ? null : equippedResult.data;
+  const badge = equipped ? describeBadge({
+    badgeName: equipped.badge_name ?? null,
+    scopeType: equipped.scope_type ?? null,
+    scopeName: equipped.scope_type === "FAKULTAS" ? equipped.fakultas_name ?? null
+      : equipped.scope_type === "PROGRAM_STUDI" ? equipped.program_studi_name ?? null : null,
+    rankPosition: equipped.rank_position ?? null,
+    populationTotal: equipped.population_total ?? null,
+  }) : null;
+  const badgeNode = badge ? (
+    <BadgePill scope={badge.scope} tier={badge.tier} detail={badge.detail}>{badge.label}</BadgePill>
+  ) : null;
+
+  const tags = [
+    classResult.data?.nama_class,
+    facultyResult.data ? facultyAbbreviation(facultyResult.data.nama_fakultas) : null,
+    programResult.data?.nama_program_studi,
+    `UNESA ${peer.tahun_masuk}`,
+  ].filter((tag): tag is string => Boolean(tag));
+
+  const rules = rulesResult.data ?? [];
+  const xpReady = !careerResult.error && careerResult.data !== null &&
+    !rulesResult.error && rules.length > 0;
+
   return (
     <div className="nexus-app-page min-h-screen bg-slate-50 text-slate-900">
       <Navbar displayName={viewerResult.data.nama_lengkap} avatarPath={viewerResult.data.foto_profil_path} activeItem={missionId ? "missions" : context ? "my-squad" : "leaderboard"} />
-      <main className="nexus-page-shell mx-auto max-w-3xl px-4 py-8 sm:px-6">
+      <main className="nexus-page-shell profile-v2 mx-auto max-w-6xl px-4 py-8 sm:px-6">
         <Link href={missionId ? `/missions/${missionId}` : context ? `/squads/${context.squadId}/endorsements` : "/leaderboard"}
-          prefetch={false} className="text-sm font-semibold text-indigo-700 hover:underline">
+          prefetch={false} className="profile-back">
           {missionId ? "← Kembali ke Mission" : context ? `← Detail ${context.name}` : "← Leaderboard"}
         </Link>
-        <section className="glass-card mt-5 rounded-2xl border border-slate-200 bg-white p-6">
-          <div className="flex items-center gap-4">
-            {avatar ? <Image src={avatar} alt={`Foto ${peer.nama_lengkap}`}
-              width={72} height={72} unoptimized className="h-18 w-18 rounded-full object-cover" />
-              : <span aria-hidden="true" className="flex h-18 w-18 items-center justify-center rounded-full bg-indigo-100 text-2xl font-bold text-indigo-700">
-                  {peer.nama_lengkap.trim().charAt(0).toUpperCase() || "N"}
-                </span>}
-            <div>
-              <h1 className="text-2xl font-bold">{peer.nama_lengkap}</h1>
-              <p className="mt-1 text-sm text-slate-600">
-                {programResult.data?.nama_program_studi ?? "Program Studi belum tersedia"} · {facultyResult.data?.nama_fakultas ?? "Fakultas belum tersedia"}
-              </p>
-            </div>
-          </div>
-          <p className="mt-6 whitespace-pre-line text-sm text-slate-700">{peer.bio?.trim() || "Belum ada bio."}</p>
-          <dl className="mt-6 grid gap-4 border-t border-slate-100 pt-5 sm:grid-cols-2">
-            <div><dt className="text-xs font-semibold text-slate-500">Primary Class</dt>
-              <dd className="mt-1 font-semibold">{classResult.data?.nama_class ?? "Belum dipilih"}</dd></div>
-            <div><dt className="text-xs font-semibold text-slate-500">Tahun masuk</dt>
-              <dd className="mt-1 font-semibold">{peer.tahun_masuk}</dd></div>
-          </dl>
-          <div className="mt-6 border-t border-slate-100 pt-5">
-            <h2 className="text-lg font-bold">Skills</h2>
+
+        <ProfileHero name={peer.nama_lengkap} avatarUrl={avatar} tone={badgeTone(badge)}
+          badge={badgeNode} tags={tags} bio={peer.bio?.trim() || "Belum ada bio."} />
+
+        <div className="profile-grid profile-grid--peer">
+          {xpReady && careerResult.data ? (
+            <>
+              <XpProgressCard area="pc-career" tone="career" title="Career XP"
+                subtitle="XP Career Total" xp={careerResult.data.career_xp} rules={rules} />
+              <RankSwitcherCard area="pc-rank" rules={rules}
+                options={[{ key: "career", label: "Career Rank", xp: careerResult.data.career_xp }]} />
+            </>
+          ) : (
+            <section className="profile-card pc-career" aria-label="Career XP">
+              <h2>Career XP</h2>
+              <p role="alert" className="history2-note">XP belum dapat dimuat. Coba muat ulang.</p>
+            </section>
+          )}
+
+          <section className="profile-card pc-skills" aria-label="Skills">
+            <h2>Skills</h2>
             {skillsResult.error ? (
-              <p role="alert" className="mt-3 text-sm text-red-700">Skill belum dapat dimuat. Coba muat ulang halaman.</p>
+              <p role="alert" className="history2-note">Skill belum dapat dimuat. Coba muat ulang halaman.</p>
             ) : skills.length > 0 ? (
-              <ul className="mt-3 flex flex-wrap gap-2">
-                {skills.map((skill) => <li key={skill}
-                  className="rounded-full bg-indigo-50 px-3 py-1 text-sm text-indigo-700">{skill}</li>)}
+              <ul className="skills2-list">
+                {skills.map((skill) => <li key={skill}>{skill}</li>)}
               </ul>
-            ) : <p className="mt-3 text-sm text-slate-600">Belum ada Skill yang dipilih.</p>}
-          </div>
-        </section>
-        <EndorsementSummary summary={summary} />
-        {sharedSquads === null ? (
-          <p role="alert" className="mt-6 text-sm text-red-700">
-            Ketersediaan penilaian belum dapat diperiksa. Coba muat ulang.
-          </p>
-        ) : sharedSquads.length > 0 ? (
-          <EndorsementForm key={context?.squadId ?? "all-squads"} targetUserId={userId}
-            squads={context ? [context] : sharedSquads} />
-        ) : null}
+            ) : <p className="history2-note">Belum ada Skill yang dipilih.</p>}
+          </section>
+
+          <EndorsementPanel area="pc-endorse" summary={summary}>
+            {sharedSquads === null ? (
+              <p role="alert" className="endorse2-note endorse2-note--error">
+                Ketersediaan penilaian belum dapat diperiksa. Coba muat ulang.
+              </p>
+            ) : sharedSquads.length > 0 ? (
+              <EndorsementForm key={context?.squadId ?? "all-squads"} targetUserId={userId}
+                squads={context ? [context] : sharedSquads} />
+            ) : null}
+          </EndorsementPanel>
+        </div>
       </main>
     </div>
   );
