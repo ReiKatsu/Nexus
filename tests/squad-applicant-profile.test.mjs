@@ -61,18 +61,28 @@ test('each pending applicant gets their own profile link without invoking accept
   assert.equal(decisions, 0);
 });
 
+const badgesLib = load('../src/lib/badges.ts'), rankLib = load('../src/lib/rank-progress.ts');
+const sharedImports = { 'next/image': { default: () => null }, 'next/link': { default: Link },
+  '@/lib/badges': badgesLib, '@/lib/rank-progress': rankLib };
+const component = path => ({ default: load(path, sharedImports).default });
+
 function peerPage(options = {}) {
   const calls = [], Form = () => null;
   const client = { auth: { getUser: async () => ({ data: { user: options.anonymous ? null : { id: leader } }, error: null }) },
     from(table) {
       const call = { table, filters: [] }; calls.push(call);
       const q = { select(fields) { call.fields = fields; return q; }, eq(key, value) { call.filters.push([key, value]); return q; },
+        order() { return q; },
         maybeSingle: async () => ({ data: table === 'profiles'
           ? { nama_lengkap: 'Ketua', role_app: options.admin ? 'ADMIN' : 'STUDENT', status_akun: options.suspended ? 'SUSPENDED' : 'ACTIVE' }
           : table === 'public_profiles' ? options.missing ? null : { nama_lengkap: 'Pelamar', bio: 'Bio pelamar', tahun_masuk: 2024, primary_class_id: 1, program_studi_id: 2 }
-            : { nama_class: 'Creative', nama_program_studi: 'Bisnis Digital', fakultas_id: 1, nama_fakultas: 'FEB' }, error: null }),
-        then: resolve => Promise.resolve({ data: options.skillError ? null : options.emptySkills ? [] : [{ skills: { nama_skill: 'Figma' } }],
-          error: options.skillError ? {} : null }).then(resolve) };
+            : table === 'career_xp_totals' ? { career_xp: 120 }
+              : table === 'public_equipped_badges' ? options.badge ?? null
+                : { nama_class: 'Creative', nama_program_studi: 'Bisnis Digital', fakultas_id: 1, nama_fakultas: 'FEB' }, error: null }),
+        then: resolve => Promise.resolve(table === 'rank_rules'
+          ? { data: [{ rank_name: 'Bronze', min_xp: 0, max_xp: 299 }, { rank_name: 'Silver', min_xp: 300, max_xp: 999 }], error: null }
+          : { data: options.skillError ? null : options.emptySkills ? [] : [{ skills: { nama_skill: 'Figma' } }],
+            error: options.skillError ? {} : null }).then(resolve) };
       return q;
     },
   };
@@ -80,8 +90,14 @@ function peerPage(options = {}) {
     'next/link': { default: Link }, 'next/image': { default: () => null },
     'next/navigation': { redirect: path => { throw Error('redirect:' + path); }, notFound: () => { throw Error('404'); } },
     '@/components/layout/Navbar': { default: () => null }, '@/components/profile/EndorsementSummary': { default: () => null },
+    '@/components/profile/BadgePill': component('../src/components/profile/BadgePill.tsx'),
+    '@/components/profile/ProfileHero': component('../src/components/profile/ProfileHero.tsx'),
+    '@/components/profile/EndorsementPanel': component('../src/components/profile/EndorsementPanel.tsx'),
+    '@/components/profile/XpProgressCard': component('../src/components/profile/XpProgressCard.tsx'),
+    '@/components/profile/RankSwitcherCard': component('../src/components/profile/RankSwitcherCard.tsx'),
+    '@/lib/badges': badgesLib,
     '@/lib/supabase/server': { createClient: async () => client }, './EndorsementForm': { default: Form },
-    '@/lib/endorsements': { loadEndorsementSummary: async () => ({}), loadSharedCompletedSquads: async () => [] },
+    '@/lib/endorsements': { loadEndorsementSummary: async () => ({ count: 0 }), loadSharedCompletedSquads: async () => [] },
   }).default;
   return { calls, run: (returnMission = mission, userId = applicant) => Page({ params: Promise.resolve({ userId }), searchParams: Promise.resolve({ mission: returnMission }) }), Form };
 }
@@ -117,4 +133,14 @@ test('recruitment return links accept only a single UUID and preserve profile au
   assert.match(render(await peerPage({ emptySkills: true }).run()), /Belum ada Skill yang dipilih/);
   const failed = render(await peerPage({ skillError: true }).run());
   assert.match(failed, /Skill belum dapat dimuat/); assert.doesNotMatch(failed, /Belum ada Skill yang dipilih/);
+});
+
+test("another student's equipped badge and career XP appear on their profile, and no badge shows when none is equipped", async () => {
+  const badge = { badge_name: 'Leaderboard', scope_type: 'FAKULTAS', rank_position: 3, population_total: 200,
+    fakultas_name: 'Fakultas Ekonomika dan Bisnis', program_studi_name: null };
+  const html = render(await peerPage({ badge }).run());
+  assert.match(html, /Fakultas Ekonomika dan Bisnis No\. 3/); assert.match(html, /profile-avatar--fakultas/);
+  assert.match(html, /Career XP/); assert.match(html, /Career Rank/);
+  const none = render(await peerPage().run());
+  assert.doesNotMatch(none, /badge-pill/); assert.match(none, /profile-avatar--none/);
 });
