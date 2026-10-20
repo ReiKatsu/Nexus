@@ -1,12 +1,16 @@
 import JoinSquadButton from "../JoinSquadButton";
 import SquadApplicationDecisionList from "../SquadApplicationDecisionList";
+import SquadCard from "./SquadCard";
 import type {
   LeaderApplicationsBySquad,
   MissionSquad,
+  SquadRequirement,
 } from "./types";
 
 type SquadListProps = {
   missionId: string;
+  missionName: string;
+  requirementsBySquad: Map<string, SquadRequirement[]>;
   squads: MissionSquad[] | null;
   squadsLoadFailed: boolean;
   squadLeadersLoadFailed: boolean;
@@ -30,6 +34,8 @@ function getSquadStatusLabel(status: string | null): "Open" | "Locked" | null {
 
 export default function SquadList({
   missionId,
+  missionName,
+  requirementsBySquad,
   squads,
   squadsLoadFailed,
   squadLeadersLoadFailed,
@@ -72,7 +78,7 @@ export default function SquadList({
           </p>
         </div>
       ) : (
-        <div className="mission-grid mt-4 grid gap-5">
+        <div className="squad-grid">
           {(squads ?? []).map((squad) => {
             const leaderName = squadLeaderNames.get(squad.squad_id);
             const statusLabel = getSquadStatusLabel(squad.status_squad);
@@ -117,38 +123,37 @@ export default function SquadList({
                 "Batas 3 aplikasi Pending pada Mission ini sudah tercapai.";
             }
 
+            const memberCount = squad.active_members?.[0]?.count;
+            const countLabel = memberCount === undefined
+              ? "Jumlah anggota belum tersedia"
+              : `${memberCount}/${squad.kapasitas_anggota} Anggota`;
+            // Hanya nama Ketua yang boleh dibaca calon pelamar (get_mission_squad_leaders);
+            // anggota lain tampil sebagai lingkaran tanpa identitas.
+            const avatars: Array<string | null> = Array.from(
+              { length: memberCount ?? 0 },
+              (_, index) => (index === 0 && leaderName ? leaderName.trim().charAt(0).toLocaleUpperCase("id-ID") : null),
+            );
+            const people = leaderName
+              ? [{ name: leaderName, role: "Ketua" }]
+              : [];
+            const statusText = squad.status_squad === "OPEN_RECRUITMENT" ? "Open recruitment" : "Locked";
+
             return (
-              <article
+              <SquadCard
                 key={squad.squad_id}
-                className="glass-card min-w-0 p-6"
-              >
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <h3 className="break-words text-lg font-bold text-slate-950 [overflow-wrap:anywhere]">
-                    {squad.nama_squad}
-                  </h3>
-                  {statusLabel && (
-                    <span
-                      className={`shrink-0 rounded-full px-3 py-1 text-xs font-bold ${statusLabel === "Open" ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600"}`}
-                    >
-                      {statusLabel}
-                    </span>
-                  )}
-                </div>
-                <p className="mt-2 text-sm font-semibold text-slate-600">
-                  Ketua:{" "}
-                  {squadLeadersLoadFailed
-                    ? "Nama gagal dimuat"
-                    : leaderName ?? "Belum tersedia"}
-                </p>
-                <p className="mt-3 break-words text-sm leading-6 text-slate-500 [overflow-wrap:anywhere]">
-                  {squad.deskripsi_squad || "Deskripsi Squad belum tersedia."}
-                </p>
-                <p className="mt-4 border-t border-slate-100 pt-4 text-sm font-bold text-slate-700">
-                  {squad.active_members?.[0]?.count === undefined ? "Jumlah anggota belum tersedia"
-                    : `${squad.active_members[0].count}/${squad.kapasitas_anggota} anggota`}
-                </p>
-                {squad.status_squad === "OPEN_RECRUITMENT" ||
-                hasPendingApplication ? (
+                name={squad.nama_squad}
+                description={squad.deskripsi_squad || "Deskripsi Squad belum tersedia."}
+                statusLabel={statusLabel}
+                countLabel={countLabel}
+                avatars={avatars}
+                badge={isOwnSquad ? "Squad kamu" : hasPendingApplication ? "Lamaran Pending" : undefined}
+                subtitle={`${statusText} · ${missionName}${memberCount === undefined ? "" : ` · ${memberCount}/${squad.kapasitas_anggota} anggota`}`}
+                people={people}
+                otherMembers={Math.max((memberCount ?? 0) - people.length, 0)}
+                requirements={requirementsBySquad.get(squad.squad_id) ?? []}
+                footerNote={squad.status_squad === "OPEN_RECRUITMENT" || hasPendingApplication
+                  ? undefined : "Squad terkunci dan tidak menerima aplikasi."}
+                action={squad.status_squad === "OPEN_RECRUITMENT" || hasPendingApplication ? (
                   <JoinSquadButton
                     key={`${squad.squad_id}:${joinState}:${pendingApplicationId ?? "none"}`}
                     squadId={squad.squad_id}
@@ -156,29 +161,27 @@ export default function SquadList({
                     pendingApplicationId={pendingApplicationId}
                     disabledReason={disabledReason}
                   />
-                ) : (
-                  <p className="mt-4 border-t border-slate-100 pt-4 text-sm font-semibold text-slate-500">
-                    Squad terkunci dan tidak menerima aplikasi.
-                  </p>
+                ) : undefined}
+                extra={(
+                  <>
+                    {squadLeadersLoadFailed && (
+                      <p className="squad-dialog-note">Nama Ketua belum dapat dimuat.</p>
+                    )}
+                    {isOwnSquad && (leaderApplicationsLoadFailed ? (
+                      <div role="alert" className="squad-dialog-note">
+                        Daftar pelamar belum dapat dimuat. Muat ulang halaman untuk mencoba lagi.
+                      </div>
+                    ) : (
+                      <SquadApplicationDecisionList
+                        missionId={missionId}
+                        key={`${squad.squad_id}:${leaderApplications.map((application) => `${application.applicationId}:${application.applicantUserId ?? "unavailable"}`).join(",")}:${acceptDisabledReason ?? "open"}`}
+                        applications={leaderApplications}
+                        acceptDisabledReason={acceptDisabledReason}
+                      />
+                    ))}
+                  </>
                 )}
-                {isOwnSquad &&
-                  (leaderApplicationsLoadFailed ? (
-                    <div
-                      role="alert"
-                      className="mt-5 border-t border-slate-100 pt-4 text-xs leading-5 text-amber-700"
-                    >
-                      Daftar pelamar belum dapat dimuat. Muat ulang halaman
-                      untuk mencoba lagi.
-                    </div>
-                  ) : (
-                    <SquadApplicationDecisionList
-                      missionId={missionId}
-                      key={`${squad.squad_id}:${leaderApplications.map((application) => `${application.applicationId}:${application.applicantUserId ?? "unavailable"}`).join(",")}:${acceptDisabledReason ?? "open"}`}
-                      applications={leaderApplications}
-                      acceptDisabledReason={acceptDisabledReason}
-                    />
-                  ))}
-              </article>
+              />
             );
           })}
         </div>
