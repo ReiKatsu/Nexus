@@ -4,11 +4,14 @@ import { notFound, redirect } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import BadgePill from "@/components/profile/BadgePill";
 import EndorsementPanel from "@/components/profile/EndorsementPanel";
+import MissionHistoryList from "@/components/profile/MissionHistoryList";
+import PeerCareerSummary from "@/components/profile/PeerCareerSummary";
 import ProfileHero from "@/components/profile/ProfileHero";
 import RankSwitcherCard from "@/components/profile/RankSwitcherCard";
 import XpProgressCard from "@/components/profile/XpProgressCard";
-import { badgeTone, describeBadge, facultyAbbreviation } from "@/lib/badges";
+import { badgeTone, facultyAbbreviation } from "@/lib/badges";
 import { loadEndorsementSummary, loadSharedCompletedSquads } from "@/lib/endorsements";
+import { loadPeerReputation } from "@/lib/peer-reputation";
 import { createClient } from "@/lib/supabase/server";
 import EndorsementForm from "./EndorsementForm";
 
@@ -39,8 +42,7 @@ export default async function PeerProfilePage({ params, searchParams }: {
   if (peerResult.error || !peerResult.data) notFound();
 
   const peer = peerResult.data;
-  const [classResult, programResult, summary, sharedSquads, skillsResult, careerResult,
-    rulesResult, equippedResult] = await Promise.all([
+  const [classResult, programResult, summary, sharedSquads, skillsResult, reputation] = await Promise.all([
     peer.primary_class_id === null
       ? Promise.resolve({ data: null, error: null })
       : supabase.from("primary_classes").select("nama_class")
@@ -52,13 +54,7 @@ export default async function PeerProfilePage({ params, searchParams }: {
       ? loadSharedCompletedSquads(supabase, auth.user.id, userId)
       : Promise.resolve([]),
     supabase.from("user_skills").select("skills(nama_skill)").eq("user_id", userId),
-    supabase.from("career_xp_totals").select("career_xp").eq("user_id", userId).maybeSingle(),
-    supabase.from("rank_rules").select("rank_name, min_xp, max_xp")
-      .order("min_xp", { ascending: true }),
-    // Sanitized read contract: only the single badge the student chose to display.
-    supabase.from("public_equipped_badges")
-      .select("badge_name, scope_type, rank_position, population_total, program_studi_name, fakultas_name")
-      .eq("user_id", userId).maybeSingle(),
+    loadPeerReputation(supabase, userId),
   ]);
   const facultyResult = programResult.data
     ? await supabase.from("fakultas").select("nama_fakultas")
@@ -76,19 +72,15 @@ export default async function PeerProfilePage({ params, searchParams }: {
   const skills = (skillsResult.data ?? []).flatMap((row) => row.skills ?? [])
     .map((skill) => skill.nama_skill).sort((a, b) => a.localeCompare(b));
 
-  // A missing view or an unequipped badge simply shows no pill on someone else's profile.
-  const equipped = equippedResult.error ? null : equippedResult.data;
-  const badge = equipped ? describeBadge({
-    badgeName: equipped.badge_name ?? null,
-    scopeType: equipped.scope_type ?? null,
-    scopeName: equipped.scope_type === "FAKULTAS" ? equipped.fakultas_name ?? null
-      : equipped.scope_type === "PROGRAM_STUDI" ? equipped.program_studi_name ?? null : null,
-    rankPosition: equipped.rank_position ?? null,
-    populationTotal: equipped.population_total ?? null,
-  }) : null;
-  const badgeNode = badge ? (
-    <BadgePill scope={badge.scope} tier={badge.tier} detail={badge.detail}>{badge.label}</BadgePill>
-  ) : null;
+  const badge = reputation.badge;
+  const badgeNode = reputation.badgeFailed ? (
+    <span role="alert" className="history2-note history2-note--error">Badge terpasang belum dapat dimuat.</span>
+  ) : badge ? (
+    <>
+      <BadgePill scope={badge.scope} tier={badge.tier} detail={badge.detail}>{badge.label}</BadgePill>
+      <span className="history2-note">Badge terpasang · {badge.detail}</span>
+    </>
+  ) : <span className="history2-note">Belum ada Badge terpasang.</span>;
 
   const tags = [
     classResult.data?.nama_class,
@@ -97,9 +89,8 @@ export default async function PeerProfilePage({ params, searchParams }: {
     `UNESA ${peer.tahun_masuk}`,
   ].filter((tag): tag is string => Boolean(tag));
 
-  const rules = rulesResult.data ?? [];
-  const xpReady = !careerResult.error && careerResult.data !== null &&
-    !rulesResult.error && rules.length > 0;
+  const rules = reputation.rules;
+  const xpReady = reputation.xp !== null && reputation.rankName !== null && rules.length > 0;
 
   return (
     <div className="nexus-app-page min-h-screen bg-slate-50 text-slate-900">
@@ -114,18 +105,15 @@ export default async function PeerProfilePage({ params, searchParams }: {
           badge={badgeNode} tags={tags} bio={peer.bio?.trim() || "Belum ada bio."} />
 
         <div className="profile-grid profile-grid--peer">
-          {xpReady && careerResult.data ? (
+          {xpReady && reputation.xp !== null ? (
             <>
               <XpProgressCard area="pc-career" tone="career" title="Career XP"
-                subtitle="XP Career Total" xp={careerResult.data.career_xp} rules={rules} />
+                subtitle="XP Career Total" xp={reputation.xp} rules={rules} />
               <RankSwitcherCard area="pc-rank" rules={rules}
-                options={[{ key: "career", label: "Career Rank", xp: careerResult.data.career_xp }]} />
+                options={[{ key: "career", label: "Career Rank", xp: reputation.xp }]} />
             </>
           ) : (
-            <section className="profile-card pc-career" aria-label="Career XP">
-              <h2>Career XP</h2>
-              <p role="alert" className="history2-note">XP belum dapat dimuat. Coba muat ulang.</p>
-            </section>
+            <PeerCareerSummary reputation={reputation} />
           )}
 
           <section className="profile-card pc-skills" aria-label="Skills">
@@ -137,6 +125,16 @@ export default async function PeerProfilePage({ params, searchParams }: {
                 {skills.map((skill) => <li key={skill}>{skill}</li>)}
               </ul>
             ) : <p className="history2-note">Belum ada Skill yang dipilih.</p>}
+          </section>
+
+          <section className="profile-card pc-missions" aria-label="Riwayat Mission terverifikasi">
+            <h2>Riwayat Mission terverifikasi</h2>
+            <p className="history2-note">Maksimal 3 hasil terbaru yang telah disetujui dan menghasilkan XP.</p>
+            {reputation.history === null ? (
+              <p role="alert" className="history2-note history2-note--error">Riwayat Mission belum dapat dimuat. Coba muat ulang.</p>
+            ) : reputation.history.length === 0 ? (
+              <p className="history2-note">Belum ada hasil atau prestasi terverifikasi.</p>
+            ) : <MissionHistoryList items={reputation.history} />}
           </section>
 
           <EndorsementPanel area="pc-endorse" summary={summary}>

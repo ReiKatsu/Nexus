@@ -567,11 +567,11 @@ body:has(.nexus-nav-link[href="/admin/results"][aria-current="page"]) main::befo
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; } }
 
-/* Profil orang lain: kartu yang tidak punya data publik (Season XP, riwayat) tidak ditampilkan. */
-.profile-grid--peer { grid-template-areas: "career rank endorse" "skills skills endorse"; }
+/* Profil orang lain: reputasi dan ringkasan hasil yang telah disetujui. */
+.profile-grid--peer { grid-template-areas: "career rank endorse" "skills skills endorse" "missions missions missions"; }
 @media (max-width: 1024px) {
-  .profile-grid--peer { grid-template-areas: "career rank" "skills endorse"; }
+  .profile-grid--peer { grid-template-areas: "career rank" "skills endorse" "missions missions"; }
 }
 @media (max-width: 760px) {
-  .profile-grid--peer { grid-template-areas: "career" "rank" "skills" "endorse"; }
+  .profile-grid--peer { grid-template-areas: "career" "rank" "skills" "missions" "endorse"; }
 }
