@@ -65,11 +65,15 @@ const badgesLib = load('../src/lib/badges.ts'), rankLib = load('../src/lib/rank-
 const sharedImports = { 'next/image': { default: () => null }, 'next/link': { default: Link },
   '@/lib/badges': badgesLib, '@/lib/rank-progress': rankLib };
 const component = path => ({ default: load(path, sharedImports).default });
+const reputationLib = load('../src/lib/peer-reputation.ts', { './badges': badgesLib, './rank-progress': rankLib });
 
 function peerPage(options = {}) {
   const calls = [], Form = () => null;
   const client = { auth: { getUser: async () => ({ data: { user: options.anonymous ? null : { id: leader } }, error: null }) },
-    from(table) {
+    rpc: async (name, args) => {
+      assert.equal(name, 'get_peer_verified_mission_history'); assert.equal(args.p_user_id, applicant);
+      return { data: [], error: null };
+    }, from(table) {
       const call = { table, filters: [] }; calls.push(call);
       const q = { select(fields) { call.fields = fields; return q; }, eq(key, value) { call.filters.push([key, value]); return q; },
         order() { return q; },
@@ -77,7 +81,10 @@ function peerPage(options = {}) {
           ? { nama_lengkap: 'Ketua', role_app: options.admin ? 'ADMIN' : 'STUDENT', status_akun: options.suspended ? 'SUSPENDED' : 'ACTIVE' }
           : table === 'public_profiles' ? options.missing ? null : { nama_lengkap: 'Pelamar', bio: 'Bio pelamar', tahun_masuk: 2024, primary_class_id: 1, program_studi_id: 2 }
             : table === 'career_xp_totals' ? { career_xp: 120 }
-              : table === 'public_equipped_badges' ? options.badge ?? null
+              : table === 'user_badges' ? options.badge ? { ...options.badge,
+                  badge_definitions: { badge_name: options.badge.badge_name },
+                  program_studi: { nama_program_studi: options.badge.program_studi_name },
+                  fakultas: { nama_fakultas: options.badge.fakultas_name } } : null
                 : { nama_class: 'Creative', nama_program_studi: 'Bisnis Digital', fakultas_id: 1, nama_fakultas: 'FEB' }, error: null }),
         then: resolve => Promise.resolve(table === 'rank_rules'
           ? { data: [{ rank_name: 'Bronze', min_xp: 0, max_xp: 299 }, { rank_name: 'Silver', min_xp: 300, max_xp: 999 }], error: null }
@@ -95,6 +102,9 @@ function peerPage(options = {}) {
     '@/components/profile/EndorsementPanel': component('../src/components/profile/EndorsementPanel.tsx'),
     '@/components/profile/XpProgressCard': component('../src/components/profile/XpProgressCard.tsx'),
     '@/components/profile/RankSwitcherCard': component('../src/components/profile/RankSwitcherCard.tsx'),
+    '@/components/profile/MissionHistoryList': component('../src/components/profile/MissionHistoryList.tsx'),
+    '@/components/profile/PeerCareerSummary': component('../src/components/profile/PeerCareerSummary.tsx'),
+    '@/lib/peer-reputation': reputationLib,
     '@/lib/badges': badgesLib,
     '@/lib/supabase/server': { createClient: async () => client }, './EndorsementForm': { default: Form },
     '@/lib/endorsements': { loadEndorsementSummary: async () => ({ count: 0 }), loadSharedCompletedSquads: async () => [] },

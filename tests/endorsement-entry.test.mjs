@@ -165,6 +165,9 @@ test('profile context uses only an eligible shared Squad and keeps the return li
     '@/components/profile/BadgePill': { default: () => null }, '@/components/profile/ProfileHero': { default: () => null },
     '@/components/profile/EndorsementPanel': { default: () => null }, '@/components/profile/XpProgressCard': { default: () => null },
     '@/components/profile/RankSwitcherCard': { default: () => null }, '@/lib/badges': load('../src/lib/badges.ts'),
+    '@/components/profile/MissionHistoryList': { default: () => null },
+    '@/components/profile/PeerCareerSummary': { default: () => null },
+    '@/lib/peer-reputation': { loadPeerReputation: async () => ({ xp: null, rankName: null, rules: [], badge: null, badgeFailed: false, history: [] }) },
     '@/lib/supabase/server': { createClient: async () => client }, './EndorsementForm': { default: Form },
     '@/lib/endorsements': { loadEndorsementSummary: async () => ({}), loadSharedCompletedSquads: async () => shared },
   }).default;

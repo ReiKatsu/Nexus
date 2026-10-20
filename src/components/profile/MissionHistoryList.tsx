@@ -28,7 +28,7 @@ export default function MissionHistoryList({ items }: { items: MissionHistoryIte
             <div><dt className="text-sm text-slate-600">XP diterima</dt>
               <dd className="font-semibold">+{item.xp.toLocaleString("id-ID")}</dd></div>
           </dl>
-          {item.missionId && <Link href={`/missions/${item.missionId}`}
+          {item.missionId && <Link href={`/missions/${item.missionId}`} prefetch={false}
             className="mt-4 inline-block text-sm font-semibold text-indigo-700 hover:underline">
             Lihat Mission
           </Link>}
