@@ -489,7 +489,7 @@ a.badge-pill--empty:hover { border-color: #ffd37c; color: #ffe1a1; filter: none;
 }
 
 /* Remaining forms, history, notification, and admin routes receive the same shell automatically. */
-.min-h-screen.bg-slate-50 > main:not(.nexus-dashboard):not(.mission-discovery) { width: min(100% - 32px, 1180px); }
+.min-h-screen.bg-slate-50 > main:not(.nexus-dashboard):not(.mission-discovery) { width: min(100% - 32px, 1180px); margin-inline: auto; }
 .min-h-screen.bg-slate-50 > main > h1:first-child { letter-spacing: -.04em; }
 .min-h-screen.bg-slate-50 > main > h1:first-child::before { content: "NEXUS"; display: block; margin-bottom: 10px; color: #ffd37c; font-size: 11px; font-weight: 700; letter-spacing: .2em; }
 .min-h-screen.bg-slate-50 main ul > li.bg-white,
@@ -570,7 +570,7 @@ body:has(.nexus-nav-link[href="/admin/results"][aria-current="page"]) main::befo
   .leaderboard-podium .leaderboard-entry > a > div:first-child { flex-direction: row; }
   .leaderboard-list { padding: 20px 16px; }
   .squad-room-grid aside { position: static; }
-  .min-h-screen.bg-slate-50 > main:not(.nexus-dashboard):not(.mission-discovery) { width: min(100% - 28px,1180px); padding-top: 30px; padding-bottom: 44px; }
+  .min-h-screen.bg-slate-50 > main:not(.nexus-dashboard):not(.mission-discovery) { width: min(100% - 28px,1180px); margin-inline: auto; padding-top: 30px; padding-bottom: 44px; }
   .nexus-auth-flow { padding-top: 28px; padding-bottom: 28px; }
   .nexus-auth-flow > section,
   .nexus-auth-flow > div.relative > section { border-radius: 28px !important; padding: 24px !important; }
