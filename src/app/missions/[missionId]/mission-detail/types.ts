@@ -33,6 +33,12 @@ export type MissionDetail = {
   max_anggota_tim: number | null;
   biaya_pendaftaran: string | null;
   deskripsi_singkat: string | null;
+  dokumen_path?: string | null;
+};
+
+export type SquadRequirement = {
+  className: string;
+  slots: number;
 };
 
 export type MissionSquad = {
