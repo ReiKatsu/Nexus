@@ -174,7 +174,9 @@ body::before {
 .nexus-nav-actions { display: flex; align-items: center; gap: 18px; }
 .nexus-admin-shortcut { border: 1px solid #dbe5eb4d; border-radius: 999px; padding: 7px 12px; color: #eaf2f6; font-size: 11px; font-weight: 700; white-space: nowrap; transition: background .2s,border-color .2s; }
 .nexus-admin-shortcut:hover { border-color: #ffd37c99; background: #ffd37c18; color: #ffe1a1; }
-.nexus-avatar { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%; background: #dcefff; color: #244b82; font-size: 13px; font-weight: 700; flex-shrink: 0; }
+.nexus-avatar { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%; background: #dcefff; color: #244b82; font-size: 13px; font-weight: 700; flex-shrink: 0; overflow: hidden; }
+/* Foto portrait tidak boleh memanjang melewati lingkaran: ukuran dikunci 44px dan dipotong center. */
+.nexus-avatar > img { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; }
 .nexus-dashboard { max-width: 1230px; padding: 42px 24px 60px; margin: auto; width: 100%; }
 .dashboard-greeting { text-align: center; margin-bottom: 30px; }
 .dashboard-greeting h1 { font-size: clamp(30px, 3.4vw, 48px); font-weight: 700; letter-spacing: -.04em; }
@@ -564,3 +566,12 @@ body:has(.nexus-nav-link[href="/admin/results"][aria-current="page"]) main::befo
   .nexus-auth-flow > div.relative > section { border-radius: 28px !important; padding: 24px !important; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; } }
+
+/* Profil orang lain: kartu yang tidak punya data publik (Season XP, riwayat) tidak ditampilkan. */
+.profile-grid--peer { grid-template-areas: "career rank endorse" "skills skills endorse"; }
+@media (max-width: 1024px) {
+  .profile-grid--peer { grid-template-areas: "career rank" "skills endorse"; }
+}
+@media (max-width: 760px) {
+  .profile-grid--peer { grid-template-areas: "career" "rank" "skills" "endorse"; }
+}
