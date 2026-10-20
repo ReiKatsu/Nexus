@@ -34,6 +34,7 @@ export type MissionDetail = {
   biaya_pendaftaran: string | null;
   deskripsi_singkat: string | null;
   dokumen_path?: string | null;
+  banner_path?: string | null;
 };
 
 export type SquadRequirement = {
