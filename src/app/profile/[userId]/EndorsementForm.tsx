@@ -7,6 +7,25 @@ import { ENDORSEMENT_FIELDS, type EndorsementField, type EndorsementScores,
   type SharedSquad } from "@/lib/endorsements";
 import { submitEndorsement } from "./actions";
 
+function Stars({ label, value, disabled, onChange }: {
+  label: string; value: string; disabled: boolean; onChange: (value: string) => void;
+}) {
+  const current = Number(value) || 0;
+  return (
+    <div className="endorse-stars-row">
+      <span>{label}</span>
+      <div role="radiogroup" aria-label={label} className="endorse-stars">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <button key={star} type="button" role="radio" aria-checked={current === star}
+            aria-label={`${label}: ${star} dari 5`} disabled={disabled}
+            className={star <= current ? "is-on" : ""}
+            onClick={() => onChange(String(star))}>★</button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function EndorsementForm({ targetUserId, squads }: {
   targetUserId: string;
   squads: SharedSquad[];
@@ -23,6 +42,7 @@ export default function EndorsementForm({ targetUserId, squads }: {
   const [message, setMessage] = useState("");
   const submitting = useRef(false);
   const router = useRouter();
+  const complete = ENDORSEMENT_FIELDS.every(([field]) => values[field] !== "");
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -51,63 +71,61 @@ export default function EndorsementForm({ targetUserId, squads }: {
     }
   }
 
-  return (
-    <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-5">
-      <h2 className="text-lg font-bold">Nilai rekan Squad</h2>
-      <p className="mt-1 text-sm text-slate-600">
+  const form = (
+    <form onSubmit={submit} aria-busy={pending}>
+      <p>
         Penilaian antar anggota saat finalisasi tersedia selama 14 hari sejak hasil Mission disetujui admin.
       </p>
+      <label>Squad yang dinilai
+        <select required value={squadId} disabled={pending}
+          onChange={(event) => setSquadId(event.target.value)}>
+          <option value="">Pilih Squad</option>
+          {available.map((squad) => <option key={squad.squadId} value={squad.squadId}>
+            {squad.name}</option>)}
+        </select>
+      </label>
+      {selectedSquad?.closesAt && (
+        <p style={{ marginTop: 8 }}>
+          Batas penilaian: {new Intl.DateTimeFormat("id-ID", {
+            dateStyle: "long", timeStyle: "short", timeZone: "Asia/Jakarta",
+          }).format(new Date(selectedSquad.closesAt))} WIB.
+        </p>
+      )}
+      {ENDORSEMENT_FIELDS.map(([field, label]) => (
+        <Stars key={field} label={label} value={values[field]} disabled={pending}
+          onChange={(value) => setValues((current) => ({ ...current, [field]: value }))} />
+      ))}
+      <button type="submit" disabled={pending || !selectedSquad || !complete || squadId === submittedSquadId}
+        className="endorse-send">
+        {pending ? "Mengirim…" : "Kirim penilaian"}
+      </button>
+    </form>
+  );
+
+  return (
+    <div className="endorse-form">
       {squads.some((squad) => squad.alreadyRated) && (
-        <p className="mt-2 text-sm text-slate-600">
+        <p>
           Sudah dinilai: {squads.filter((squad) => squad.alreadyRated)
             .map((squad) => squad.name).join(", ")}.
         </p>
       )}
       {closed.length > 0 && (
-        <p className="mt-2 text-sm text-slate-600">
+        <p>
           Penilaian ditutup: {closed.map((squad) => squad.name).join(", ")}.
         </p>
       )}
       {available.length > 0 && (
-        <form onSubmit={submit} className="mt-4 space-y-4" aria-busy={pending}>
-          <label className="block text-sm font-semibold">Squad yang dinilai
-            <select required value={squadId} disabled={pending}
-              onChange={(event) => setSquadId(event.target.value)}
-              className="mt-1 block w-full rounded-lg border border-slate-300 p-2">
-              <option value="">Pilih Squad</option>
-              {available.map((squad) => <option key={squad.squadId} value={squad.squadId}>
-                {squad.name}</option>)}
-            </select>
-          </label>
-          {selectedSquad?.closesAt && (
-            <p className="text-sm text-slate-600">
-              Batas penilaian: {new Intl.DateTimeFormat("id-ID", {
-                dateStyle: "long", timeStyle: "short", timeZone: "Asia/Jakarta",
-              }).format(new Date(selectedSquad.closesAt))} WIB.
-            </p>
-          )}
-          <div className="grid gap-4 sm:grid-cols-2">
-            {ENDORSEMENT_FIELDS.map(([field, label]) => (
-              <label key={field} className="block text-sm font-semibold">{label}
-                <select required value={values[field]} disabled={pending}
-                  onChange={(event) => setValues((current) => ({
-                    ...current, [field]: event.target.value,
-                  }))}
-                  className="mt-1 block w-full rounded-lg border border-slate-300 p-2">
-                  <option value="">Pilih nilai</option>
-                  {[1, 2, 3, 4, 5].map((value) => <option key={value} value={value}>
-                    {value}</option>)}
-                </select>
-              </label>
-            ))}
-          </div>
-          <button type="submit" disabled={pending || !selectedSquad || squadId === submittedSquadId}
-            className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60">
-            {pending ? "Mengirim…" : "Kirim penilaian"}
-          </button>
-        </form>
+        // Collapsed it is the one-line bar from the design; opening it reveals the four ratings.
+        <details className="endorse-details" open={Boolean(submittedSquadId) || undefined}>
+          <summary>
+            <span aria-hidden="true" className="endorse-preview">★★★★★</span>
+            <span>Nilai rekan Squad</span>
+          </summary>
+          {form}
+        </details>
       )}
-      {message && <p role="status" className="mt-3 text-sm text-slate-700">{message}</p>}
-    </section>
+      {message && <p role="status" style={{ marginTop: 10 }}>{message}</p>}
+    </div>
   );
 }
