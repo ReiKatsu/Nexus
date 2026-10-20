@@ -58,6 +58,7 @@ async function renderProfile(badgeData, badgeError = null) {
     if (id === "@/lib/supabase/server") return { createClient: async () => client };
     if (id === "@/lib/endorsements") return { loadEndorsementSummary: async () => ({}) };
     if (id === "@/lib/badges") return badges;
+    if (id === "@/lib/badge-collection") return { loadBadgeCollection: async () => ({ items: [], count: 0 }) };
     if (id === "@/lib/season-history") return { loadSeasonHistory: async () => ({ items: [], count: 0 }) };
     if (id === "@/lib/mission-history") return { loadMissionHistory: async () => ({ items: [], count: 0 }) };
     if (id.startsWith("@/components/") || ["next/image", "next/link", "./RankCard"].includes(id)) {
