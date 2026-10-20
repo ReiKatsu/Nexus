@@ -29,7 +29,8 @@ export async function submitWithUploads(url: string, form: FormData,
       const extension = EXTENSIONS[file.type];
       if (!extension) throw new Error("Format berkas tidak didukung.");
       const suffix = bucket === "mission-result-certificates"
-        ? name === "sertifikat" ? "-certificate" : "-supporting" : "";
+        ? name === "sertifikat" ? "-certificate" : "-supporting"
+        : bucket === "mission-documents" && name === "banner" ? "-banner" : "";
       const path = `${prefix}${crypto.randomUUID()}${suffix}.${extension}`;
       const { error: uploadError } = await storage.upload(path, file, {
         contentType: file.type, upsert: false,
