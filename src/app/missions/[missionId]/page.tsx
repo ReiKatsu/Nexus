@@ -105,6 +105,7 @@ export default async function MissionDetailPage({
         biaya_pendaftaran,
         deskripsi_singkat,
         dokumen_path,
+        banner_path,
         tier_id,
         mission_tiers (
           kode_tier,
@@ -134,15 +135,19 @@ export default async function MissionDetailPage({
     Number.isFinite(registrationDeadline) &&
     registrationDeadline > requestTimestamp;
 
-  // Poster dipakai sebagai latar banner. Bucket privat, jadi dibuat signed URL 1 jam.
-  // PDF atau poster yang gagal dimuat membuat banner memakai latar gradien.
-  const posterPath = (mission as MissionDetail).dokumen_path ?? null;
-  let posterUrl: string | null = null;
-  if (posterPath && /\.(jpe?g|png|webp)$/i.test(posterPath)) {
-    const { data: signedPoster } = await supabase.storage
-      .from("mission-documents").createSignedUrl(posterPath, 3600);
-    posterUrl = signedPoster?.signedUrl ?? null;
-  }
+  // Bucket privat, jadi poster dan banner dibuat signed URL 1 jam. Banner adalah hasil
+  // crop pengaju untuk latar atas halaman. Tanpa banner, poster tampil utuh di samping
+  // latar gradien. PDF atau gambar yang gagal dimuat dilewati (latar gradien saja).
+  const imagePath = /\.(jpe?g|png|webp)$/i;
+  const missionFiles = mission as MissionDetail;
+  const signImage = async (path: string | null | undefined) => {
+    if (!path || !imagePath.test(path)) return null;
+    const { data } = await supabase.storage.from("mission-documents").createSignedUrl(path, 3600);
+    return data?.signedUrl ?? null;
+  };
+  const [posterUrl, bannerUrl] = await Promise.all([
+    signImage(missionFiles.dokumen_path), signImage(missionFiles.banner_path),
+  ]);
 
   const [
     squadsResult,
@@ -284,6 +289,7 @@ export default async function MissionDetailPage({
             relatedTier={relatedTier}
             tierLabel={tierLabel}
             posterUrl={posterUrl}
+            bannerUrl={bannerUrl}
           />
 
           <div className="squad-filter">
