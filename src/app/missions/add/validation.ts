@@ -5,7 +5,7 @@ export const MAX_DOCUMENT_BYTES = 10_485_760;
 const FIELD_NAMES = ["nama_lomba", "penyelenggara", "kategori_penyelenggara",
   "link_resmi", "deadline_pendaftaran", "deadline_lomba", "tahun_lomba",
   "kategori_lomba", "cakupan_peserta", "mode_lomba", "biaya_pendaftaran",
-  "min_anggota_tim", "max_anggota_tim", "deskripsi_singkat", "dokumen"] as const;
+  "min_anggota_tim", "max_anggota_tim", "deskripsi_singkat", "dokumen", "banner"] as const;
 export type MissionField = typeof FIELD_NAMES[number];
 export type MissionFieldErrors = Partial<Record<MissionField, string>>;
 
