@@ -32,9 +32,9 @@ export default function EquipBadgeButton({ userBadgeId }: { userBadgeId: string 
   }
 
   return (
-    <div>
+    <div className="chest-equip">
       <button type="button" onClick={handleClick} disabled={pending}
-        className="mt-4 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:cursor-wait disabled:opacity-60">
+        className="chest-equip-btn">
         {pending ? "Memasang…" : "Pasang di profil"}
       </button>
       {error && <p role="alert" className="mt-2 text-sm text-red-700">{error}</p>}
