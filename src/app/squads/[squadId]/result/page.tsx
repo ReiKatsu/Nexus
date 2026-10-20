@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
 import Navbar from "@/components/layout/Navbar";
@@ -6,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 
 import ResultForm from "./ResultForm";
 import type { ResultRecord, TierOption, XpRule } from "./types";
+import BackLink from "@/components/layout/BackLink";
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -68,10 +68,9 @@ export default async function MissionResultPage({ params }: Props) {
     <div className="min-h-screen bg-slate-50 text-slate-900">
       <Navbar displayName={profile.nama_lengkap} avatarPath={profile.foto_profil_path} activeItem="my-squad" />
       <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
-        <Link href={squad.status_squad === "MISSION_COMPLETED" ? "/my-squad" : `/squads/${squadId}`}
-          className="text-sm font-bold text-indigo-600">
-          ← Kembali
-        </Link>
+        <BackLink href={squad.status_squad === "MISSION_COMPLETED" ? "/my-squad" : `/squads/${squadId}`}>
+          Kembali
+        </BackLink>
         <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
           <p className="text-xs font-bold uppercase tracking-[0.18em] text-indigo-600">
             Validasi Prestasi
