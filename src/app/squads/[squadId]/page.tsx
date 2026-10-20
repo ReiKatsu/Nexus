@@ -1,23 +1,27 @@
+
+
+Page · TSX
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-
+ 
 import Navbar from "@/components/layout/Navbar";
 import { createClient } from "@/lib/supabase/server";
-
+ 
 import SquadChat from "./SquadChat";
 import FinalizeSquadButton from "./FinalizeSquadButton";
 import MembershipActions from "./MembershipActions";
 import TransferLeadershipButton from "./TransferLeadershipButton";
 import DisbandSquadButton from "./DisbandSquadButton";
 import type { RoomMember, RoomMessage } from "./types";
-
+import BackLink from "@/components/layout/BackLink";
+ 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
+ 
 type SquadRoomPageProps = {
   params: Promise<{ squadId: string }>;
 };
-
+ 
 function formatDate(value: string): string {
   const date = new Date(value);
   return Number.isNaN(date.getTime())
@@ -27,11 +31,11 @@ function formatDate(value: string): string {
         timeZone: "Asia/Jakarta",
       }).format(date);
 }
-
+ 
 function formatLabel(value: string): string {
   return value.replaceAll("_", " ").toLocaleLowerCase("id-ID");
 }
-
+ 
 function PageMessage({
   displayName,
   avatarPath,
@@ -50,30 +54,28 @@ function PageMessage({
         <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-8 text-center">
           <h1 className="text-2xl font-bold text-slate-950">{title}</h1>
           <p className="mt-3 text-sm text-slate-600">{description}</p>
-          <Link href="/my-squad" className="mt-5 inline-flex font-bold text-indigo-600">
-            Kembali ke My Squad
-          </Link>
+          <BackLink href="/my-squad" className="mt-5">Kembali ke My Squad</BackLink>
         </div>
       </main>
     </div>
   );
 }
-
+ 
 export default async function SquadRoomPage({ params }: SquadRoomPageProps) {
   const { squadId } = await params;
   if (!UUID_PATTERN.test(squadId)) notFound();
-
+ 
   const supabase = await createClient();
   const { data: authData, error: authError } = await supabase.auth.getUser();
   if (authError || !authData.user) redirect("/login");
-
+ 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select("nama_lengkap, role_app, primary_class_id, status_akun, foto_profil_path")
     .eq("user_id", authData.user.id)
     .maybeSingle();
   if (!profileError && profile?.role_app === "ADMIN") redirect("/admin");
-
+ 
   if (profileError || !profile) {
     return <PageMessage displayName="NEXUS" title="Room belum dapat dimuat" description="Profil sedang tidak tersedia." />;
   }
@@ -81,7 +83,7 @@ export default async function SquadRoomPage({ params }: SquadRoomPageProps) {
   if (profile.status_akun !== "ACTIVE") {
     return <PageMessage displayName={profile.nama_lengkap} avatarPath={profile.foto_profil_path} title="Akses Squad dibatasi" description="Akunmu sedang tidak aktif." />;
   }
-
+ 
   const { data: membership, error: membershipError } = await supabase
     .from("squad_members")
     .select("squad_member_id")
@@ -90,29 +92,29 @@ export default async function SquadRoomPage({ params }: SquadRoomPageProps) {
     .eq("status_member", "ACTIVE")
     .limit(1)
     .maybeSingle();
-
+ 
   if (membershipError) {
     return <PageMessage displayName={profile.nama_lengkap} avatarPath={profile.foto_profil_path} title="Room belum dapat dimuat" description="Keanggotaan Squad belum dapat diperiksa." />;
   }
   if (!membership) notFound();
-
+ 
   const { data: squad, error: squadError } = await supabase
     .from("squads")
     .select("squad_id, mission_id, nama_squad, deskripsi_squad, kapasitas_anggota, status_squad")
     .eq("squad_id", squadId)
     .maybeSingle();
-
+ 
   if (squadError || !squad) {
     return <PageMessage displayName={profile.nama_lengkap} avatarPath={profile.foto_profil_path} title="Room belum dapat dimuat" description="Data Squad sedang tidak tersedia." />;
   }
-
+ 
   if (squad.status_squad === "MISSION_COMPLETED") {
     redirect(`/squads/${squadId}/endorsements`);
   }
   if (squad.status_squad === "DISBANDED") {
     return <PageMessage displayName={profile.nama_lengkap} avatarPath={profile.foto_profil_path} title="Room Squad telah ditutup" description="Mission ini sudah selesai. Riwayat Squad tetap tersedia di My Squad." />;
   }
-
+ 
   const [missionResult, membersResult, messagesResult] = await Promise.all([
     supabase
       .from("missions")
@@ -127,11 +129,11 @@ export default async function SquadRoomPage({ params }: SquadRoomPageProps) {
       .order("created_at", { ascending: false })
       .limit(100),
   ]);
-
+ 
   if (missionResult.error || !missionResult.data || membersResult.error || messagesResult.error) {
     return <PageMessage displayName={profile.nama_lengkap} avatarPath={profile.foto_profil_path} title="Room belum dapat dimuat" description="Data Mission, anggota, atau chat sedang tidak tersedia." />;
   }
-
+ 
   const mission = missionResult.data;
   const members = (membersResult.data ?? []) as RoomMember[];
   const messages = ((messagesResult.data ?? []) as RoomMessage[]).reverse();
@@ -145,14 +147,12 @@ export default async function SquadRoomPage({ params }: SquadRoomPageProps) {
   const tier = Array.isArray(mission.mission_tiers)
     ? mission.mission_tiers[0]
     : mission.mission_tiers;
-
+ 
   return (
     <div className="flex min-h-screen flex-col bg-slate-50">
       <Navbar displayName={profile.nama_lengkap} avatarPath={profile.foto_profil_path} activeItem="my-squad" />
       <main className="nexus-page-shell squad-room-page mx-auto w-full max-w-6xl px-4 py-8 text-slate-900 sm:px-6">
-        <Link href="/my-squad" className="text-sm font-bold text-indigo-600 hover:text-indigo-700">
-          ← Kembali ke My Squad
-        </Link>
+        <BackLink href="/my-squad">Kembali ke My Squad</BackLink>
         <header className="glass-card squad-room-hero mt-6 rounded-2xl border border-indigo-100 bg-white p-6 shadow-sm sm:p-8">
           <p className="text-xs font-bold uppercase tracking-[0.18em] text-indigo-600">Squad Room</p>
           <div className="mt-2 flex flex-wrap items-start justify-between gap-3">
@@ -168,7 +168,7 @@ export default async function SquadRoomPage({ params }: SquadRoomPageProps) {
             {members.length}/{squad.kapasitas_anggota} anggota aktif · {mission.nama_lomba}
           </p>
         </header>
-
+ 
         <div className="squad-room-grid mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_19rem]">
           <SquadChat
             squadId={squadId}
@@ -268,4 +268,5 @@ export default async function SquadRoomPage({ params }: SquadRoomPageProps) {
     </div>
   );
 }
-
+ 
+ 
