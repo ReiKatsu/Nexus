@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
@@ -46,6 +47,9 @@ function uniqueStrings(values: Array<string | null>): string[] {
     (firstValue, secondValue) => firstValue.localeCompare(secondValue),
   );
 }
+
+const POSTER_BUCKET = "mission-documents";
+const IMAGE_PATH = /\.(jpe?g|png|webp)$/i;
 
 export default async function MissionsPage({ searchParams }: MissionsPageProps) {
   const supabase = await createClient();
@@ -146,6 +150,7 @@ export default async function MissionsPage({ searchParams }: MissionsPageProps) 
         biaya_pendaftaran,
         cakupan_peserta,
         open_squads:squads(count),
+        dokumen_path,
         tier_id,
         mission_tiers (
           kode_tier
@@ -183,249 +188,189 @@ export default async function MissionsPage({ searchParams }: MissionsPageProps) 
   const participantXp = new Map((xpRulesResult.data ?? [])
     .map((rule) => [rule.tier_id, rule.verified_xp]));
 
+  // Poster disimpan di bucket private. Satu panggilan membuat semua signed URL
+  // (berlaku 1 jam). PDF atau poster yang gagal dimuat tampil sebagai placeholder.
+  const posterPaths = missions
+    .map((mission) => mission.dokumen_path as string | null)
+    .filter((path): path is string => Boolean(path && IMAGE_PATH.test(path)));
+  const posterUrls = new Map<string, string>();
+  if (posterPaths.length > 0) {
+    const { data: signed } = await supabase.storage
+      .from(POSTER_BUCKET).createSignedUrls(posterPaths, 3600);
+    for (const item of signed ?? []) {
+      if (item.path && item.signedUrl) posterUrls.set(item.path, item.signedUrl);
+    }
+  }
+
   return (
     <div className="flex min-h-screen w-full min-w-0 flex-col overflow-x-clip bg-slate-50">
       <Navbar displayName={profile.nama_lengkap} avatarPath={profile.foto_profil_path} activeItem="missions" />
-      <main className="relative flex w-full min-w-0 flex-1 justify-center overflow-x-clip px-4 py-7 text-slate-900 sm:px-6 sm:py-10 lg:py-14">
-        <div
-          aria-hidden="true"
-          className="absolute -left-32 -top-32 h-80 w-80 rounded-full bg-indigo-200/50 blur-3xl"
-        />
-        <div
-          aria-hidden="true"
-          className="absolute -bottom-40 -right-32 h-96 w-96 rounded-full bg-violet-200/50 blur-3xl"
-        />
-        <section className="mission-discovery relative w-full min-w-0">
-          <div className="mission-page-header">
-            <p className="text-sm font-bold tracking-[0.2em] text-indigo-600">
-              NEXUS
-            </p>
-            <h1 className="mt-2 break-words text-3xl font-bold tracking-tight text-slate-950 [overflow-wrap:anywhere] sm:mt-3 sm:text-4xl">
-              Missions
-            </h1>
-            <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-600 sm:text-base">
-              Temukan kompetisi yang sesuai dengan skill dan minatmu.
-            </p>
-            <div className="mt-5 flex flex-wrap gap-3">
-              <Link href="/missions/add"
-                className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-bold text-white">
+      <main className="relative w-full min-w-0 flex-1 overflow-x-clip px-4 py-8 text-slate-900 sm:px-8 lg:py-10">
+        <section className="mission-discovery relative mx-auto w-full min-w-0">
+          <h1 className="sr-only">Missions</h1>
+
+          <form
+            key={JSON.stringify([searchQuery, selectedCategory, selectedTier?.code, selectedMode, selectedCost])}
+            method="GET"
+            className="mission-toolbar"
+          >
+            <div className="mission-toolbar-main">
+              <details className="mission-filter" open={hasActiveFilters}>
+                <summary className="mission-filter-btn">Filter</summary>
+                <div className="mission-filter-panel">
+                  <div className="mission-filter-grid">
+                    <label>
+                      Kategori
+                      <select name="category" defaultValue={selectedCategory}>
+                        <option value="">Semua kategori</option>
+                        {categoryOptions.map((category) => (
+                          <option key={category} value={category}>{formatEnumLabel(category)}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <label>
+                      Tier
+                      <select name="tier" defaultValue={selectedTier?.code ?? ""}>
+                        <option value="">Semua tier</option>
+                        {tierOptions.map((tier) => (
+                          <option key={tier.code} value={tier.code}>
+                            {tier.code.toLocaleUpperCase("id-ID")}-Rank
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label>
+                      Mode
+                      <select name="mode" defaultValue={selectedMode}>
+                        <option value="">Semua mode</option>
+                        {modeOptions.map((mode) => (
+                          <option key={mode} value={mode}>{formatEnumLabel(mode)}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <label>
+                      Biaya
+                      <select name="cost" defaultValue={selectedCost}>
+                        <option value="">Semua biaya</option>
+                        {costOptions.map((cost) => (
+                          <option key={cost} value={cost}>{formatEnumLabel(cost)}</option>
+                        ))}
+                      </select>
+                    </label>
+                  </div>
+                  <div className="mission-filter-actions">
+                    <button type="submit" className="mission-apply-btn">Terapkan</button>
+                    <Link href="/missions" className="mission-reset-btn">Reset</Link>
+                  </div>
+                </div>
+              </details>
+
+              <div className="mission-searchbar" role="search">
+                <label htmlFor="mission-q" className="sr-only">Cari nama kompetisi</label>
+                <input id="mission-q" type="search" name="q" defaultValue={searchQuery}
+                  maxLength={100} placeholder="Search" autoComplete="off" />
+                <button type="submit" className="mission-search-btn" aria-label="Cari Mission">
+                  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor"
+                    strokeWidth="2.4" strokeLinecap="round" aria-hidden="true">
+                    <circle cx="10.5" cy="10.5" r="6.5" /><path d="m15.5 15.5 5 5" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div className="mission-toolbar-actions">
+              <Link href="/missions/add" className="mission-action mission-action--primary">
                 + Tambah Mission
               </Link>
-              <Link href="/missions/submissions"
-                className="rounded-lg border border-indigo-200 px-4 py-2 text-sm font-bold text-indigo-700">
+              <Link href="/missions/submissions" className="mission-action">
                 Pengajuan saya
               </Link>
             </div>
-          </div>
+          </form>
 
-          <div className="mt-7 sm:mt-8">
-            <h2 className="sr-only">
-              Mission Discovery
-            </h2>
+          {filterOptionsError || missionsError ? (
+            <div className="glass-card mission-empty">
+              <p className="font-bold">Missions belum dapat dimuat</p>
+              <p className="mt-2 text-sm">Data Mission sedang tidak tersedia.</p>
+            </div>
+          ) : missions.length === 0 ? (
+            <div className="glass-card mission-empty">
+              {hasActiveFilters ? (
+                <>
+                  <p className="font-bold">Tidak ada Mission yang cocok</p>
+                  <p className="mt-2 text-sm">Coba ubah kata pencarian atau filter yang digunakan.</p>
+                </>
+              ) : (
+                <>
+                  <p className="font-bold">Belum ada Mission aktif</p>
+                  <p className="mt-2 text-sm">Mission baru akan muncul di sini setelah tersedia.</p>
+                </>
+              )}
+            </div>
+          ) : (
+            <div className="mission-grid">
+              {missions.map((mission) => {
+                const relatedTier = getRelatedTier(mission.mission_tiers);
+                const tierCode = relatedTier?.kode_tier?.trim();
+                const posterPath = mission.dokumen_path as string | null;
+                const posterUrl = posterPath ? posterUrls.get(posterPath) : undefined;
+                const posterIsPdf = Boolean(posterPath && /\.pdf$/i.test(posterPath));
+                const squadCount = mission.open_squads?.[0]?.count;
+                const xp = participantXp.get(mission.tier_id);
 
-            <form
-              key={JSON.stringify([searchQuery, selectedCategory, selectedTier?.code, selectedMode, selectedCost])}
-              method="GET"
-              className="mission-search min-w-0 border bg-white"
-            >
-              <label className="block text-xs font-bold text-slate-600">
-                Cari nama kompetisi
-                <input type="search" name="q" defaultValue={searchQuery} maxLength={100}
-                  placeholder="Masukkan nama Mission"
-                  className="mt-1.5 block h-10 w-full rounded-xl border border-slate-200 px-3 text-sm font-normal text-slate-700 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100" />
-              </label>
-              <details open={hasActiveFilters}>
-                <summary className="inline-flex rounded-full bg-white/20 px-5 py-2 text-sm font-semibold">Filter Mission ▾</summary>
-              <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                <label className="min-w-0 text-xs font-bold text-slate-600">
-                  Kategori
-                  <select
-                    name="category"
-                    defaultValue={selectedCategory}
-                    className="mt-1.5 block h-10 w-full min-w-0 max-w-full truncate rounded-xl border border-slate-200 bg-white px-3 text-sm font-normal text-slate-700 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
-                  >
-                    <option value="">Semua kategori</option>
-                    {categoryOptions.map((category) => (
-                      <option key={category} value={category}>
-                        {formatEnumLabel(category)}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                return (
+                  <article key={mission.mission_id} className="mission-card">
+                    <div className="mission-card-body">
+                      <h2 className="mission-card-title">
+                        <Link href={`/missions/${mission.mission_id}`}>{mission.nama_lomba}</Link>
+                      </h2>
+                      <p className="mission-card-organizer">{mission.penyelenggara}</p>
 
-                <label className="min-w-0 text-xs font-bold text-slate-600">
-                  Tier
-                  <select
-                    name="tier"
-                    defaultValue={selectedTier?.code ?? ""}
-                    className="mt-1.5 block h-10 w-full min-w-0 max-w-full truncate rounded-xl border border-slate-200 bg-white px-3 text-sm font-normal text-slate-700 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
-                  >
-                    <option value="">Semua tier</option>
-                    {tierOptions.map((tier) => (
-                      <option key={tier.code} value={tier.code}>
-                        {tier.code.toLocaleUpperCase("id-ID")}-Rank
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                      <ul className="mission-card-tags">
+                        <li>{tierCode ? `${tierCode.toLocaleUpperCase("id-ID")}-Rank` : "Tier belum tersedia"}</li>
+                        <li>{formatEnumLabel(mission.cakupan_peserta)}</li>
+                        <li>{formatEnumLabel(mission.biaya_pendaftaran)}</li>
+                        <li>{formatEnumLabel(mission.mode_lomba)}</li>
+                      </ul>
 
-                <label className="min-w-0 text-xs font-bold text-slate-600">
-                  Mode
-                  <select
-                    name="mode"
-                    defaultValue={selectedMode}
-                    className="mt-1.5 block h-10 w-full min-w-0 max-w-full truncate rounded-xl border border-slate-200 bg-white px-3 text-sm font-normal text-slate-700 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
-                  >
-                    <option value="">Semua mode</option>
-                    {modeOptions.map((mode) => (
-                      <option key={mode} value={mode}>
-                        {formatEnumLabel(mode)}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-
-                <label className="min-w-0 text-xs font-bold text-slate-600">
-                  Biaya
-                  <select
-                    name="cost"
-                    defaultValue={selectedCost}
-                    className="mt-1.5 block h-10 w-full min-w-0 max-w-full truncate rounded-xl border border-slate-200 bg-white px-3 text-sm font-normal text-slate-700 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
-                  >
-                    <option value="">Semua biaya</option>
-                    {costOptions.map((cost) => (
-                      <option key={cost} value={cost}>
-                        {formatEnumLabel(cost)}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              </div>
-              </details>
-
-              <div className="mission-search-actions grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
-                <button
-                  type="submit"
-                  className="w-full rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-indigo-700 sm:w-auto"
-                >
-                  Terapkan
-                </button>
-                <Link
-                  href="/missions"
-                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-center text-sm font-bold text-slate-600 transition hover:bg-slate-50 sm:w-auto"
-                >
-                  Reset
-                </Link>
-              </div>
-            </form>
-
-            {filterOptionsError || missionsError ? (
-              <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-5 text-center shadow-sm sm:p-8">
-                <p className="font-bold text-slate-950">
-                  Missions belum dapat dimuat
-                </p>
-                <p className="mt-2 text-sm leading-6 text-slate-500">
-                  Data Mission sedang tidak tersedia.
-                </p>
-              </div>
-            ) : (missions ?? []).length === 0 ? (
-              <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-5 text-center shadow-sm sm:p-8">
-                {hasActiveFilters ? (
-                  <>
-                    <p className="font-bold text-slate-950">
-                      Tidak ada Mission yang cocok
-                    </p>
-                    <p className="mt-2 text-sm leading-6 text-slate-500">
-                      Coba ubah kata pencarian atau filter yang digunakan.
-                    </p>
-                  </>
-                ) : (
-                  <>
-                    <p className="font-bold text-slate-950">
-                      Belum ada Mission aktif
-                    </p>
-                    <p className="mt-2 text-sm leading-6 text-slate-500">
-                      Mission baru akan muncul di sini setelah tersedia.
-                    </p>
-                  </>
-                )}
-              </div>
-            ) : (
-              <div className="mission-grid mt-6 grid gap-5">
-                {(missions ?? []).map((mission) => {
-                  const relatedTier = getRelatedTier(mission.mission_tiers);
-                  const tierCode = relatedTier?.kode_tier?.trim();
-
-                  return (
-                    <article
-                      key={mission.mission_id}
-                      className="glass-card mission-tile min-w-0"
-                    >
-                      <h3 className="break-words text-lg font-bold text-slate-950 [overflow-wrap:anywhere] sm:text-xl">
-                        <Link
-                          href={`/missions/${mission.mission_id}`}
-                          className="rounded transition-colors hover:text-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-200"
-                        >
-                          {mission.nama_lomba}
-                        </Link>
-                      </h3>
-                      <p className="mt-1 break-words text-sm text-slate-500 [overflow-wrap:anywhere]">
-                        {mission.penyelenggara}
+                      <p className="mission-card-meta">
+                        {squadCount === undefined
+                          ? "Jumlah squad belum dapat dimuat"
+                          : `${squadCount} squad sedang melakukan open recruitment`}
+                      </p>
+                      <p className="mission-card-meta">
+                        Deadline{" "}
+                        <time dateTime={mission.deadline_pendaftaran}>
+                          {deadlineFormatter.format(new Date(mission.deadline_pendaftaran))}
+                        </time>
                       </p>
 
-                      <div className="mt-4 flex flex-wrap gap-2">
-                        <span className="max-w-full break-words rounded-full border border-indigo-100 bg-indigo-50 px-3 py-1.5 text-xs font-bold text-indigo-700 [overflow-wrap:anywhere]">
-                          {tierCode
-                            ? `${tierCode.toLocaleUpperCase("id-ID")}-Rank`
-                            : "Tier belum tersedia"}
-                        </span>
-                        <span className="max-w-full break-words rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-600 [overflow-wrap:anywhere]">
-                          {mission.mode_lomba}
-                        </span>
-                        <span className="max-w-full break-words rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-600 [overflow-wrap:anywhere]">
-                          {formatEnumLabel(mission.cakupan_peserta)}
-                        </span>
-                        <span className="max-w-full break-words rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-600 [overflow-wrap:anywhere]">
-                          {formatEnumLabel(mission.biaya_pendaftaran)}
-                        </span>
-                      </div>
-
-                      <div className="mt-4 grid gap-2 text-xs text-slate-600">
-                        <p>{xpRulesResult.error || !participantXp.has(mission.tier_id)
-                          ? "XP Participant belum tersedia"
-                          : `${participantXp.get(mission.tier_id)} XP dasar Participant`}</p>
-                        <p>{mission.open_squads?.[0]?.count === undefined
-                          ? "Jumlah Squad belum dapat dimuat"
-                          : `${mission.open_squads[0].count} Squad Open Recruitment`}</p>
-                      </div>
-                      <div className="mt-5 border-t border-slate-100 pt-4">
-                        <p className="text-xs font-bold uppercase tracking-[0.14em] text-slate-400">
-                          Deadline pendaftaran
-                        </p>
-                        <time
-                          dateTime={mission.deadline_pendaftaran}
-                          className="mt-1 block text-sm font-bold text-slate-800"
-                        >
-                          {deadlineFormatter.format(
-                            new Date(mission.deadline_pendaftaran),
-                          )}
-                        </time>
-                      </div>
-                      <div className="pt-5">
-                        <Link href={`/missions/${mission.mission_id}`}
-                          className="inline-block rounded-full border border-white/30 px-4 py-2 text-xs font-semibold hover:bg-white/10">
-                          Lihat detail ↗
+                      <div className="mission-card-foot">
+                        <Link href={`/missions/${mission.mission_id}`} className="mission-card-link">
+                          Lihat Detail ↗
                         </Link>
+                        <span className="mission-card-xp">
+                          {xpRulesResult.error || xp === undefined ? "XP belum tersedia" : `${xp} XP Base`}
+                        </span>
                       </div>
-                    </article>
-                  );
-                })}
-              </div>
-            )}
-          </div>
+                    </div>
+
+                    <Link href={`/missions/${mission.mission_id}`} className="mission-card-poster"
+                      aria-label={`Poster ${mission.nama_lomba}`}>
+                      {posterUrl ? (
+                        <Image src={posterUrl} alt={`Poster ${mission.nama_lomba}`}
+                          width={232} height={310} unoptimized />
+                      ) : (
+                        <span>{posterIsPdf ? "Poster PDF" : "Poster belum tersedia"}</span>
+                      )}
+                    </Link>
+                  </article>
+                );
+              })}
+            </div>
+          )}
         </section>
       </main>
     </div>
   );
 }
-
