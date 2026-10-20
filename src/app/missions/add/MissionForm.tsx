@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
+import { useCallback, useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 
 import { submitWithUploads } from "@/lib/uploads/submit-with-uploads";
 
+import BannerCropper, { type BannerState } from "./BannerCropper";
 import { CATEGORIES, COSTS, MODES, ORGANIZERS, SCOPES,
   type MissionSubmission } from "./options";
 import { MAX_DOCUMENT_BYTES, validateDocument, validateFields,
@@ -61,6 +62,13 @@ export default function MissionForm({ initial }: { initial: MissionSubmission | 
     nama_lomba: string; penyelenggara: string; tahun_lomba: number;
   }[]>([]);
   const [posterPreview, setPosterPreview] = useState<string | null>(null);
+  const [banner, setBanner] = useState<BannerState>({ active: false, file: null });
+
+  // Hasil crop banner datang dari BannerCropper; menyentuh banner menghapus pesan galatnya.
+  const changeBanner = useCallback((next: BannerState) => {
+    setBanner((current) => current.active === next.active && current.file === next.file ? current : next);
+    setFieldErrors((current) => current.banner ? { ...current, banner: undefined } : current);
+  }, []);
 
   // Pratinjau poster hanya ada di browser; URL sementara dilepas saat berganti/keluar halaman.
   useEffect(() => () => { if (posterPreview) URL.revokeObjectURL(posterPreview); }, [posterPreview]);
@@ -102,16 +110,21 @@ export default function MissionForm({ initial }: { initial: MissionSubmission | 
         errors.dokumen = "Poster harus berupa gambar JPG atau PNG asli.";
       }
     }
+    if (banner.active && !banner.file) {
+      errors.banner = "Banner belum siap. Pilih gambar yang valid atau hapus banner.";
+    }
     if (Object.keys(errors).length) {
       showFieldErrors(errors, element);
       return;
     }
+    if (banner.active && banner.file) form.set("banner", banner.file);
+    else form.delete("banner");
     if (!window.confirm("Kirim pengajuan Mission ini untuk diperiksa admin?")) return;
     setPending(true);
     setError("");
     try {
       const response = await submitWithUploads("/api/missions/submissions", form,
-        "mission-documents", ["dokumen"], initial?.mission_submission_id);
+        "mission-documents", ["dokumen", "banner"], initial?.mission_submission_id);
       const result: { success?: boolean; message?: string;
         fieldErrors?: MissionFieldErrors } = await response.json();
       if (!response.ok || !result.success) {
@@ -253,6 +266,7 @@ export default function MissionForm({ initial }: { initial: MissionSubmission | 
           : <span>Pratinjau poster</span>}
       </div>
     </div>
+    <BannerCropper posterUrl={posterPreview} error={fieldErrors.banner} onChange={changeBanner} />
     <p className="text-sm text-slate-600">
       Pengajuan yang menunggu review belum muncul di Discovery. Tier akhir ditetapkan admin.
       Periksa Mission yang sudah tersedia agar tidak mengajukan duplikat.</p>
