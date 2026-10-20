@@ -49,5 +49,6 @@ export async function equipBadge(userBadgeId: string): Promise<EquipBadgeResult>
 
   revalidatePath("/profile/badges");
   revalidatePath("/profile");
+  revalidatePath("/profile/edit");
   return { success: true };
 }

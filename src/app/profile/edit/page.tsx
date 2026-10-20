@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
 
 import Navbar from "@/components/layout/Navbar";
+import ProfileBadgeCollection from "@/components/profile/ProfileBadgeCollection";
+import { loadBadgeCollection } from "@/lib/badge-collection";
 import { createClient } from "@/lib/supabase/server";
 
 import EditProfileForm from "./EditProfileForm";
@@ -32,25 +34,27 @@ export default async function EditProfilePage() {
   const avatarUrl = profile.foto_profil_path
     ? supabase.storage.from("avatars").getPublicUrl(profile.foto_profil_path).data.publicUrl
     : null;
-  const [classes, skills, selectedSkills] = await Promise.all([
+  const [classes, skills, selectedSkills, badgeCollection] = await Promise.all([
     supabase.from("primary_classes").select("primary_class_id,nama_class")
       .order("primary_class_id", { ascending: true }),
     supabase.from("skills").select("skill_id,nama_skill,primary_class_id")
       .order("nama_skill", { ascending: true }),
     supabase.from("user_skills").select("skill_id")
       .eq("user_id", auth.user.id),
+    profile.role_app === "STUDENT" ? loadBadgeCollection(supabase, auth.user.id) : Promise.resolve(null),
   ]);
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
+    <div className="nexus-app-page min-h-screen bg-slate-50 text-slate-900">
       <Navbar displayName={profile.nama_lengkap} avatarPath={profile.foto_profil_path} activeItem="profile" />
-      <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
+      <main className="nexus-page-shell mx-auto max-w-3xl px-4 py-8 sm:px-6">
         <h1 className="text-2xl font-bold">Edit profil</h1>
         <p className="mt-2 text-sm text-slate-600">
           Perubahan tersimpan pada profil NEXUS milikmu.
         </p>
         <AvatarUploadForm name={profile.nama_lengkap} avatarUrl={avatarUrl} />
         <EditProfileForm name={profile.nama_lengkap} bio={profile.bio ?? ""} />
+        {profile.role_app === "STUDENT" && <ProfileBadgeCollection collection={badgeCollection} />}
         {profile.role_app === "STUDENT" && (
           classes.error || skills.error || selectedSkills.error ||
           !classes.data || !skills.data || !selectedSkills.data ||

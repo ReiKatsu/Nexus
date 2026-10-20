@@ -6,11 +6,13 @@ import BadgePill from "@/components/profile/BadgePill";
 import EndorsementPanel from "@/components/profile/EndorsementPanel";
 import MissionHistoryCard from "@/components/profile/MissionHistoryCard";
 import ProfileHero from "@/components/profile/ProfileHero";
+import ProfileBadgeCollection from "@/components/profile/ProfileBadgeCollection";
 import RankSwitcherCard from "@/components/profile/RankSwitcherCard";
 import SeasonHistoryTiles from "@/components/profile/SeasonHistoryTiles";
 import ShareProfile from "@/components/profile/ShareProfile";
 import XpProgressCard from "@/components/profile/XpProgressCard";
 import { badgeTone, describeBadge, facultyAbbreviation, one } from "@/lib/badges";
+import { loadBadgeCollection } from "@/lib/badge-collection";
 import { loadEndorsementSummary } from "@/lib/endorsements";
 import { loadMissionHistory } from "@/lib/mission-history";
 import { loadSeasonHistory } from "@/lib/season-history";
@@ -45,7 +47,7 @@ export default async function ProfilePage() {
   const userId = auth.user.id;
   const isStudent = profile.role_app === "STUDENT";
   const [classResult, programResult, skillsResult, careerResult, seasonResult, rulesResult,
-    endorsementSummary, seasonHistory, missionHistory, equippedResult] =
+    endorsementSummary, seasonHistory, missionHistory, equippedResult, badgeCollection] =
     await Promise.all([
       profile.primary_class_id === null
         ? Promise.resolve({ data: null, error: null })
@@ -70,6 +72,7 @@ export default async function ProfilePage() {
         .select(`badge_definitions(badge_name), scope_type, rank_position, population_total,
           program_studi(nama_program_studi), fakultas(nama_fakultas)`)
         .eq("user_id", userId).eq("is_equipped", true).maybeSingle(),
+      isStudent ? loadBadgeCollection(supabase, userId) : Promise.resolve(null),
     ]);
 
   const [facultyResult, seasonalResult] = await Promise.all([
@@ -144,10 +147,13 @@ export default async function ProfilePage() {
           actions={
             <>
               <Link href="/profile/edit" className="profile-action">Edit Profil</Link>
+              {isStudent && <Link href="/profile/badges" prefetch={false} className="profile-action">Badge Chest</Link>}
               {isStudent && <ShareProfile userId={userId} />}
               {isStudent && <Link href="/profile/claims" className="profile-action">Klaim Achievement</Link>}
             </>
           } />
+
+        {isStudent && <ProfileBadgeCollection collection={badgeCollection} />}
 
         {isStudent && (
           <div className="profile-grid">
