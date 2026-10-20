@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
 import Navbar from "@/components/layout/Navbar";
@@ -14,6 +13,7 @@ import { loadEndorsementSummary, loadSharedCompletedSquads } from "@/lib/endorse
 import { loadPeerReputation } from "@/lib/peer-reputation";
 import { createClient } from "@/lib/supabase/server";
 import EndorsementForm from "./EndorsementForm";
+import BackLink from "@/components/layout/BackLink";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -96,10 +96,10 @@ export default async function PeerProfilePage({ params, searchParams }: {
     <div className="nexus-app-page min-h-screen bg-slate-50 text-slate-900">
       <Navbar displayName={viewerResult.data.nama_lengkap} avatarPath={viewerResult.data.foto_profil_path} activeItem={missionId ? "missions" : context ? "my-squad" : "leaderboard"} />
       <main className="nexus-page-shell profile-v2 mx-auto max-w-6xl px-4 py-8 sm:px-6">
-        <Link href={missionId ? `/missions/${missionId}` : context ? `/squads/${context.squadId}/endorsements` : "/leaderboard"}
+        <BackLink href={missionId ? `/missions/${missionId}` : context ? `/squads/${context.squadId}/endorsements` : "/leaderboard"}
           prefetch={false} className="profile-back">
-          {missionId ? "← Kembali ke Mission" : context ? `← Detail ${context.name}` : "← Leaderboard"}
-        </Link>
+          {missionId ? "Kembali ke Mission" : context ? `Detail ${context.name}` : "Leaderboard"}
+        </BackLink>
 
         <ProfileHero name={peer.nama_lengkap} avatarUrl={avatar} tone={badgeTone(badge)}
           badge={badgeNode} tags={tags} bio={peer.bio?.trim() || "Belum ada bio."} />
