@@ -205,8 +205,8 @@ export default async function MissionsPage({ searchParams }: MissionsPageProps) 
   return (
     <div className="flex min-h-screen w-full min-w-0 flex-col overflow-x-clip bg-slate-50">
       <Navbar displayName={profile.nama_lengkap} avatarPath={profile.foto_profil_path} activeItem="missions" />
-      <main className="relative w-full min-w-0 flex-1 overflow-x-clip px-4 py-8 text-slate-900 sm:px-8 lg:py-10">
-        <section className="mission-discovery relative mx-auto w-full min-w-0">
+      <main className="mission-discovery relative w-full min-w-0 flex-1 overflow-x-clip px-4 py-8 text-slate-900 sm:px-8 lg:py-10">
+        <section className="mission-discovery-inner relative mx-auto w-full min-w-0">
           <h1 className="sr-only">Missions</h1>
 
           <form
