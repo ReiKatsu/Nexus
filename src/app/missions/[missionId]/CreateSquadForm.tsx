@@ -243,8 +243,9 @@ export default function CreateSquadForm({
             aria-describedby={
               availabilityMessage ? "create-squad-availability" : undefined
             }
-            className="ml-auto inline-flex h-10 w-full shrink-0 items-center justify-center rounded-full border border-white/30 bg-indigo-600 px-6 text-sm font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-200 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-600 disabled:opacity-80 sm:w-auto"
+            className="squad-add-btn ml-auto w-full shrink-0 focus:outline-none focus:ring-4 focus:ring-indigo-200 sm:w-auto"
           >
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M12 2c.6 4.9 2.6 7.4 8 8-5.4.6-7.4 3.1-8 8-.6-4.9-2.6-7.4-8-8 5.4-.6 7.4-3.1 8-8Z" /></svg>
             Buat Squad
           </button>
         )}
