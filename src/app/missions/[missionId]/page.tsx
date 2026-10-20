@@ -15,6 +15,7 @@ import type {
   MissionDetail,
   MissionSquad,
   MissionSquadLeader,
+  SquadRequirement,
 } from "./mission-detail/types";
 
 type MissionDetailPageProps = {
@@ -103,6 +104,7 @@ export default async function MissionDetailPage({
         max_anggota_tim,
         biaya_pendaftaran,
         deskripsi_singkat,
+        dokumen_path,
         tier_id,
         mission_tiers (
           kode_tier,
@@ -131,6 +133,16 @@ export default async function MissionDetailPage({
   const registrationOpen =
     Number.isFinite(registrationDeadline) &&
     registrationDeadline > requestTimestamp;
+
+  // Poster dipakai sebagai latar banner. Bucket privat, jadi dibuat signed URL 1 jam.
+  // PDF atau poster yang gagal dimuat membuat banner memakai latar gradien.
+  const posterPath = (mission as MissionDetail).dokumen_path ?? null;
+  let posterUrl: string | null = null;
+  if (posterPath && /\.(jpe?g|png|webp)$/i.test(posterPath)) {
+    const { data: signedPoster } = await supabase.storage
+      .from("mission-documents").createSignedUrl(posterPath, 3600);
+    posterUrl = signedPoster?.signedUrl ?? null;
+  }
 
   const [
     squadsResult,
@@ -216,6 +228,29 @@ export default async function MissionDetailPage({
     leaderApplicationsBySquad.set(application.squad_id, applications);
   }
 
+  // Kebutuhan recruitment untuk modal Detail Squad. Hasilnya informasi bagi calon pelamar;
+  // bila RLS menolak atau query gagal, modal hanya tidak menampilkan bagian ini.
+  const requirementsBySquad = new Map<string, SquadRequirement[]>();
+  const listedSquadIds = (squadsResult.data ?? []).map((squad) => squad.squad_id);
+  if (listedSquadIds.length > 0) {
+    const { data: requirementRows, error: requirementsError } = await supabase
+      .from("squad_requirements")
+      .select("squad_id, primary_class_id, slot_dibutuhkan")
+      .in("squad_id", listedSquadIds);
+    if (!requirementsError) {
+      const classNames = new Map(
+        (primaryClassesResult.data ?? []).map((item) => [item.primary_class_id, item.nama_class]),
+      );
+      for (const row of requirementRows ?? []) {
+        const className = classNames.get(row.primary_class_id);
+        if (!className) continue;
+        const list = requirementsBySquad.get(row.squad_id) ?? [];
+        list.push({ className, slots: row.slot_dibutuhkan });
+        requirementsBySquad.set(row.squad_id, list);
+      }
+    }
+  }
+
   const squadLeaderNames = new Map<string, string | null>(
     ((squadLeadersResult.data ?? []) as MissionSquadLeader[]).map((leader) => [
       leader.squad_id,
@@ -226,7 +261,7 @@ export default async function MissionDetailPage({
   return (
     <div className="flex min-h-screen w-full min-w-0 flex-col overflow-x-clip bg-slate-50">
       <Navbar displayName={profile.nama_lengkap} avatarPath={profile.foto_profil_path} activeItem="missions" />
-      <main className="relative flex w-full min-w-0 flex-1 justify-center overflow-x-clip px-4 py-7 text-slate-900 sm:px-6 sm:py-10 lg:py-14">
+      <main className="mission-discovery relative flex w-full min-w-0 flex-1 justify-center overflow-x-clip px-4 py-7 text-slate-900 sm:px-8 sm:py-10 lg:py-12">
         <div
           aria-hidden="true"
           className="absolute -left-32 -top-32 h-80 w-80 rounded-full bg-indigo-200/50 blur-3xl"
@@ -236,7 +271,7 @@ export default async function MissionDetailPage({
           className="absolute -bottom-40 -right-32 h-96 w-96 rounded-full bg-violet-200/50 blur-3xl"
         />
 
-        <article className="relative w-full min-w-0 max-w-7xl">
+        <article className="relative w-full min-w-0">
           <Link
             href="/missions"
             className="inline-flex rounded-lg text-sm font-bold text-indigo-600 transition hover:text-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-200"
@@ -248,10 +283,11 @@ export default async function MissionDetailPage({
             mission={mission as MissionDetail}
             relatedTier={relatedTier}
             tierLabel={tierLabel}
+            posterUrl={posterUrl}
           />
 
           <div className="squad-filter">
-            <h2 className="text-xl font-semibold">Squad Tersedia <span className="ml-2 rounded-full bg-white/20 px-3 py-1 text-sm">{squadsResult.error ? "—" : squadsResult.data?.length ?? 0}</span></h2>
+            <h2 className="squad-filter-title">Squad Tersedia <span>{squadsResult.error ? "—" : squadsResult.data?.length ?? 0}</span></h2>
             <nav aria-label="Filter status squad">
               {[["all", "Semua"], ["open", "Open Recruitment"], ["locked", "Locked"]].map(([key, label]) => (
                 <Link key={key} href={key === "all" ? `/missions/${missionId}` : `/missions/${missionId}?status=${key}`}
@@ -272,6 +308,8 @@ export default async function MissionDetailPage({
 
           <SquadList
             missionId={missionId}
+            missionName={mission.nama_lomba}
+            requirementsBySquad={requirementsBySquad}
             squads={((squadsResult.data as MissionSquad[] | null) ?? []).filter((squad) =>
               squadFilter === "all" || (squadFilter === "open" ? squad.status_squad === "OPEN_RECRUITMENT"
                 : squad.status_squad === "FULL" || squad.status_squad === "FINALIZED"))}
